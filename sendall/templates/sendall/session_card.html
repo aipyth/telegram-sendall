@@ -1,0 +1,9 @@
+<div class="md-card session">
+    <a class="text-decoration-none" href="{% url 'session-detail' session.id %}">
+        <h3>{{ session.name }}</h3>
+        {% if session.username %}
+        <p>{{ session.username }}</p>
+        {% endif %}
+        <p>{{ session.phone }}</p>
+    </a>
+</div>

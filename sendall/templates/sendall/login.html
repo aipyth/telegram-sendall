@@ -1,0 +1,31 @@
+{% extends 'sendall/base.html' %}
+{% load widget_tweaks %}
+
+{% block header %}
+<header class='container-fluid'>
+    <h1 class='page-title'>Log In</h1>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="container d-flex flex-column align-items-center">
+    {% if form.errors %}
+    <div class="md-card danger">
+        <p>Please enter a correct username and password.</p>
+    </div>
+    {% endif %}
+
+    <form class="md-card" action="{% url 'login' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.username.label_tag }}
+            {{ form.username|add_class:"form-control" }}
+        </div>
+        <div class="form-group">
+            {{ form.password.label_tag }}
+            {{ form.password|add_class:"form-control" }}
+        </div>
+        <input type="submit" value="Log In" class="btn btn-lg btn-block btn-light">
+    </form>
+</div>
+{% endblock %}

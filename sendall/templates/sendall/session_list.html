@@ -1,0 +1,20 @@
+{% extends 'sendall/base.html' %}
+
+{% block header %}
+<header class='container-fluid'>
+    <h1 class='page-title'>Sessions</h1>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="container d-flex flex-column align-items-center">
+    {% for session in sessions %}
+        {% include 'sendall/session_card.html' %}
+    {% endfor %}
+    <div class="md-card session">
+        <a class="text-decoration-none" href="{% url 'add-session' %}">
+            <h2>+</h2>
+        </a>
+    </div>
+</div>
+{% endblock %}

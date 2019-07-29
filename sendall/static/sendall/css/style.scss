@@ -1,0 +1,106 @@
+@mixin card-shadow {
+    border-radius: 8px;
+    box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
+    margin: 20px 0;
+    padding: 20px 15px;
+}
+@mixin card-like {
+    @include card-shadow;
+
+    @media (max-width: 540px) {
+        width: 90%;
+    }
+
+    h1, h2, h3, h4, h5, h6, p {
+        text-align: center;
+    }
+    a:hover {
+        text-decoration: none;
+    }
+}
+
+.abs-center-x {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.page-title {
+    display: block;
+    text-align: center;
+    font-family: 'Roboto Slab', serif;
+    font-weight: 700;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.md-card {
+    @include card-like;
+    width: 500px;
+}
+.loading-card {
+    @include card-like();
+}
+
+.danger {
+    // color: rgba(255, 255, 255, 1);
+    // background-color: rgba(255, 50, 50, 1);
+    background-color: rgba(255, 255, 255, 1);
+    color: rgba(255, 50, 50, 1);
+}
+
+.success {
+    background-color: rgba(255, 255, 255, 1);
+    color: rgba(30, 190, 0, 1);
+}
+
+a:focus {
+    text-decoration: none;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.fixed-card {
+    @include card-shadow;
+    max-height: 85vh;
+    overflow: auto;
+    // padding: 10px 10px; 
+
+    .btn {
+        margin-bottom: 10px;
+    }
+    .contact {
+        @include card-shadow();
+    }
+
+    .selected {
+        animation: selection .3s ease-in-out;
+        animation-fill-mode: forwards;
+    }
+    textarea {
+        width: 100%;
+    }
+
+    .custom-checkbox label {
+        margin-left: 16px;
+    }
+}
+.fixed-card::-webkit-scrollbar {
+    width: 10px;
+}
+
+.fixed-card::-webkit-scrollbar-track {
+    border-radius: 8px;
+}
+
+.fixed-card::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+}
+
+@keyframes selection {
+    from {
+        background-color: inherit;
+    }
+    to {
+        background-color: rgb(112, 179, 255);
+    }
+}

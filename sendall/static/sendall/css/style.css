@@ -1,0 +1,90 @@
+.abs-center-x {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%); }
+
+.page-title {
+  display: block;
+  text-align: center;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 700;
+  padding: 20px;
+  margin-bottom: 20px; }
+
+.md-card {
+  border-radius: 8px;
+  box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
+  margin: 20px 0;
+  padding: 20px 15px;
+  width: 500px; }
+  @media (max-width: 540px) {
+    .md-card {
+      width: 90%; } }
+  .md-card h1, .md-card h2, .md-card h3, .md-card h4, .md-card h5, .md-card h6, .md-card p {
+    text-align: center; }
+  .md-card a:hover {
+    text-decoration: none; }
+
+.loading-card {
+  border-radius: 8px;
+  box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
+  margin: 20px 0;
+  padding: 20px 15px; }
+  @media (max-width: 540px) {
+    .loading-card {
+      width: 90%; } }
+  .loading-card h1, .loading-card h2, .loading-card h3, .loading-card h4, .loading-card h5, .loading-card h6, .loading-card p {
+    text-align: center; }
+  .loading-card a:hover {
+    text-decoration: none; }
+
+.danger {
+  background-color: white;
+  color: #ff3232; }
+
+.success {
+  background-color: white;
+  color: #1ebe00; }
+
+a:focus {
+  text-decoration: none;
+  color: rgba(0, 0, 0, 0.8); }
+
+.fixed-card {
+  border-radius: 8px;
+  box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
+  margin: 20px 0;
+  padding: 20px 15px;
+  max-height: 85vh;
+  overflow: auto; }
+  .fixed-card .btn {
+    margin-bottom: 10px; }
+  .fixed-card .contact {
+    border-radius: 8px;
+    box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
+    margin: 20px 0;
+    padding: 20px 15px; }
+  .fixed-card .selected {
+    animation: selection .3s ease-in-out;
+    animation-fill-mode: forwards; }
+  .fixed-card textarea {
+    width: 100%; }
+  .fixed-card .custom-checkbox label {
+    margin-left: 16px; }
+
+.fixed-card::-webkit-scrollbar {
+  width: 10px; }
+
+.fixed-card::-webkit-scrollbar-track {
+  border-radius: 8px; }
+
+.fixed-card::-webkit-scrollbar-thumb {
+  border-radius: 8px; }
+
+@keyframes selection {
+  from {
+    background-color: inherit; }
+  to {
+    background-color: #70b3ff; } }
+
+/*# sourceMappingURL=style.css.map */

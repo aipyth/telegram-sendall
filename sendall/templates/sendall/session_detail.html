@@ -1,0 +1,25 @@
+{% extends 'sendall/base.html' %}
+{% load static %}
+
+{% block nav_header %}
+ <h1 class='page-title'>Session {{ session.name }}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12 col-md-4">
+            <div id="vue-dialogs"></div>
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <div id="vue-message"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="{% static 'sendall/js/axios.min.js' %}"></script>
+<script src="{% static 'sendall/js/session_detail.js' %}"></script>
+{% endblock %}
