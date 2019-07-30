@@ -10,7 +10,7 @@ from django.views.generic import DetailView, ListView, View
 
 from . import utils
 from .forms import SessionAddForm, SignUpForm
-from .models import Session
+from .models import Session, TelegramUser
 
 if settings.DEBUG:
     logging.basicConfig(level=logging.DEBUG)
@@ -32,6 +32,7 @@ class SignUpView(View):
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
+            t = TelegramUser.objects.create(user=user)
             login(request, user)
             return redirect('index')
         else:

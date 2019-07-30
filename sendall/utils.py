@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from telethon import TelegramClient
 from telethon.errors import (FloodWaitError, PhoneNumberInvalidError,
-                             SessionPasswordNeededError)
+                             SessionPasswordNeededError, PasswordHashInvalidError)
 from telethon.sessions import StringSession
 from telethon.tl.types import PeerUser
 
@@ -71,6 +71,15 @@ async def _sign_in(session, phone, code, password=None):
             account = await client.sign_in(phone, password=password)
         else:
             account = await client.sign_in(phone, code, phone_code_hash=phone_code_hash)
+        # TODO: Fix this thing 
+        # telethon.errors.rpcerrorlist.PasswordHashInvalidError: The password (and thus its hash value) you entered is invalid (caused by CheckPasswordRequest)
+    except PasswordHashInvalidError:
+        return {
+            'state': 'error',
+            'session': client.session.save(),
+            'reason': '',
+            'errors': ['The password you entered is invalid']
+        }
     except SessionPasswordNeededError:
         return {
             'state': 'error',
