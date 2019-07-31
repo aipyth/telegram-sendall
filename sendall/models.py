@@ -51,3 +51,12 @@ class Session(models.Model):
         self.active = True
         self.save()
         print("updated")
+
+
+class ContactsList(models.Model):
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='contacts_lists')
+    name = models.TextField(blank=True, default='Contacts List')
+    contacts_list = models.TextField(default='[]')
+
+    def get_list(self):
+        return eval(self.contacts_list)

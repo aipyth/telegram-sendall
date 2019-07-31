@@ -52,7 +52,7 @@ var app = new Vue({
                     }).then(response => {
                         // state = 'code'; return
                         if (response.data.state == 'ok') {
-                            // this.state = 'password';
+                            window.location.href = response.data.redirect;
                         } else if (response.data.state == 'error') {
                             if (response.data.reason == "Needed password.") {
                                 this.state = 'password';

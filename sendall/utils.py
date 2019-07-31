@@ -71,8 +71,6 @@ async def _sign_in(session, phone, code, password=None):
             account = await client.sign_in(phone, password=password)
         else:
             account = await client.sign_in(phone, code, phone_code_hash=phone_code_hash)
-        # TODO: Fix this thing 
-        # telethon.errors.rpcerrorlist.PasswordHashInvalidError: The password (and thus its hash value) you entered is invalid (caused by CheckPasswordRequest)
     except PasswordHashInvalidError:
         return {
             'state': 'error',

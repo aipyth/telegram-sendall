@@ -1,3 +1,7 @@
+html {
+    font-size: 17px;
+}
+
 @mixin card-shadow {
     border-radius: 8px;
     box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
@@ -17,6 +21,10 @@
     a:hover {
         text-decoration: none;
     }
+}
+
+.card-shadow {
+    @include card-shadow();
 }
 
 .abs-center-x {
@@ -58,18 +66,23 @@ a:focus {
     text-decoration: none;
     color: rgba(0, 0, 0, 0.8);
 }
+.sm-card {
+    max-height: 68vh;
+    overflow: auto;
+}
 
 .fixed-card {
-    @include card-shadow;
-    max-height: 85vh;
+    max-height: 87vh;
     overflow: auto;
-    // padding: 10px 10px; 
 
     .btn {
         margin-bottom: 10px;
     }
     .contact {
-        @include card-shadow();
+        box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.03);
+        border-radius: 8px;
+        margin: 10px 5px;
+        padding: 10px 7px;
     }
 
     .selected {
@@ -84,16 +97,33 @@ a:focus {
         margin-left: 16px;
     }
 }
-.fixed-card::-webkit-scrollbar {
-    width: 10px;
+.fixed-card::-webkit-scrollbar,
+.sm-card::-webkit-scrollbar {
+    width: 0px;
 }
 
-.fixed-card::-webkit-scrollbar-track {
+.fixed-card::-webkit-scrollbar-track,
+.sm-card::-webkit-scrollbar-track {
     border-radius: 8px;
 }
 
-.fixed-card::-webkit-scrollbar-thumb {
+.fixed-card::-webkit-scrollbar-thumb,
+.sm-card::-webkit-scrollbar-thumb {
     border-radius: 8px;
+}
+
+.message {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.93rem;
+}
+.message::before {
+    content: ' ';
+    display: block;
+    width: 94%;
+    height: 2px;
+    margin: 4px 0;    
+    border-radius: 40%;
+    background-color: rgba(142, 168, 252, 0.3)
 }
 
 @keyframes selection {
@@ -101,6 +131,20 @@ a:focus {
         background-color: inherit;
     }
     to {
-        background-color: rgb(112, 179, 255);
+        background-color: rgb(27, 107, 255);
+        color: white;
     }
+}
+
+.list-name {
+    padding: 8px;
+}
+
+.help-popup-icon {
+    display: inline-block;
+    font-size: 0.68rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 0 5px;
+    margin: 0 5px;
+    border-radius: 25%;
 }

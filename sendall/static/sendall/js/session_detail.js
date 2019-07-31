@@ -3,7 +3,9 @@
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 
-var selected_contacts = [];
+var selected_contacts_ids = [];
+var selected_contacts_for_list = [];
+var all_dialogs = [];
 
 Vue.filter('cutTooLong', function (value) {
     var low_limit = 50;
@@ -23,12 +25,13 @@ Vue.filter('cutTooLong', function (value) {
 var vue_dialogs = new Vue({
     el: '#vue-dialogs',
     data: {
-        selected_contacts: selected_contacts,
-        all_dialogs: [],
-        loading: true,
+        selected_contacts_ids: selected_contacts_ids,
+        all_dialogs: all_dialogs,
+        loading: false,
     },
     methods: {
-        get_dialogs: function() {
+        getDialogs: function() {
+            this.loading = true;
             axios.get('dialogs/')
                 .then(response => {
                     console.log(response);
@@ -38,21 +41,27 @@ var vue_dialogs = new Vue({
                     this.loading = false;
             });
         },
-        select_contact: function(id) {
-            index = this.selected_contacts.indexOf(id)
+        select_contact: function(dialog) {
+            index = this.selected_contacts_ids.indexOf(dialog.id)
             if (index + 1) {
                 console.log('unselecting dialog');
-                this.selected_contacts.splice(index, 1);
+                this.selected_contacts_ids.splice(index, 1);
+                for (i = 0; i < selected_contacts_for_list.length; i++) {
+                    if (dialog.id == selected_contacts_for_list[i].id) {
+                        selected_contacts_for_list.splice(i, 1);
+                    }
+                }
             } else {
                 console.log('selecting dialog');
-                this.selected_contacts.push(id);
+                this.selected_contacts_ids.push(dialog.id);
+                selected_contacts_for_list.push(dialog);
             }
         }
     },
     template: `
-<div class='fixed-card'>
-    <button class="btn btn-light btn-block" type="button" data-toggle="collapse" data-target="#chats" aria-expanded="true" aria-controls="chats">Chats</button>
-    <div id='chats' class='collapse show'>
+<div class='fixed-card card-shadow'>
+    <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="#chats" aria-expanded="true" aria-controls="chats">Chats</button>
+    <div id='chats' class='sm-card collapse show'>
         <div align='center' v-if="loading">
             <h3>
                 <div class="spinner-grow text-primary" role="status">
@@ -60,48 +69,60 @@ var vue_dialogs = new Vue({
                 </div> 
             </h3>
         </div>
-        <div class="contact" v-for="dialog in all_dialogs" v-on:click="select_contact(dialog.id)" v-bind:class="{selected: selected_contacts.includes(dialog.id)}">
-            <h4>
+        <div class="contact" v-for="dialog in all_dialogs" v-on:click="select_contact(dialog)" v-bind:class="{selected: selected_contacts_ids.includes(dialog.id)}">
+            <h5>
                 {{ dialog.name }}
                 <span class="badge badge-pill badge-primary" v-if="dialog.unread != 0">
                     {{ dialog.unread }}
                 </span>
-            </h4>
-            <p class="text-muted">{{ dialog.message | cutTooLong }}</p>
+            </h5>
+            <p class="message">{{ dialog.message | cutTooLong }}</p>
         </div>
     </div>
 </div>
 `
 });
-vue_dialogs.get_dialogs();
+vue_dialogs.getDialogs();
 
 
 var vue_messages = new Vue({
     el: "#vue-message",
     data: {
-        selected_contacts: selected_contacts,
         message: '',
         markdown: true,
         requesting: false,
         request_result: '',
         errors: [],
+        markdown_help: false,
     },
     methods: {
         sendMessage: function() {
-            console.log("Selected contacts " + selected_contacts);
+            console.log("Selected contacts " + selected_contacts_ids);
             this.requesting = true;
-            axios.post('sendmessage/', {
-                contacts: selected_contacts,
+            this.request_result = '';
+            this.errors = [];
+            axios.post('send-message/', {
+                contacts: selected_contacts_ids,
                 message: this.message,
                 markdown: this.markdown,
             }).then(response => {
+                // // add contacts list to prepared
+                // this.sendContactList();
+                // and handle the response
+                console.log(response);
                 this.requesting = false;
                 this.request_result = '';
-                console.log(response);
+
                 if (response.data.state == 'ok') {
                     this.request_result = 'All sent!';
+                } else if (response.state == 'error') {
+                    for (i = 0; i < response.data.errors; i++) {
+                        this.errors.push(response.data.errors[i]);
+                    }
                 } else if (response.status == 403) {
                     this.errors.push('You cannot send this');
+                } else if (response.status == 404) {
+                    this.errors.push('Forbidden');
                 }
             });
         },
@@ -127,10 +148,10 @@ var vue_messages = new Vue({
         </h5>
     </div>
     
-    <div class="fixed-card">
+    <div class="fixed-card card-shadow">
         <div class='row'>
         <div class='col'>
-            <button class="btn btn-light btn-block" type="button" data-toggle="collapse" data-target="#message" aria-expanded="true" aria-controls="message">Message</button>
+            <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="#message" aria-expanded="true" aria-controls="message">Message</button>
         </div>
         </div>
         <div id='message' class='collapse show'>
@@ -143,7 +164,32 @@ var vue_messages = new Vue({
             <div class='row'>
                 <div class='col form-group custom-control custom-checkbox'>
                     <input class='custom-control-input' id='markdown' type='checkbox' v-model="markdown">
-                    <label class='custom-control-label' for='markdown'>Markdown</label>
+                    <label class='custom-control-label' for='markdown'>Markdown</label><span class='help-popup-icon' v-on:click="markdown_help = !markdown_help">?</span>
+                    <div class="card-shadow" v-show="markdown_help">
+                        <h5 align='center'>You can format your code with Markdown syntax</h5>
+                        
+                        <table class='table'>
+                            <tbody>
+                                <tr>
+                                    <td><p>**bold text**</p></td>
+                                    <td><strong>bold text</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><p>__italic text__</p></td>
+                                    <td><em>italic text</em></td>
+                                </tr>
+
+                                <tr>
+                                    <td><p>\`inline fixed-width code\`</p></td>
+                                    <td><pre>inline fixed-width code</pre></td>
+                                </tr>
+                                <tr>
+                                    <td><p>[Google.com link](https://google.com)</p></td>
+                                    <td><a href="https://google.com">Google.com link</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -156,4 +202,140 @@ var vue_messages = new Vue({
     </div>
 </div>
 `,
-})
+});
+
+var vue_contacts_lists = new Vue({
+    el: '#vue-contacts-list',
+    data: {
+        loading: false,
+        lists: [],
+        selected_list: null,
+        entering_new_list_name: false,
+        new_list_name: '',
+    },
+    methods: {
+        getLists: function() {
+            this.loading = true;
+            axios.get('get-contacts-lists/')
+                .then(response => {
+                    console.log(response);
+                    for (i = 0; i < response.data.lists.length; i++) {
+                        this.lists.push(response.data.lists[i]);
+                    }
+                    this.loading = false;
+            });
+        },
+        isSelected: function(item) {
+            if (this.selected_list == null)
+                return false
+            if (item.strlist == this.selected_list.strlist)
+                return true;
+            return false;
+        },
+        prepareNames: function(obj) {
+            var names_list = [];
+            for (i = 0; i < obj.length; i++)
+                names_list.push(obj[i].name);
+            return names_list.join(', ')
+        },
+        selectList: function(list) {
+            // if no selection was before - select this list
+            if (this.selected_list == null) {
+                this.selected_list = list;
+                // push selected ids into the list
+                for (i = 0; i < list.list.length; i++) {
+                    if (!selected_contacts_ids.includes(list.list[i].id))
+                        selected_contacts_ids.push(list.list[i].id);
+                }
+            }
+            // if this list is already selected - unselect
+            else if (list.strlist == this.selected_list.strlist) {
+                this.selected_list = null;
+                // if the unselected ids are in list - get em out
+                for (i = 0; i < list.list.length; i++) {
+                    if (selected_contacts_ids.includes(list.list[i].id)) {
+                        var index = selected_contacts_ids.indexOf(list.list[i].id);
+                        selected_contacts_ids.splice(index, 1);
+                    }
+                    for (n = 0; n < selected_contacts_for_list.length; n++) {
+                        if (list.list[i].id == selected_contacts_for_list[n].id) {
+                            selected_contacts_for_list.splice(n, 1);
+                        }
+                    }
+                }
+            }
+            // else - this list is new
+            else {
+                this.selected_list = list;
+                // push new ids to the empty list
+                selected_contacts_ids.splice(0, selected_contacts_ids.length);
+                for (i = 0; i < list.list.length; i++) {
+                    if (!selected_contacts_ids.includes(list.list[i].id)) {
+                        selected_contacts_ids.push(list.list[i].id);
+
+                        for (j = 0; j < all_dialogs.length; j++) {
+                            if (all_dialogs[j].id == list.list[i].id)
+                                selected_contacts_for_list.push(all_dialogs[j]);
+                        }
+                    }
+                }
+            }
+        },
+        enterNewListName: function() {
+            this.entering_new_list_name = true;
+        },
+        createContactsList: function() {
+            axios.post('add-contacts-list/', {
+                'name': this.new_list_name,
+                'list': selected_contacts_for_list,
+            }).then(() => {
+                this.new_list_name = '';
+                this.entering_new_list_name = false;
+                this.lists.splice(0, this.lists.length);
+                this.getLists();
+            });
+        },
+        deleteContactsList: function(list) {
+            axios.post('delete-contacts-list/', {
+                'strlist': list.strlist,
+            }).then((response) => {
+                if (response.data.state == 'ok') {
+                    this.lists.splice(0, this.lists.length);
+                    this.getLists();
+                }
+            });
+        },
+    },
+    template: `
+<div class='fixed-card card-shadow'>
+    <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="#prepared-contacts-list" aria-expanded="true" aria-controls="prepared-contacts-list">Prepared Contacts List</button>
+    <div id='prepared-contacts-list' class='sm-card collapse show'>
+        <div align='center' v-if="loading">
+            <h3>
+                <div class="spinner-grow text-primary" role="status">
+                    <span class="sr-only"></span>
+                </div> 
+            </h3>
+        </div>
+        <button class='btn btn-light btn-block' v-on:click="enterNewListName" v-show="!entering_new_list_name">Create new list from selected contacts</button>
+        <div class="list-name input-group mb-3" v-show="entering_new_list_name">
+            <input type="text" class="form-control" placeholder="Contact List Name" aria-describedby="name-ok" v-model="new_list_name">
+            <div class="input-group-append">
+                <button class="btn btn-dark" type="button" id="name-ok" v-on:click="createContactsList">OK</button>
+            </div>
+        </div>
+
+        <div class="contact" v-for="list in lists" v-on:click="selectList(list)" v-bind:class="{selected: isSelected(list)}">
+            <h4>
+                {{ list.name }}
+                <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="deleteContactsList(list)">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </h4>
+            <p class="message">{{ prepareNames(list.list) }}</p>
+        </div>
+    </div>
+</div>
+`,
+});
+vue_contacts_lists.getLists();

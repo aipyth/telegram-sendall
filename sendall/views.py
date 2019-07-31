@@ -10,7 +10,7 @@ from django.views.generic import DetailView, ListView, View
 
 from . import utils
 from .forms import SessionAddForm, SignUpForm
-from .models import Session, TelegramUser
+from .models import Session, TelegramUser, ContactsList
 
 if settings.DEBUG:
     logging.basicConfig(level=logging.DEBUG)
@@ -100,5 +100,51 @@ def send_message(request, pk, *args, **kwargs):
         if not data.get('contacts'):
             return JsonResponse({'state': 'error', 'errors': ['No contacts selected']})
         logger.debug("Sending message from {} to {}".format(session, data.get('contacts')))
-        return utils.send_message(session, data.get('contacts'), data.get('message'), data.get('markdown'))
+        contacts = list(set(data.get('contacts')))
+        return utils.send_message(session, contacts, data.get('message'), data.get('markdown'))
+    return HttpResponseForbidden()
+
+def get_contacts_list(request, pk):
+    session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
+    lists = [{
+        'name': l.name,
+        'list': l.get_list(),
+        'strlist': l.contacts_list,
+    } for l in session.contacts_lists.all()]
+    logger.debug("Sending contacts lists from {} to {}".format(session, request.user))
+    return JsonResponse({'lists': lists})
+
+def add_contacts_list(request, pk):
+    if request.method == 'POST':
+        session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
+        data = json.loads(request.body.decode('utf-8'))
+
+        name = data.get('name')
+        raw_contacts_list = data.get('list')
+        if raw_contacts_list:
+            contacts_list = [{
+                'id': contact.get('id'),
+                'name': contact.get('name'),
+            } for contact in raw_contacts_list]
+            str_list = str(contacts_list)
+
+            db_contacts_list = session.contacts_lists.filter(contacts_list=str_list)
+            if len(db_contacts_list) == 0:
+                cl = ContactsList(name=name, contacts_list=str_list, session=session)
+                cl.save()
+            return JsonResponse({'state': 'ok'})
+    return HttpResponseForbidden()
+
+def delete_contacts_list(request, pk):
+    if request.method == 'POST':
+        session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
+        data = json.loads(request.body.decode('utf-8'))
+        
+        strlist = data.get('strlist')
+        if strlist:
+            cl = ContactsList.objects.filter(contacts_list=strlist, session=session)
+            if len(cl) == 1:
+                cl[0].delete()
+                return JsonResponse({'state': 'ok'})
+
     return HttpResponseForbidden()
