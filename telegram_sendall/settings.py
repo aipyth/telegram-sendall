@@ -75,7 +75,7 @@ WSGI_APPLICATION = 'telegram_sendall.wsgi.application'
 
 
 
-LOGIN_URL = 'login/'
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
 
