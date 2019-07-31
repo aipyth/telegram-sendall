@@ -49,7 +49,7 @@ class SessionList(LoginRequiredMixin, ListView):
         return objects
 
 
-class SessionDetail(DetailView):
+class SessionDetail(LoginRequiredMixin, DetailView):
     template = 'sendall/session_detail.html'
     queryset = Session.objects.all()
 
