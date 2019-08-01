@@ -1,3 +1,18 @@
+from __future__ import absolute_import, unicode_literals
+
+import os
+
+# Celery settings
+
+CELERY_BROKER_URL = os.environ.get('REDIS_URL')
+
+#: Only add pickle to this list if your broker is secured
+#: from unwanted access (see userguide/security.html)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL')
+CELERY_TASK_SERIALIZER = 'json'
+
+
 """
 Django settings for telegram_sendall project.
 
@@ -9,9 +24,6 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
-
-import os
-import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -137,8 +149,12 @@ STATIC_URL = '/static/'
 API_ID = os.environ.get('TELEGRAM_API_ID')
 API_HASH = os.environ.get('TELEGRAM_API_HASH')
 
-# Activate Django-Heroku.
-django_heroku.settings(locals())
+try:
+    import django_heroku
+    # Activate Django-Heroku.
+    django_heroku.settings(locals())
+except ImportError:
+    pass
 
 
 try:

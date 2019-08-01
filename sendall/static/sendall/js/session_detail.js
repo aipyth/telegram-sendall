@@ -101,10 +101,12 @@ var vue_messages = new Vue({
             this.requesting = true;
             this.request_result = '';
             this.errors = [];
+            exec_datetime = new Date(this.$refs.exec_datetime.value);
             axios.post('send-message/', {
                 contacts: selected_contacts_ids,
                 message: this.message,
                 markdown: this.markdown,
+                datetime: exec_datetime.toISOString(),
             }).then(response => {
                 // // add contacts list to prepared
                 // this.sendContactList();
@@ -114,7 +116,7 @@ var vue_messages = new Vue({
                 this.request_result = '';
 
                 if (response.data.state == 'ok') {
-                    this.request_result = 'All sent!';
+                    this.request_result = 'The messages are being sent';
                 } else if (response.state == 'error') {
                     for (i = 0; i < response.data.errors; i++) {
                         this.errors.push(response.data.errors[i]);
@@ -169,6 +171,19 @@ var vue_messages = new Vue({
                     
                 </div>
             </div>
+            <div class='row'>
+                <div class="col">
+                    <div class="form-group">
+                        <div class="input-group date" id="exec-datetime" data-target-input="nearest">
+                            <input ref="exec_datetime" type="text" class="form-control datetimepicker-input" placeholder="Schedule a message to send" data-target="#exec-datetime"/>
+
+                            <div class="input-group-append" data-target="#exec-datetime" data-toggle="datetimepicker">
+                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class='row'>
                 <div class='col'>
@@ -216,6 +231,7 @@ var vue_messages = new Vue({
 </div>
 `,
 });
+
 
 var vue_contacts_lists = new Vue({
     el: '#vue-contacts-list',
@@ -352,3 +368,21 @@ var vue_contacts_lists = new Vue({
 `,
 });
 vue_contacts_lists.getLists();
+
+
+// Date and time picker initialize
+$(function () {
+    $('#exec-datetime').datetimepicker({
+        icons: {
+            time: 'far fa-clock',
+            date: 'far fa-calendar-alt',
+            up: 'fas fa-arrow-up',
+            down: 'fas fa-arrow-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'far fa-calendar-check',
+            clear: 'far fa-trash-alt',
+            close: 'fas fa-times'
+        }
+    });
+});

@@ -1,6 +1,6 @@
 import json
 import logging
-
+import datetime
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,6 +11,8 @@ from django.views.generic import DetailView, ListView, View
 from . import utils
 from .forms import SessionAddForm, SignUpForm
 from .models import Session, TelegramUser, ContactsList
+
+from . import tasks
 
 if settings.DEBUG:
     logging.basicConfig(level=logging.DEBUG)
@@ -101,7 +103,17 @@ def send_message(request, pk, *args, **kwargs):
             return JsonResponse({'state': 'error', 'errors': ['No contacts selected']})
         logger.debug("Sending message from {} to {}".format(session, data.get('contacts')))
         contacts = list(set(data.get('contacts')))
-        return utils.send_message(session, contacts, data.get('message'), data.get('markdown'))
+        if data.get('datetime'):
+            try:
+                exec_time = datetime.datetime.strptime(data.get('datetime'), "%Y-%m-%dT%H:%M:%S.%f%z")
+            except ValueError:
+                return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
+        else:
+            exec_time = datetime.datetime.now()
+        tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
+        # return utils.send_message(session, contacts, data.get('message'), data.get('markdown'))
+
+        return JsonResponse({'state': 'ok'})
     return HttpResponseForbidden()
 
 def get_contacts_list(request, pk):
