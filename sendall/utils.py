@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from telethon import TelegramClient
 from telethon.errors import (FloodWaitError, PhoneNumberInvalidError,
-                             SessionPasswordNeededError, PasswordHashInvalidError)
+                             SessionPasswordNeededError, PasswordHashInvalidError, PhoneCodeExpiredError)
 from telethon.sessions import StringSession
 from telethon.tl.types import PeerUser
 
@@ -77,6 +77,13 @@ async def _sign_in(session, phone, code, password=None):
             'session': client.session.save(),
             'reason': '',
             'errors': ['The password you entered is invalid']
+        }
+    except PhoneCodeExpiredError:
+        return {
+            'state': 'error',
+            'session': client.session.save(),
+            'reason': '',
+            'errors': ['The confirmation code has expired']
         }
     except SessionPasswordNeededError:
         return {
