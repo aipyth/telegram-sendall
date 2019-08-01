@@ -128,7 +128,7 @@ var vue_messages = new Vue({
         },
     },
     template: `
-<div>
+<div style='position: relative;'>
     <div class='loading-card' v-if="requesting">
         <h3>
             <div class="spinner-grow text-primary" role="status">
@@ -164,32 +164,9 @@ var vue_messages = new Vue({
             <div class='row'>
                 <div class='col form-group custom-control custom-checkbox'>
                     <input class='custom-control-input' id='markdown' type='checkbox' v-model="markdown">
-                    <label class='custom-control-label' for='markdown'>Markdown</label><span class='help-popup-icon' v-on:click="markdown_help = !markdown_help">?</span>
-                    <div class="card-shadow" v-show="markdown_help">
-                        <h5 align='center'>You can format your code with Markdown syntax</h5>
-                        
-                        <table class='table'>
-                            <tbody>
-                                <tr>
-                                    <td><p>**bold text**</p></td>
-                                    <td><strong>bold text</strong></td>
-                                </tr>
-                                <tr>
-                                    <td><p>__italic text__</p></td>
-                                    <td><em>italic text</em></td>
-                                </tr>
-
-                                <tr>
-                                    <td><p>\`inline fixed-width code\`</p></td>
-                                    <td><pre>inline fixed-width code</pre></td>
-                                </tr>
-                                <tr>
-                                    <td><p>[Google.com link](https://google.com)</p></td>
-                                    <td><a href="https://google.com">Google.com link</a></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <label class='custom-control-label' for='markdown'>Markdown</label>
+                    <span class='help-popup-icon' data-toggle="modal" data-target="#markdown-modal">?</span>
+                    
                 </div>
             </div>
 
@@ -197,6 +174,42 @@ var vue_messages = new Vue({
                 <div class='col'>
                     <button class='btn btn-block btn-primary' v-on:click="sendMessage">Send</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="markdown-modal" tabindex="-1" role="dialog" aria-labelledby="markdown-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markdown-modal-title">You can format your code with Markdown syntax</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class='table'>
+                    <tbody>
+                        <tr>
+                            <td><p>**bold text**</p></td>
+                            <td><strong>bold text</strong></td>
+                        </tr>
+                        <tr>
+                            <td><p>__italic text__</p></td>
+                            <td><em>italic text</em></td>
+                        </tr>
+
+                        <tr>
+                            <td><p>\`inline fixed-width code\`</p></td>
+                            <td><pre>inline fixed-width code</pre></td>
+                        </tr>
+                        <tr>
+                            <td><p>[Google.com link](https://google.com)</p></td>
+                            <td><a href="https://google.com">Google.com link</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             </div>
         </div>
     </div>
