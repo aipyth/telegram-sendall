@@ -101,7 +101,11 @@ var vue_messages = new Vue({
             this.requesting = true;
             this.request_result = '';
             this.errors = [];
-            exec_datetime = new Date(this.$refs.exec_datetime.value);
+            if (this.$refs.exec_datetime.value) {
+                exec_datetime = new Date(this.$refs.exec_datetime.value);
+            } else {
+                exec_datetime = new Date();
+            }
             axios.post('send-message/', {
                 contacts: selected_contacts_ids,
                 message: this.message,
