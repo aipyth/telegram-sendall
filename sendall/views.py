@@ -108,9 +108,9 @@ def send_message(request, pk, *args, **kwargs):
                 exec_time = datetime.datetime.strptime(data.get('datetime'), "%Y-%m-%dT%H:%M:%S.%f%z")
             except ValueError:
                 return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
+            tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
         else:
-            exec_time = datetime.datetime.now()
-        tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
+            tasks.send_message.delay(session.session, contacts, data.get('message'), data.get('markdown'))
         # return utils.send_message(session, contacts, data.get('message'), data.get('markdown'))
 
         return JsonResponse({'state': 'ok'})
