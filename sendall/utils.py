@@ -49,9 +49,12 @@ async def _send_code_request(phone):
 
 
 def send_code_request(session, phone):
-    # result = asyncio.run(_send_code_request(phone))
-    loop = asyncio.get_event_loop()
-    result = loop.run_until_complete(_send_code_request(phone))
+    try:
+        result = asyncio.run(_send_code_request(phone))
+    except AttributeError:
+        loop = asyncio.new_event_loop()
+        result = loop.run_until_complete(_send_code_request(phone))
+        loop.close()
 
     session.update_session(result.pop('session'))
     return JsonResponse(result)
@@ -111,9 +114,12 @@ async def _sign_in(session, phone, code, password=None):
     }
 
 def sign_in(session, phone, code, password=None):
-    # result = asyncio.run(_sign_in(session.session, phone, code, password))
-    loop = asyncio.get_event_loop()
-    result = loop.run_until_complete(_sign_in(session.session, phone, code, password))
+    try:
+        result = asyncio.run(_sign_in(session.session, phone, code, password))
+    except AttributeError:
+        loop = asyncio.new_event_loop()
+        result = loop.run_until_complete(_sign_in(session.session, phone, code, password))
+        loop.close()
 
     session.update_session(result.pop('session'))
     if result['state'] == 'ok':
@@ -138,9 +144,13 @@ async def _get_dialogs(session):
 
 
 def get_dialogs(session):
-    # dialogs = asyncio.run(_get_dialogs(session.session))
-    loop = asyncio.get_event_loop()
-    dialogs = loop.run_until_complete(_get_dialogs(session.session))
+    try:
+        dialogs = asyncio.run(_get_dialogs(session.session))
+    except AttributeError:
+        loop = asyncio.new_event_loop()
+        dialogs = loop.run_until_complete(_get_dialogs(session.session))
+        loop.close()
+
     serialized_dialogs = serialize_dialogs(dialogs)
     return serialized_dialogs
 

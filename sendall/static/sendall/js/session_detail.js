@@ -27,6 +27,9 @@ var vue_dialogs = new Vue({
     data: {
         selected_contacts_ids: selected_contacts_ids,
         all_dialogs: all_dialogs,
+        current_dialogs: [],
+        search_dialogs: '',
+        history: {},
         loading: false,
     },
     methods: {
@@ -36,7 +39,8 @@ var vue_dialogs = new Vue({
                 .then(response => {
                     console.log(response);
                     for (i = 0; i < response.data.dialogs.length; i++) {
-                        this.all_dialogs.push(response.data.dialogs[i]);
+                        all_dialogs.push(response.data.dialogs[i]);
+                        this.current_dialogs.push(response.data.dialogs[i]);
                     }
                     this.loading = false;
             });
@@ -56,11 +60,33 @@ var vue_dialogs = new Vue({
                 this.selected_contacts_ids.push(dialog.id);
                 selected_contacts_for_list.push(dialog);
             }
+        },
+        searchText: function(searchText) {
+            for (i = 0; i < all_dialogs.length; i++) {
+                if (all_dialogs[i].name.toLowerCase().includes(searchText.toLowerCase())) {
+                    this.current_dialogs.push(all_dialogs[i]);
+                }
+            }
+        }
+    },
+    watch: {
+        search_dialogs: function(newSearchText, oldSearchText) {
+            this.current_dialogs.splice(0, this.current_dialogs.length);
+            this.searchText(newSearchText);
+            // if (this.history[newSearchText]) {
+            //     this.current_dialogs = this.history[newSearchText];
+            // } else {
+            //     this.searchText(newSearchText);
+            //     this.history[newSearchText] = this.current_dialogs;
+            // }
         }
     },
     template: `
 <div class='fixed-card card-shadow'>
     <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="#chats" aria-expanded="true" aria-controls="chats">Chats</button>
+    <form class="form" style="margin-bottom: 15px;">
+        <input class="form-control" type="search" placeholder="Search" aria-label="Search" v-model="search_dialogs">
+    </form>
     <div id='chats' class='sm-card collapse show'>
         <div align='center' v-if="loading">
             <h3>
@@ -69,7 +95,7 @@ var vue_dialogs = new Vue({
                 </div> 
             </h3>
         </div>
-        <div class="contact" v-for="dialog in all_dialogs" v-on:click="select_contact(dialog)" v-bind:class="{selected: selected_contacts_ids.includes(dialog.id)}">
+        <div class="contact" v-for="dialog in current_dialogs" v-on:click="select_contact(dialog)" v-bind:class="{selected: selected_contacts_ids.includes(dialog.id)}">
             <h5>
                 {{ dialog.name }}
                 <span class="badge badge-pill badge-primary" v-if="dialog.unread != 0">
@@ -144,9 +170,9 @@ var vue_messages = new Vue({
         </h3>
     </div>
     <div class='loading-card' v-if="request_result != ''">
-        <h4>
+        <h5>
             {{ request_result }}
-        </h4>
+        </h5>
     </div>
     <div class="md-card danger" v-show="errors" v-for="error in errors">
         <h5>
@@ -158,6 +184,7 @@ var vue_messages = new Vue({
         <div class='row'>
         <div class='col'>
             <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="#message" aria-expanded="true" aria-controls="message">Message</button>
+            
         </div>
         </div>
         <div id='message' class='collapse show'>
