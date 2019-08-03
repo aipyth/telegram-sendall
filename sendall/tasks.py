@@ -7,5 +7,7 @@ from .utils import _send_message
 
 @shared_task
 def send_message(session, contacts, message, markdown, delay=5):
-    result = asyncio.run(_send_message(session, contacts, message, markdown, delay))
+    # result = asyncio.run(_send_message(session, contacts, message, markdown, delay))
+    loop = asyncio.get_event_loop()
+    result = loop.run_until_complete(_send_message(session, contacts, message, markdown, delay))
     # return result

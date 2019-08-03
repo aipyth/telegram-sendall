@@ -49,7 +49,9 @@ async def _send_code_request(phone):
 
 
 def send_code_request(session, phone):
-    result = asyncio.run(_send_code_request(phone))
+    # result = asyncio.run(_send_code_request(phone))
+    loop = asyncio.get_event_loop()
+    result = loop.run_until_complete(_send_code_request(phone))
 
     session.update_session(result.pop('session'))
     return JsonResponse(result)
@@ -109,8 +111,10 @@ async def _sign_in(session, phone, code, password=None):
     }
 
 def sign_in(session, phone, code, password=None):
-    result = asyncio.run(_sign_in(session.session, phone, code, password))
-    print(phone, code, password)
+    # result = asyncio.run(_sign_in(session.session, phone, code, password))
+    loop = asyncio.get_event_loop()
+    result = loop.run_until_complete(_sign_in(session.session, phone, code, password))
+
     session.update_session(result.pop('session'))
     if result['state'] == 'ok':
         account = result.pop('account')
@@ -134,7 +138,9 @@ async def _get_dialogs(session):
 
 
 def get_dialogs(session):
-    dialogs = asyncio.run(_get_dialogs(session.session))
+    # dialogs = asyncio.run(_get_dialogs(session.session))
+    loop = asyncio.get_event_loop()
+    dialogs = loop.run_until_complete(_get_dialogs(session.session))
     serialized_dialogs = serialize_dialogs(dialogs)
     return serialized_dialogs
 
@@ -165,7 +171,3 @@ async def _send_message(session, contacts, message, markdown, delay=5):
 
     return JsonResponse({'state': 'ok'})
 
-def send_message(session, contacts, message, markdown):
-    logger.debug("Sending messages")
-    result = asyncio.run(_send_message(session.session, contacts, message, markdown))
-    return result
