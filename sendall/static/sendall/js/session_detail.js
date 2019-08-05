@@ -280,9 +280,11 @@ var vue_contacts_lists = new Vue({
             this.loading = true;
             axios.get('get-contacts-lists/')
                 .then(response => {
+                    var idx;
                     console.log(response);
                     for (i = 0; i < response.data.lists.length; i++) {
-                        this.lists.push(response.data.lists[i]);
+                        response.data.lists[i].show_names = false;
+                        idx = this.lists.push(response.data.lists[i]);
                     }
                     this.loading = false;
             });
@@ -401,18 +403,18 @@ var vue_contacts_lists = new Vue({
 
         <div class="contact" v-for="list in lists" v-on:click="selectList(list)" v-bind:class="{selected: isSelected(list)}">
             <div class='row'>
-                <div class='col-8'>
+                <div class='col-8 col-md-6'>
                     <h4>
                         {{ list.name }}
                     </h4>
                     
                 </div>
-                <div class='col-4'>
-                    <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="show_names = !show_names" title="Show list's dialogs">
-                        <span aria-hidden="true">...</span>
-                    </button>    
+                <div class='col-4 col-md-6'>
                     <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="deleteContactsList(list)" title='Delete this list'>
-                        <span aria-hidden="true">&times;</span>
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                    <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="list.show_names = !list.show_names" title="Show list's dialogs">
+                        <span aria-hidden="true">...</span>
                     </button>
                     <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="editContactsList(list)" title='Add selected dialogs to this list'>
                         <span aria-hidden="true">+</span>
@@ -422,8 +424,8 @@ var vue_contacts_lists = new Vue({
             </div>
             <div class='row'>
                 <div class='col'>
-                <p class="message" v-show="show_names">{{ prepareNames(list.list) }}</p>
-                </dvi>
+                <p class="message" v-show="list.show_names">{{ prepareNames(list.list) }}</p>
+                </div>
             </div>
         </div>
     </div>
