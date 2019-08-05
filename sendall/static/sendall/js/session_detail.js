@@ -272,6 +272,7 @@ var vue_contacts_lists = new Vue({
         selected_list: null,
         entering_new_list_name: false,
         new_list_name: '',
+        show_names: false,
     },
     methods: {
         getLists: function() {
@@ -400,21 +401,30 @@ var vue_contacts_lists = new Vue({
 
         <div class="contact" v-for="list in lists" v-on:click="selectList(list)" v-bind:class="{selected: isSelected(list)}">
             <div class='row'>
-                <div class='col-10'>
+                <div class='col-8'>
                     <h4>
                         {{ list.name }}
                     </h4>
+                    
                 </div>
-                <div class='col-2'>
-                    <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="editContactsList(list)" title='Add selected dialogs to this list'>
-                        <span aria-hidden="true">+</span>
-                    </button>
+                <div class='col-4'>
+                    <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="show_names = !show_names" title="Show list's dialogs">
+                        <span aria-hidden="true">...</span>
+                    </button>    
                     <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="deleteContactsList(list)" title='Delete this list'>
                         <span aria-hidden="true">&times;</span>
                     </button>
+                    <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="editContactsList(list)" title='Add selected dialogs to this list'>
+                        <span aria-hidden="true">+</span>
+                    </button>
+                    
                 </div>
             </div>
-            <p class="message">{{ prepareNames(list.list) }}</p>
+            <div class='row'>
+                <div class='col'>
+                <p class="message" v-show="show_names">{{ prepareNames(list.list) }}</p>
+                </dvi>
+            </div>
         </div>
     </div>
 </div>
