@@ -137,7 +137,9 @@ async def _get_dialogs(session):
     await client.connect()
     chats = []
     async for dialog in client.iter_dialogs(limit=None, ignore_pinned=False):
-        if dialog.is_user:
+        # if dialog.is_user:
+        #     chats.append(dialog)
+        if not dialog.is_channel:
             chats.append(dialog)
         
     return chats

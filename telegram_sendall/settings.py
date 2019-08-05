@@ -144,11 +144,14 @@ STATIC_URL = '/static/'
 #     os.path.join(BASE_DIR, 'static'),
 # )
 
+# Enable redirect http -> https
+SECURE_SSL_REDIRECT = True
 
 # Telethon settings
 API_ID = os.environ.get('TELEGRAM_API_ID')
 API_HASH = os.environ.get('TELEGRAM_API_HASH')
 
+# Importing Heroku settings
 try:
     import django_heroku
     # Activate Django-Heroku.
@@ -157,6 +160,7 @@ except ImportError:
     pass
 
 
+# Stuff for local development
 try:
     from .local_settings import *
 except ImportError:

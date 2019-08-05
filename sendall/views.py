@@ -147,6 +147,44 @@ def add_contacts_list(request, pk):
             return JsonResponse({'state': 'ok'})
     return HttpResponseForbidden()
 
+def edit_contacts_list(request, pk):
+    if request.method == 'POST':
+        session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
+        data = json.loads(request.body.decode('utf-8'))
+
+        name = data.get('name')
+        raw_contacts_list = data.get('list')
+        added = data.get('added')
+        if raw_contacts_list:
+            contacts_list = [{
+                'id': contact.get('id'),
+                'name': contact.get('name'),
+            } for contact in raw_contacts_list]
+            # this list contains old dialogs
+            str_list = str(contacts_list)
+
+            added_contacts_list = [{
+                'id': contact.get('id'),
+                'name': contact.get('name'),
+            } for contact in added]
+            # we need to do this to remove duplicates that might occur
+            # and this list has all dialogs, old and new ones
+            all_list = [dict(t) for t in {tuple(inner_list_dict.items()) for inner_list_dict in contacts_list + added_contacts_list}]
+            all_str_list = str(all_list)
+
+
+            db_contacts_list = session.contacts_lists.filter(contacts_list=str_list)
+            # if len(db_contacts_list) == 1:
+            try:
+                cl = db_contacts_list[0]
+            except IndexError:
+                return HttpResponseForbidden()
+            cl.name = name
+            cl.contacts_list = all_str_list
+            cl.save()
+            return JsonResponse({'state': 'ok'})
+    return HttpResponseForbidden()
+
 def delete_contacts_list(request, pk):
     if request.method == 'POST':
         session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)

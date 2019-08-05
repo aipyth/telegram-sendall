@@ -12,6 +12,7 @@ urlpatterns = [
     path('sessions/<int:pk>/send-message/', send_message),
     path('sessions/<int:pk>/get-contacts-lists/', get_contacts_list),
     path('sessions/<int:pk>/add-contacts-list/', add_contacts_list),
+    path('sessions/<int:pk>/edit-contacts-list/', edit_contacts_list),
     path('sessions/<int:pk>/delete-contacts-list/', delete_contacts_list),
     path('sessions/add/', SessionAdd.as_view(), name='add-session'),
     path('login/', auth_views.LoginView.as_view(template_name='sendall/login.html'), name='login'),

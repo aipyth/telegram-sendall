@@ -3,9 +3,9 @@
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 
-var selected_contacts_ids = [];
-var selected_contacts_for_list = [];
-var all_dialogs = [];
+var selected_contacts_ids = []; // list for sending message
+var selected_contacts_for_list = []; // list for creating new contacts list
+var all_dialogs = []; // list where all dialogs are donwloaded
 
 Vue.filter('cutTooLong', function (value) {
     var low_limit = 50;
@@ -275,6 +275,7 @@ var vue_contacts_lists = new Vue({
     },
     methods: {
         getLists: function() {
+            console.log('Updating list of contacts lists');
             this.loading = true;
             axios.get('get-contacts-lists/')
                 .then(response => {
@@ -355,6 +356,18 @@ var vue_contacts_lists = new Vue({
                 this.getLists();
             });
         },
+        editContactsList: function(list) {
+            axios.post('edit-contacts-list/', {
+                'name': list.name,
+                'added': selected_contacts_for_list,
+                'list': list.list
+            }).then((response) => {
+                if (response.data.state == 'ok') {
+                    this.lists.splice(0, this.lists.length);
+                    this.getLists();
+                }
+            });
+        },
         deleteContactsList: function(list) {
             axios.post('delete-contacts-list/', {
                 'strlist': list.strlist,
@@ -386,12 +399,21 @@ var vue_contacts_lists = new Vue({
         </div>
 
         <div class="contact" v-for="list in lists" v-on:click="selectList(list)" v-bind:class="{selected: isSelected(list)}">
-            <h4>
-                {{ list.name }}
-                <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="deleteContactsList(list)">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </h4>
+            <div class='row'>
+                <div class='col-10'>
+                    <h4>
+                        {{ list.name }}
+                    </h4>
+                </div>
+                <div class='col-2'>
+                    <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="editContactsList(list)" title='Add selected dialogs to this list'>
+                        <span aria-hidden="true">+</span>
+                    </button>
+                    <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="deleteContactsList(list)" title='Delete this list'>
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
             <p class="message">{{ prepareNames(list.list) }}</p>
         </div>
     </div>
