@@ -15,7 +15,7 @@ CELERY_BROKER_HEARTBEAT = None # We're using TCP keep-alive instead
 CELERY_BROKER_CONNECTION_TIMEOUT = 30 # May require a long timeout due to Linux DNS timeouts etc
 CELERY_EVENT_QUEUE_EXPIRES = 60 # Will delete all celeryev. queues without consumers after 1 minute.
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1 # Disable prefetching, it's causes problems and doesn't help performance
-CELERY_WORKER_CONCURRENCY = 50
+CELERY_WORKER_CONCURRENCY = 20
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
