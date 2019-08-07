@@ -177,8 +177,13 @@ async def _send_message(session, contacts, message, markdown, delay=5):
     client.parse_mode = 'md' if markdown else None
     await client.get_dialogs()
     for contact in contacts:
-        entity = await client.get_entity(PeerUser(contact))
-        await client.send_message(entity, message=message)
+        try:
+            entity = await client.get_entity(PeerUser(contact))
+            await client.send_message(entity, message=message)
+        except BaseException as e:
+            logger.error(e)
+        except:
+            pass
         time.sleep(delay)
 
     return JsonResponse({'state': 'ok'})
