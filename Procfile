@@ -1,3 +1,3 @@
 release: python manage.py migrate
 web: gunicorn telegram_sendall.wsgi
-worker: celery worker --app=telegram_sendall.celery.app -l debug
+worker: celery worker --app=telegram_sendall.celery.app --without-heartbeat -l debug 
