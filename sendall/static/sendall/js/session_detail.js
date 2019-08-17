@@ -36,7 +36,7 @@ var vue_dialogs = new Vue({
     methods: {
         getDialogs: function() {
             if (all_dialogs.length != 0)
-                return
+                return;
             this.loading = true;
             if (uuidkey) {
                 axios.post(
@@ -47,7 +47,9 @@ var vue_dialogs = new Vue({
                         if (response.data.state == 'not_logged') {
                             $('#not-logged-modal').modal('show');
                             this.loading = false;
-                            return
+                            return;
+                        } else if (response.data.uuidkey) {
+                            return;
                         }
                         for (i = 0; i < response.data.dialogs.length; i++) {
                             all_dialogs.push(response.data.dialogs[i]);

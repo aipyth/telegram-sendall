@@ -93,7 +93,7 @@ def dialogs(request, pk, *args, **kwargs):
         uuid = str(uuid4())
         task = ScheduledDialogsTask(uuid=uuid)
         task.save()
-        t = tasks.get_dialogs.delay((session.session, uuid))
+        t = tasks.get_dialogs.delay(session.session, uuid)
         return JsonResponse({'uuidkey': uuid})
     elif request.method == 'POST':
         uuid = request.POST.get('uuidkey')
@@ -108,6 +108,7 @@ def dialogs(request, pk, *args, **kwargs):
                     return JsonResponse({'dialogs': [], 'state': 'not_logged'})
                 logger.debug("Sending active dialogs {} to {}".format(session, request.user))
                 return JsonResponse({'dialogs': dialogs})
+            return JsonResponse({'uuidkey': uuid})
         return HttpResponseForbidden()
 
 def send_message(request, pk, *args, **kwargs):
