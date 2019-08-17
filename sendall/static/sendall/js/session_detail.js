@@ -6,6 +6,7 @@ axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 var selected_contacts_ids = []; // list for sending message
 var selected_contacts_for_list = []; // list for creating new contacts list
 var all_dialogs = []; // list where all dialogs are donwloaded
+var uuidkey = '';
 
 Vue.filter('cutTooLong', function (value) {
     var low_limit = 50;
@@ -34,20 +35,32 @@ var vue_dialogs = new Vue({
     },
     methods: {
         getDialogs: function() {
+            if (all_dialogs.length != 0)
+                return
             this.loading = true;
-            axios.get('dialogs/')
-                .then(response => {
-                    console.log(response);
-                    if (response.data.state == 'not_logged') {
-                        $('#not-logged-modal').modal('show');
-                        return
-                    }
-                    for (i = 0; i < response.data.dialogs.length; i++) {
-                        all_dialogs.push(response.data.dialogs[i]);
-                        this.current_dialogs.push(response.data.dialogs[i]);
-                    }
-                    this.loading = false;
-            });
+            if (uuidkey) {
+                axios.post(
+                    'dialogs/',
+                    { uuidkey: uuidkey },
+                    ).then(response => {
+                        console.log(response);
+                        if (response.data.state == 'not_logged') {
+                            $('#not-logged-modal').modal('show');
+                            this.loading = false;
+                            return
+                        }
+                        for (i = 0; i < response.data.dialogs.length; i++) {
+                            all_dialogs.push(response.data.dialogs[i]);
+                            this.current_dialogs.push(response.data.dialogs[i]);
+                        }
+                        this.loading = false;
+                    });
+            } else {
+                axios.get('dialogs/')
+                    .then(response => {
+                        uuid = response.data.uuidkey;
+                    });
+            }
         },
         select_contact: function(dialog) {
             index = this.selected_contacts_ids.indexOf(dialog.id)
@@ -112,7 +125,7 @@ var vue_dialogs = new Vue({
 </div>
 `
 });
-vue_dialogs.getDialogs();
+window.setInterval(vue_dialogs.getDialogs, 2000);
 
 
 var vue_messages = new Vue({

@@ -150,10 +150,10 @@ async def _get_dialogs(session):
 
 def get_dialogs(session):
     try:
-        dialogs = asyncio.run(_get_dialogs(session.session))
+        dialogs = asyncio.run(_get_dialogs(session))
     except AttributeError:
         loop = asyncio.new_event_loop()
-        dialogs = loop.run_until_complete(_get_dialogs(session.session))
+        dialogs = loop.run_until_complete(_get_dialogs(session))
         loop.close()
     
     if isinstance(dialogs[0], dict):

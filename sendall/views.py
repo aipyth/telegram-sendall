@@ -10,8 +10,8 @@ from django.views.generic import DetailView, ListView, View
 
 from . import utils
 from .forms import SessionAddForm, SignUpForm
-from .models import Session, TelegramUser, ContactsList
-
+from .models import Session, TelegramUser, ContactsList, ScheduledDialogsTask
+from uuid import uuid4
 from . import tasks
 
 if settings.DEBUG:
@@ -89,12 +89,25 @@ class SessionAdd(LoginRequiredMixin, View):
 
 def dialogs(request, pk, *args, **kwargs):
     session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
-    logger.debug("Sending active dialogs {} to {}".format(session, request.user))
-    dialogs = utils.get_dialogs(session)
-    if dialogs[0].get('not_logged'):
-        session.delete()
-        return JsonResponse({'dialogs': [], 'state': 'not_logged'})
-    return JsonResponse({'dialogs': dialogs})
+    if request.method == 'GET':
+        uuid = uuid4()
+        task = ScheduledDialogsTask.objects.create(uuid=uuid)
+        tasks.get_dialogs.delay(session.session, uuid)
+        return JsonResponse({'uuidkey': uuid})
+    elif request.method == 'POST':
+        uuid = request.POST.get('uuidkey')
+        if uuid:
+            task = ScheduledDialogsTask.objects.get(uuid=uuid)
+            if task.ready:
+                # dialogs = utils.get_dialogs(session)
+                dialogs = json.loads(task.result)
+                task.delete()
+                if dialogs[0].get('not_logged'):
+                    session.delete()
+                    return JsonResponse({'dialogs': [], 'state': 'not_logged'})
+                logger.debug("Sending active dialogs {} to {}".format(session, request.user))
+                return JsonResponse({'dialogs': dialogs})
+        return HttpResponseForbidden()
 
 def send_message(request, pk, *args, **kwargs):
     if request.method == 'POST':
