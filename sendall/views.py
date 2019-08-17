@@ -90,7 +90,7 @@ class SessionAdd(LoginRequiredMixin, View):
 def dialogs(request, pk, *args, **kwargs):
     session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
     if request.method == 'GET':
-        uuid = uuid4()
+        uuid = str(uuid4())
         task = ScheduledDialogsTask.objects.create(uuid=uuid)
         tasks.get_dialogs.delay(session.session, uuid)
         return JsonResponse({'uuidkey': uuid})
