@@ -90,7 +90,11 @@ class SessionAdd(LoginRequiredMixin, View):
 def dialogs(request, pk, *args, **kwargs):
     session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
     logger.debug("Sending active dialogs {} to {}".format(session, request.user))
-    return JsonResponse({'dialogs': utils.get_dialogs(session)})
+    dialogs = utils.get_dialogs(session)
+    if dialogs[0].get('not_logged'):
+        session.delete()
+        return JsonResponse({'dialogs': [], 'state': 'not_logged'})
+    return JsonResponse({'dialogs': dialogs})
 
 def send_message(request, pk, *args, **kwargs):
     if request.method == 'POST':

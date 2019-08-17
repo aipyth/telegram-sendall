@@ -18,6 +18,26 @@
             <div id="vue-contacts-list"></div>
         </div>
     </div>
+    <div class="modal" id="not-logged-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Session not valid</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>The access to your account cannot be gained. Maybe you accidentally ended your session via official Telegram app.</p>
+                    <p>You need to relogin to your Telegram account to continue.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <a type="button" class="btn btn-primary" role="button" href="{% url 'add-session' %}">Relogin</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 

@@ -135,6 +135,9 @@ def sign_in(session, phone, code, password=None):
 async def _get_dialogs(session):
     client = TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)
     await client.connect()
+    if not await client.is_user_authorized():
+        return [{'not_logged': True}]
+
     chats = []
     async for dialog in client.iter_dialogs(limit=None, ignore_pinned=False):
         # if dialog.is_user:
@@ -152,6 +155,9 @@ def get_dialogs(session):
         loop = asyncio.new_event_loop()
         dialogs = loop.run_until_complete(_get_dialogs(session.session))
         loop.close()
+    
+    if isinstance(dialogs[0], dict):
+        return dialogs
 
     serialized_dialogs = serialize_dialogs(dialogs)
     return serialized_dialogs

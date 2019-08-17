@@ -38,6 +38,10 @@ var vue_dialogs = new Vue({
             axios.get('dialogs/')
                 .then(response => {
                     console.log(response);
+                    if (response.data.state == 'not_logged') {
+                        $('#not-logged-modal').modal('show');
+                        return
+                    }
                     for (i = 0; i < response.data.dialogs.length; i++) {
                         all_dialogs.push(response.data.dialogs[i]);
                         this.current_dialogs.push(response.data.dialogs[i]);
