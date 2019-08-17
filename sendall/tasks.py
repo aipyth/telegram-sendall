@@ -21,7 +21,7 @@ def send_message(session, contacts, message, markdown, delay=5):
 
 @shared_task
 def get_dialogs(session, unic):
-    task = ScheduledDialogsTask.get(uuid=unic)
+    task = ScheduledDialogsTask.objects.get(uuid=unic)
     dialogs = get_dialogs(session)
     task.result = json.dumps(dialogs)
     task.ready = True
