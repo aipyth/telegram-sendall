@@ -9,7 +9,7 @@ CELERY_BROKER_URL = os.environ.get('CLOUDAMQP_URL')
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
 CELERY_BROKER_POOL_LIMIT = 1
-# CELERY_RESULT_BACKEND = os.environ.get('CLOUDAMQP_URL')
+CELERY_RESULT_BACKEND = os.environ.get('CLOUDAMQP_URL')
 CELERY_RESULT_BACKEND = None
 CELERY_BROKER_HEARTBEAT = None # We're using TCP keep-alive instead
 CELERY_BROKER_CONNECTION_TIMEOUT = 30 # May require a long timeout due to Linux DNS timeouts etc

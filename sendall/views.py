@@ -13,6 +13,7 @@ from .forms import SessionAddForm, SignUpForm
 from .models import Session, TelegramUser, ContactsList, ScheduledDialogsTask
 from uuid import uuid4
 from . import tasks
+from celery.result import AsyncResult
 
 if settings.DEBUG:
     logging.basicConfig(level=logging.DEBUG)
@@ -90,25 +91,28 @@ class SessionAdd(LoginRequiredMixin, View):
 def dialogs(request, pk, *args, **kwargs):
     session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
     if request.method == 'GET':
-        uuid = str(uuid4())
-        task = ScheduledDialogsTask(uuid=uuid)
-        task.save()
-        t = tasks.get_dialogs.delay(session.session, uuid)
-        return JsonResponse({'uuidkey': uuid})
+        # uuid = str(uuid4())
+        # task = ScheduledDialogsTask(uuid=uuid)
+        # task.save()
+        task = tasks.get_dialogs.delay(session.session)
+        task_id = task.task_id
+        return JsonResponse({'uuidkey': task_id})
     elif request.method == 'POST':
-        uuid = request.POST.get('uuidkey')
-        if uuid:
-            task = ScheduledDialogsTask.objects.get(uuid=uuid)
-            if task.ready:
+        task_id = request.POST.get('uuidkey')
+        if task_id:
+            # task = ScheduledDialogsTask.objects.get(uuid=uuid)
+            task = AsyncResult(id=task_id)
+            if task.state == 'SUCCESS':
                 # dialogs = utils.get_dialogs(session)
-                dialogs = json.loads(task.result)
-                task.delete()
+                # dialogs = json.loads(task.result)
+                dialogs = task.get()
+                # task.delete()
                 if dialogs[0].get('not_logged'):
                     session.delete()
                     return JsonResponse({'dialogs': [], 'state': 'not_logged'})
                 logger.debug("Sending active dialogs {} to {}".format(session, request.user))
                 return JsonResponse({'dialogs': dialogs})
-            return JsonResponse({'uuidkey': uuid})
+            return JsonResponse({'uuidkey': task_id})
         return HttpResponseForbidden()
 
 def send_message(request, pk, *args, **kwargs):
