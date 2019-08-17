@@ -24,6 +24,7 @@ def get_dialogs(attrs):
     print(attrs)
     session = attrs[0]
     uuid = attrs[1]
+    print(uuid)
     task = ScheduledDialogsTask.objects.get(uuid=uuid)
     dialogs = get_dialogs(session)
     task.result = json.dumps(dialogs)
