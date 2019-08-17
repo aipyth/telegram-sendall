@@ -92,7 +92,7 @@ def dialogs(request, pk, *args, **kwargs):
     if request.method == 'GET':
         uuid = str(uuid4())
         task = ScheduledDialogsTask.objects.create(uuid=uuid)
-        tasks.get_dialogs.delay(session.session, uuid)
+        t = tasks.get_dialogs.delay((session.session, uuid))
         return JsonResponse({'uuidkey': uuid})
     elif request.method == 'POST':
         uuid = request.POST.get('uuidkey')
