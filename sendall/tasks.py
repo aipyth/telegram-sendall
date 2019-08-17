@@ -5,7 +5,6 @@ import json
 from uuid import uuid4
 import asyncio
 from .utils import _send_message, get_dialogs
-from .models import ScheduledDialogsTask
 
 
 @shared_task
@@ -21,9 +20,5 @@ def send_message(session, contacts, message, markdown, delay=5):
 
 @shared_task
 def get_dialogs_task(session):
-    # task = ScheduledDialogsTask.objects.get(uuid=uuid)
     dialogs = get_dialogs(session)
-    # task.result = json.dumps(dialogs)
-    # task.ready = True
-    # task.save()
     return dialogs

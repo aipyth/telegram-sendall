@@ -60,9 +60,3 @@ class ContactsList(models.Model):
 
     def get_list(self):
         return eval(self.contacts_list)
-
-
-class ScheduledDialogsTask(models.Model):
-    uuid = models.TextField(unique=True)
-    ready = models.BooleanField(default=False)
-    result = models.TextField()

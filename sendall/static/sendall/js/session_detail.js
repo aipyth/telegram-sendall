@@ -40,7 +40,6 @@ var vue_dialogs = new Vue({
                 return;
             this.loading = true;
             if (get_dialogs_request_sent) {
-                console.log('uuid key before request: ' + uuidkey)
                 axios.post('dialogs/', {
                         uuidkey: uuidkey
                     }).then(response => {
