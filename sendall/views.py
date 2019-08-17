@@ -91,7 +91,8 @@ def dialogs(request, pk, *args, **kwargs):
     session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
     if request.method == 'GET':
         uuid = str(uuid4())
-        task = ScheduledDialogsTask.objects.create(uuid=uuid)
+        task = ScheduledDialogsTask(uuid=uuid)
+        task.save()
         t = tasks.get_dialogs.delay((session.session, uuid))
         return JsonResponse({'uuidkey': uuid})
     elif request.method == 'POST':
