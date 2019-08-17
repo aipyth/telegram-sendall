@@ -1,5 +1,5 @@
 from __future__ import absolute_import, unicode_literals
-
+import celery
 from celery import shared_task
 import json
 from uuid import uuid4
@@ -19,9 +19,9 @@ def send_message(session, contacts, message, markdown, delay=5):
     # return result
 
 
-@shared_task
-def get_dialogs(session, unic):
-    task = ScheduledDialogsTask.objects.get(uuid=unic)
+@task(bind=True, name="get_dialogs")
+def get_dialogs(session, uuid):
+    task = ScheduledDialogsTask.objects.get(uuid=uuid)
     dialogs = get_dialogs(session)
     task.result = json.dumps(dialogs)
     task.ready = True

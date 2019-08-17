@@ -152,7 +152,7 @@ STATIC_URL = '/static/'
 # )
 
 # Enable redirect http -> https
-SECURE_SSL_REDIRECT = True
+# SECURE_SSL_REDIRECT = True
 
 # Telethon settings
 API_ID = os.environ.get('TELEGRAM_API_ID')
