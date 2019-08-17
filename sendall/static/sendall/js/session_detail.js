@@ -7,6 +7,7 @@ var selected_contacts_ids = []; // list for sending message
 var selected_contacts_for_list = []; // list for creating new contacts list
 var all_dialogs = []; // list where all dialogs are donwloaded
 var uuidkey = '';
+var get_dialogs_request_sent = false;
 
 Vue.filter('cutTooLong', function (value) {
     var low_limit = 50;
@@ -38,11 +39,11 @@ var vue_dialogs = new Vue({
             if (all_dialogs.length != 0)
                 return;
             this.loading = true;
-            if (uuidkey) {
-                axios.post(
-                    'dialogs/',
-                    { uuidkey: uuidkey },
-                    ).then(response => {
+            if (get_dialogs_request_sent) {
+                console.log('uuid key before request: ' + uuidkey)
+                axios.post('dialogs/', {
+                        uuidkey: uuidkey
+                    }).then(response => {
                         console.log(response);
                         if (response.data.state == 'not_logged') {
                             $('#not-logged-modal').modal('show');
@@ -60,8 +61,9 @@ var vue_dialogs = new Vue({
             } else {
                 axios.get('dialogs/')
                     .then(response => {
-                        uuid = response.data.uuidkey;
+                        uuidkey = response.data.uuidkey;
                     });
+                get_dialogs_request_sent = true;
             }
         },
         select_contact: function(dialog) {

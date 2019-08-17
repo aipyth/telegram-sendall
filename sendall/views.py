@@ -94,11 +94,14 @@ def dialogs(request, pk, *args, **kwargs):
         # uuid = str(uuid4())
         # task = ScheduledDialogsTask(uuid=uuid)
         # task.save()
-        task = tasks.get_dialogs.delay(session.session)
+        task = tasks.get_dialogs_task.delay(session.session)
         task_id = task.task_id
         return JsonResponse({'uuidkey': task_id})
     elif request.method == 'POST':
-        task_id = request.POST.get('uuidkey')
+        print("request: ".format(request.body))
+        data = json.loads(request.body.decode('utf-8'))
+        task_id = data.get('uuidkey')
+        print("data: ".format(data))
         if task_id:
             # task = ScheduledDialogsTask.objects.get(uuid=uuid)
             task = AsyncResult(id=task_id)
