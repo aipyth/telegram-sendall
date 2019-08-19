@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import time
 
 from django.conf import settings
@@ -6,13 +7,14 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from django.urls import reverse
 from telethon import TelegramClient
-from telethon.errors import (FloodWaitError, PhoneNumberInvalidError,
-                             SessionPasswordNeededError, PasswordHashInvalidError, PhoneCodeExpiredError)
+from telethon.errors import (FloodWaitError, PasswordHashInvalidError,
+                             PhoneCodeExpiredError, PhoneNumberInvalidError,
+                             SessionPasswordNeededError)
 from telethon.sessions import StringSession
 from telethon.tl.types import PeerUser
 
-import logging
 logger = logging.getLogger(__name__)
+
 
 async def _send_code_request(phone):
     client = TelegramClient(StringSession(), settings.API_ID, settings.API_HASH)
@@ -113,6 +115,7 @@ async def _sign_in(session, phone, code, password=None):
         'redirect': reverse('sessions'),
     }
 
+
 def sign_in(session, phone, code, password=None):
     try:
         result = asyncio.run(_sign_in(session.session, phone, code, password))
@@ -144,7 +147,7 @@ async def _get_dialogs(session):
         #     chats.append(dialog)
         if not dialog.is_channel:
             chats.append(dialog)
-        
+
     return chats
 
 
@@ -155,12 +158,13 @@ def get_dialogs(session):
         loop = asyncio.new_event_loop()
         dialogs = loop.run_until_complete(_get_dialogs(session))
         loop.close()
-    
+
     if isinstance(dialogs[0], dict):
         return dialogs
 
     serialized_dialogs = serialize_dialogs(dialogs)
     return serialized_dialogs
+
 
 def serialize_dialogs(dialogs):
     return [
@@ -172,25 +176,59 @@ def serialize_dialogs(dialogs):
         } for dialog in dialogs
     ]
 
+
 def str_no_none(obj):
     if obj == None:
         return ''
     return str(obj)
+
+
+def length_strip(string, block_size=4096):
+    if len(string) > block_size:
+        return (string[:block_size], *length_strip(string[block_size:], block_size))
+    return (string,)
+
+
+def cut_message(msg, block_size=4096):
+    output = ['']
+    index = 0
+    msgs = msg.split('\n')
+    for m in msgs:
+        if len(m) >= block_size:
+            cutted_m_s = length_strip(m, block_size=block_size)
+            for cutted_m in cutted_m_s:
+                if len(output[index]) + len(cutted_m) <= block_size - 1:
+                    output[index] += cutted_m
+                else:
+                    index += 1
+                    output.append(cutted_m)
+        elif (len(output[index]) + len(m)) > block_size:
+            index += 1
+            output.append(m)
+        else:
+            output[index] += m
+        output[index] += '\n'
+    if '' in outputt:
+        output.remove('')
+    return output
+
 
 async def _send_message(session, contacts, message, markdown, delay=5):
     client = TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)
     await client.connect()
     client.parse_mode = 'md' if markdown else None
     await client.get_dialogs()
+
+    messages = cut_message(message)
     for contact in contacts:
         try:
             entity = await client.get_entity(PeerUser(contact))
-            await client.send_message(entity, message=message)
+            for msg in messages:
+                await client.send_message(entity, message=msg)
+                time.sleep(delay)
         except BaseException as e:
             logger.error(e)
         except:
             pass
-        time.sleep(delay)
 
     return JsonResponse({'state': 'ok'})
-
