@@ -208,7 +208,7 @@ def cut_message(msg, block_size=4096):
         else:
             output[index] += m
         output[index] += '\n'
-    if '' in outputt:
+    if '' in output:
         output.remove('')
     return output
 
