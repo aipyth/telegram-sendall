@@ -20,8 +20,10 @@ async def _send_code_request(phone):
     client = TelegramClient(StringSession(), settings.API_ID, settings.API_HASH)
     await client.connect()
     try:
-        res = await client.send_code_request(phone)
+        res = await client.send_code_request(phone,force_sms=True)
         print(f"code request sent. {res=}")
+        print(dir(res))
+        print(f"{phone=}")
     except PhoneNumberInvalidError:
         return {
             'state': 'error',
