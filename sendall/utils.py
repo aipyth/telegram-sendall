@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 async def _send_code_request(phone):
     client = TelegramClient(StringSession(), settings.API_ID, settings.API_HASH)
     await client.connect()
-    await client.start()
+    # await client.start()
     try:
         res = await client.send_code_request(phone)
         print(f"code request sent. {res=}")
