@@ -35,13 +35,13 @@ async def _send_code_request(phone):
             'reason': '',
             'errors': [str(e).split('(')[0]],
         }
-    if not res.phone_registered:
-        return {
-            'state': 'error',
-            'session': client.session.save(),
-            'reason': '',
-            'errors': ['This phone number is not registered']
-        }
+    # if not res.phone_registered:
+    #     return {
+    #         'state': 'error',
+    #         'session': client.session.save(),
+    #         'reason': '',
+    #         'errors': ['This phone number is not registered']
+    #     }
     session = client.session.save()
     cache.set(phone, res.phone_code_hash)
     return {
