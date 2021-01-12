@@ -21,6 +21,7 @@ async def _send_code_request(phone):
     await client.connect()
     try:
         res = await client.send_code_request(phone)
+        print(f"code request sent. {res=}")
     except PhoneNumberInvalidError:
         return {
             'state': 'error',
@@ -78,6 +79,7 @@ async def _sign_in(session, phone, code, password=None):
             account = await client.sign_in(phone, password=password)
         else:
             account = await client.sign_in(phone, code, phone_code_hash=phone_code_hash)
+            print(f"sent request code. {account=}")
     except PasswordHashInvalidError:
         return {
             'state': 'error',
