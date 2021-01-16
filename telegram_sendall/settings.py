@@ -44,8 +44,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('SECRET_KEY', 'e+fb1-0w6txyg4w4*+ygiafhoplr0hh^h^_23ap2rlo^irxx$4')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.environ.get('DEBUG', 1))
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '[]').split(';')
+DEBUG = os.environ.get('DEBUG', 'False') != 'False'
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '[]').split(';')
 
 
 # Application definition
@@ -109,6 +110,11 @@ DATABASES = {
     }
 }
 
+if os.environ.get('USE_POSTGRES'):
+    import dj_database_url
+    db_from_env = dj_database_url.config(conn_max_age=500)
+    DATABASES['default'].update(db_from_env)
+
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -153,19 +159,19 @@ STATIC_URL = '/static/'
 # )
 
 # Enable redirect http -> https
-SECURE_SSL_REDIRECT = True
+# SECURE_SSL_REDIRECT = True
 
 # Telethon settings
 API_ID = os.environ.get('TELEGRAM_API_ID')
 API_HASH = os.environ.get('TELEGRAM_API_HASH')
 
 # Importing Heroku settings
-try:
-    import django_heroku
-    # Activate Django-Heroku.
-    django_heroku.settings(locals())
-except ImportError:
-    pass
+# try:
+#     import django_heroku
+#     # Activate Django-Heroku.
+#     django_heroku.settings(locals())
+# except ImportError:
+#     pass
 
 
 # Stuff for local development
