@@ -127,3 +127,7 @@ dmypy.json
 .vscode
 
 env.sh
+
+credentials.txt
+
+staticfiles/

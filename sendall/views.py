@@ -73,7 +73,7 @@ class SessionAdd(LoginRequiredMixin, View):
             code = form.cleaned_data.get('code')
             password = form.cleaned_data.get('password')
 
-            session , created= Session.objects.get_or_create(phone=phone, user=request.user.telegramuser)
+            session, created = Session.objects.get_or_create(phone=phone, user=request.user.telegramuser)
 
             if code and password:
                 return utils.sign_in(session, phone, code, password)

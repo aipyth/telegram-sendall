@@ -4,14 +4,13 @@ import os
 
 # Celery settings
 
-CELERY_BROKER_URL = os.environ.get('CLOUDAMQP_URL')
+# CELERY_BROKER_URL = os.environ.get('MQ_URL')
+CELERY_BROKER_URL = os.environ.get('REDIS_URL')
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
 CELERY_BROKER_POOL_LIMIT = 1
-# CELERY_RESULT_BACKEND = os.environ.get('CLOUDAMQP_URL')
 CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL')
-# CELERY_RESULT_BACKEND = None
 CELERY_BROKER_HEARTBEAT = None # We're using TCP keep-alive instead
 CELERY_BROKER_CONNECTION_TIMEOUT = 30 # May require a long timeout due to Linux DNS timeouts etc
 CELERY_EVENT_QUEUE_EXPIRES = 60 # Will delete all celeryev. queues without consumers after 1 minute.
@@ -111,9 +110,19 @@ DATABASES = {
 }
 
 if os.environ.get('USE_POSTGRES'):
-    import dj_database_url
-    db_from_env = dj_database_url.config(conn_max_age=500)
-    DATABASES['default'].update(db_from_env)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'postgres',
+            'USER': 'postgres',
+            'PASSWORD': 'postgres',
+            'HOST': 'db',
+            'PORT': 5432,
+        }
+    }
+    # import dj_database_url
+    # db_from_env = dj_database_url.config(conn_max_age=500)
+    # DATABASES['default'].update(db_from_env)
 
 
 # Password validation
@@ -153,13 +162,29 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # STATICFILES_DIRS = (
 #     os.path.join(BASE_DIR, 'static'),
 # )
 
-# Enable redirect http -> https
-# SECURE_SSL_REDIRECT = True
+# Enable redirect http -> https for production
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+if os.environ.get('DISABLE_SSL', 'False') != 'False':
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
+
+    CORS_REPLACE_HTTPS_REFERER      = False
+    HOST_SCHEME                     = "http://"
+    SECURE_PROXY_SSL_HEADER         = None
+    # SECURE_SSL_REDIRECT             = False
+    # SESSION_COOKIE_SECURE           = False
+    # CSRF_COOKIE_SECURE              = False
+    SECURE_HSTS_SECONDS             = None
+    SECURE_HSTS_INCLUDE_SUBDOMAINS  = False
+    SECURE_FRAME_DENY               = False
 
 # Telethon settings
 API_ID = os.environ.get('TELEGRAM_API_ID')

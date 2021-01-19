@@ -1,0 +1,84 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:latest
+    # restart: always
+    volumes:
+      - redis_vol:/r_data
+    # ports:
+    #   - 6379:6379
+
+  redis_insight:
+    image: redislabs/redisinsight:latest
+    # restart: always
+    depends_on:
+      - redis
+    ports:
+      - 8001:8001
+    volumes:
+      - redis_insight_vol:/ri_data
+
+  db:
+    image: postgres:latest
+    # restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+
+  web:
+    build: .
+    # restart: always
+    working_dir: /app
+    # If you encounter ssl troubles during local development
+    # just change the first port number to something else
+    # and connect through that port
+    ports:
+      - 8080:8000
+    volumes:
+      - ./:/app:Z
+    depends_on:
+      - redis
+      - db
+    environment: 
+      # MQ_URL: rabbitmq://rabbitmq:5672/0
+      REDIS_URL: redis://redis:6379/0
+      USE_POSTGRES: 'True'
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_USER: postgres
+      DEBUG: 'True'
+      DISABLE_SSL: 'True'
+
+      TELEGRAM_API_HASH: 3de628bb40cdb0f62431eaf503696178
+      TELEGRAM_API_ID: 751363
+    # command: python manage.py runserver 0.0.0.0:8000
+    command: sh ./docker-entrypoint.sh
+    # command: python manage.py migrate && python manage.py runserver 0.0.0.0:8000
+
+  worker:
+    build: .
+    working_dir: /app
+    # volumes:
+    #   - ./:/app:Z
+    depends_on: 
+      - redis
+      - db
+    environment: 
+      REDIS_URL: redis://redis:6379/0
+      USE_POSTGRES: 'True'
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_USER: postgres
+      DEBUG: 'True'
+      DISABLE_SSL: 'True'
+
+      TELEGRAM_API_HASH: 3de628bb40cdb0f62431eaf503696178
+      TELEGRAM_API_ID: 751363
+    command: celery worker --app=telegram_sendall.celery.app --without-heartbeat -l debug
+
+
+volumes:
+  redis_vol:
+  redis_insight_vol:
