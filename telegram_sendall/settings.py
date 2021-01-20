@@ -109,6 +109,10 @@ DATABASES = {
     }
 }
 
+if os.environ.get('USE_POSTGRES') == 'true_dokku':
+    import dj_database_url
+    db_from_env = dj_database_url.config(conn_max_age=500)
+    DATABASES['default'].update(db_from_env)
 if os.environ.get('USE_POSTGRES'):
     DATABASES = {
         'default': {
@@ -120,9 +124,6 @@ if os.environ.get('USE_POSTGRES'):
             'PORT': 5432,
         }
     }
-    # import dj_database_url
-    # db_from_env = dj_database_url.config(conn_max_age=500)
-    # DATABASES['default'].update(db_from_env)
 
 
 # Password validation
@@ -179,9 +180,6 @@ if os.environ.get('DISABLE_SSL', 'False') != 'False':
     CORS_REPLACE_HTTPS_REFERER      = False
     HOST_SCHEME                     = "http://"
     SECURE_PROXY_SSL_HEADER         = None
-    # SECURE_SSL_REDIRECT             = False
-    # SESSION_COOKIE_SECURE           = False
-    # CSRF_COOKIE_SECURE              = False
     SECURE_HSTS_SECONDS             = None
     SECURE_HSTS_INCLUDE_SUBDOMAINS  = False
     SECURE_FRAME_DENY               = False

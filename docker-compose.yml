@@ -1,4 +1,4 @@
-version: '3.9'
+version: '3.7'
 
 services:
   redis:
@@ -38,6 +38,7 @@ services:
       - 8080:8000
     volumes:
       - ./:/app:Z
+      - staticfiles:/app/staticfiles
     depends_on:
       - redis
       - db
@@ -78,6 +79,16 @@ services:
     command: celery worker --app=telegram_sendall.celery.app --without-heartbeat -l debug
 
 
+  nginx:
+    build: ./nginx
+    volumes:
+      - staticfiles:/app/staticfiles
+    ports:
+      - 80:80
+    depends_on:
+      - web
+
 volumes:
+  staticfiles:
   redis_vol:
   redis_insight_vol:
