@@ -1,6 +1,7 @@
 import json
 import logging
 import datetime
+
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -8,12 +9,17 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView, View
 
+# import celery
+
 from . import utils
 from .forms import SessionAddForm, SignUpForm
 from .models import Session, TelegramUser, ContactsList
 from uuid import uuid4
 from . import tasks
 from celery.result import AsyncResult
+
+from telegram_sendall.celery import app
+
 
 if settings.DEBUG:
     logging.basicConfig(level=logging.DEBUG)
@@ -216,4 +222,30 @@ def delete_contacts_list(request, pk):
                 cl[0].delete()
                 return JsonResponse({'state': 'ok'})
 
+    return HttpResponseForbidden()
+
+
+def get_tasks(request):
+    # logger.info('In get_tasks')
+    if request.method == 'GET':
+        # logger.info('in if')
+        i = app.control.inspect()
+        # logger.info(f"got inspect. {i}")
+        # logger.info(f"{dir(i)}")
+        # logger.info(f"{i.ping()}")
+        def parse_args(args: str):
+            # parse shit here
+
+        scheduled = [{
+            # 'eta': item[1]['eta']
+            'id': item[1]['request']['id']
+        } if item[1]['request']['type'] == "sendall.tasks.send_message" else {} for item in i.active().items()]
+
+
+        return JsonResponse({
+            # 'inspect': celery.app.control.inspect(),
+            'active': i.active(),
+            'scheduled': i.scheduled(),
+            'waiting': i.reserved(),
+        })
     return HttpResponseForbidden()
