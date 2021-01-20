@@ -6,8 +6,6 @@ services:
     restart: always
     volumes:
       - redis_vol:/r_data
-    # ports:
-    #   - 6379:6379
 
   redis_insight:
     image: redislabs/redisinsight:latest
@@ -31,13 +29,10 @@ services:
     build: .
     restart: always
     working_dir: /app
-    # If you encounter ssl troubles during local development
-    # just change the first port number to something else
-    # and connect through that port
     ports:
       - 8080:8000
-    volumes:
-      - ./:/app:Z
+    # volumes:
+    #   - ./:/app:Z
     depends_on:
       - redis
       - db
@@ -49,8 +44,8 @@ services:
       POSTGRES_PASSWORD: "postgres"
       POSTGRES_USER: postgres
 
-      DEBUG: 'True'
-      DISABLE_SSL: 'True'
+      DEBUG: 'False'
+      DISABLE_SSL: 'False'
 
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
@@ -59,19 +54,19 @@ services:
   worker:
     build: .
     working_dir: /app
-    # volumes:
-    #   - ./:/app:Z
     depends_on: 
       - redis
       - db
     environment: 
       REDIS_URL: redis://redis:6379/0
+
       USE_POSTGRES: 'True'
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: "postgres"
       POSTGRES_USER: postgres
-      DEBUG: 'True'
-      DISABLE_SSL: 'True'
+
+      DEBUG: 'False'
+      DISABLE_SSL: 'False'
 
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
