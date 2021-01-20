@@ -149,3 +149,35 @@ a:focus {
     margin: 0 5px;
     border-radius: 25%;
 }
+
+.message-input{
+    width: 60%
+}
+
+.active-tasks{
+    width: 40%;
+    margin-left: 5px;
+    padding: 5px;
+}
+.active-tasks h5{
+    text-align: center;
+}
+
+.chats-block{
+    width: 0;
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+.contacts-block{
+    width: 100%;
+    transition: all 0.5s ease;
+}
+
+.chats-open{
+    width: 50% !important;
+    opacity: 1 !important;
+}
+.contacts-open{
+    width: 50%;
+}

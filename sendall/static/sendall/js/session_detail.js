@@ -102,8 +102,7 @@ var vue_dialogs = new Vue({
         }
     },
     template: `
-<div class='fixed-card card-shadow'>
-    <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="#chats" aria-expanded="true" aria-controls="chats">Chats</button>
+<div class="chats-block pr-1">
     <form class="form" style="margin-bottom: 15px;">
         <input class="form-control" type="search" placeholder="Search" aria-label="Search" v-model="search_dialogs">
     </form>
@@ -129,160 +128,6 @@ var vue_dialogs = new Vue({
 `
 });
 window.setInterval(vue_dialogs.getDialogs, 2000);
-
-
-var vue_messages = new Vue({
-    el: "#vue-message",
-    data: {
-        message: '',
-        markdown: true,
-        requesting: false,
-        request_result: '',
-        errors: [],
-        markdown_help: false,
-    },
-    methods: {
-        sendMessage: function() {
-            console.log("Selected contacts " + selected_contacts_ids);
-            this.requesting = true;
-            this.request_result = '';
-            this.errors = [];
-            if (this.$refs.exec_datetime.value) {
-                exec_datetime = new Date(this.$refs.exec_datetime.value);
-            } else {
-                exec_datetime = new Date();
-            }
-            axios.post('send-message/', {
-                contacts: selected_contacts_ids,
-                message: this.message,
-                markdown: this.markdown,
-                datetime: exec_datetime.toISOString(),
-            }).then(response => {
-                // // add contacts list to prepared
-                // this.sendContactList();
-                // and handle the response
-                console.log(response);
-                this.requesting = false;
-                this.request_result = '';
-
-                if (response.data.state == 'ok') {
-                    this.request_result = 'The messages are being sent';
-                } else if (response.state == 'error') {
-                    for (i = 0; i < response.data.errors; i++) {
-                        this.errors.push(response.data.errors[i]);
-                    }
-                } else if (response.status == 403) {
-                    this.errors.push('You cannot send this');
-                } else if (response.status == 404) {
-                    this.errors.push('Forbidden');
-                }
-            });
-        },
-    },
-    template: `
-<div style='position: relative;'>
-    <div class='loading-card' v-if="requesting">
-        <h3>
-            <div class="spinner-grow text-primary" role="status">
-                <span class="sr-only"></span>
-            </div>
-            Sending...
-        </h3>
-    </div>
-    <div class='loading-card' v-if="request_result != ''">
-        <h5>
-            {{ request_result }}
-        </h5>
-    </div>
-    <div class="md-card danger" v-show="errors" v-for="error in errors">
-        <h5>
-            {{ error }} 
-        </h5>
-    </div>
-    
-    <div class="fixed-card card-shadow">
-        <div class='row'>
-        <div class='col'>
-            <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="#message" aria-expanded="true" aria-controls="message">Message</button>
-            
-        </div>
-        </div>
-        <div id='message' class='collapse show'>
-            <div class="row">
-                <div class='col form-group shadow-textarea'>
-                    <textarea class='form-control z-depth-1' rows=10 placeholder="Write something here..." v-model="message">
-                    </textarea>
-                </div>
-            </div>
-            <div class='row'>
-                <div class='col form-group custom-control custom-checkbox'>
-                    <input class='custom-control-input' id='markdown' type='checkbox' v-model="markdown">
-                    <label class='custom-control-label' for='markdown'>Markdown</label>
-                    <span class='help-popup-icon' data-toggle="modal" data-target="#markdown-modal">?</span>
-                    
-                </div>
-            </div>
-            <div class='row'>
-                <div class="col">
-                    <div class="form-group">
-                        <div class="input-group date" id="exec-datetime" data-target-input="nearest">
-                            <input ref="exec_datetime" type="text" class="form-control datetimepicker-input" placeholder="Schedule a message to send" data-target="#exec-datetime"/>
-
-                            <div class="input-group-append" data-target="#exec-datetime" data-toggle="datetimepicker">
-                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class='row'>
-                <div class='col'>
-                    <button class='btn btn-block btn-primary' v-on:click="sendMessage">Send</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="markdown-modal" tabindex="-1" role="dialog" aria-labelledby="markdown-modal-title" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="markdown-modal-title">You can format your code with Markdown syntax</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <table class='table'>
-                    <tbody>
-                        <tr>
-                            <td><p>**bold text**</p></td>
-                            <td><strong>bold text</strong></td>
-                        </tr>
-                        <tr>
-                            <td><p>__italic text__</p></td>
-                            <td><em>italic text</em></td>
-                        </tr>
-
-                        <tr>
-                            <td><p>\`inline fixed-width code\`</p></td>
-                            <td><pre>inline fixed-width code</pre></td>
-                        </tr>
-                        <tr>
-                            <td><p>[Google.com link](https://google.com)</p></td>
-                            <td><a href="https://google.com">Google.com link</a></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            </div>
-        </div>
-    </div>
-</div>
-`,
-});
-
 
 var vue_contacts_lists = new Vue({
     el: '#vue-contacts-list',
@@ -403,9 +248,7 @@ var vue_contacts_lists = new Vue({
         },
     },
     template: `
-<div class='fixed-card card-shadow'>
-    <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="#prepared-contacts-list" aria-expanded="true" aria-controls="prepared-contacts-list">Prepared Contacts List</button>
-    <div id='prepared-contacts-list' class='sm-card collapse show'>
+    <div id='prepared-contacts-list' class="contacts-block pl-1">
         <div align='center' v-if="loading">
             <h3>
                 <div class="spinner-grow text-primary" role="status">
@@ -413,7 +256,7 @@ var vue_contacts_lists = new Vue({
                 </div> 
             </h3>
         </div>
-        <button class='btn btn-light btn-block' v-on:click="enterNewListName" v-show="!entering_new_list_name">Create new list from selected contacts</button>
+        <button class='btn btn-light btn-block' v-on:click="enterNewListName" v-show="!entering_new_list_name" id="createlist">Create new list from selected contacts</button>
         <div class="list-name input-group mb-3" v-show="entering_new_list_name">
             <input type="text" class="form-control" placeholder="Contact List Name" aria-describedby="name-ok" v-model="new_list_name">
             <div class="input-group-append">
@@ -449,10 +292,199 @@ var vue_contacts_lists = new Vue({
             </div>
         </div>
     </div>
-</div>
 `,
 });
 vue_contacts_lists.getLists();
+
+var vue_messages = new Vue({
+    el: "#vue-message",
+    data: {
+        message: '',
+        markdown: true,
+        requesting: false,
+        request_result: '',
+        errors: [],
+        markdown_help: false,
+    },
+    methods: {
+        sendMessage: function() {
+            console.log("Selected contacts " + selected_contacts_ids);
+            this.requesting = true;
+            this.request_result = '';
+            this.errors = [];
+            if (this.$refs.exec_datetime.value) {
+                exec_datetime = new Date(this.$refs.exec_datetime.value);
+            } else {
+                exec_datetime = new Date();
+            }
+            axios.post('send-message/', {
+                contacts: selected_contacts_ids,
+                message: this.message,
+                markdown: this.markdown,
+                datetime: exec_datetime.toISOString(),
+            }).then(response => {
+                // // add contacts list to prepared
+                // this.sendContactList();
+                // and handle the response
+                console.log(response);
+                this.requesting = false;
+                this.request_result = '';
+
+                if (response.data.state == 'ok') {
+                    this.request_result = 'The messages are being sent';
+                } else if (response.state == 'error') {
+                    for (i = 0; i < response.data.errors; i++) {
+                        this.errors.push(response.data.errors[i]);
+                    }
+                } else if (response.status == 403) {
+                    this.errors.push('You cannot send this');
+                } else if (response.status == 404) {
+                    this.errors.push('Forbidden');
+                }
+            });
+        },
+    },
+    template: `
+<div style='position: relative;'>
+    <div class='loading-card' v-if="requesting">
+        <h3>
+            <div class="spinner-grow text-primary" role="status">
+                <span class="sr-only"></span>
+            </div>
+            Sending...
+        </h3>
+    </div>
+    <div class='loading-card' v-if="request_result != ''">
+        <h5>
+            {{ request_result }}
+        </h5>
+    </div>
+    <div class="md-card danger" v-show="errors" v-for="error in errors">
+        <h5>
+            {{ error }} 
+        </h5>
+    </div>
+    
+    <div class="fixed-card card-shadow">
+        <div class='row'>
+        <div class='col'>
+            <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="#message" aria-expanded="true" aria-controls="message">Message</button>
+            
+        </div>
+        </div>
+        <div id='message' class='collapse show d-flex flex-row'>
+            <div class="message-input" style="width: 60%">
+            <div class="row">
+                <div class='col form-group shadow-textarea'>
+                    <textarea class='form-control z-depth-1' rows=10 placeholder="Write something here..." v-model="message">
+                    </textarea>
+                </div>
+            </div>
+            <div class='row'>
+                <div class='col form-group custom-control custom-checkbox'>
+                    <input class='custom-control-input' id='markdown' type='checkbox' v-model="markdown">
+                    <label class='custom-control-label' for='markdown'>Markdown</label>
+                    <span class='help-popup-icon' data-toggle="modal" data-target="#markdown-modal">?</span>
+                    
+                </div>
+            </div>
+            <div class='row'>
+                <div class="col">
+                    <div class="form-group">
+                        <div class="input-group date" id="exec-datetime" data-target-input="nearest">
+                            <input ref="exec_datetime" type="text" class="form-control datetimepicker-input" placeholder="Schedule a message to send" data-target="#exec-datetime"/>
+
+                            <div class="input-group-append" data-target="#exec-datetime" data-toggle="datetimepicker">
+                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class='row'>
+                <div class='col'>
+                    <button class='btn btn-block btn-primary' v-on:click="sendMessage">Send</button>
+                </div>
+            </div>
+        </div>
+        <div class="active-tasks d-flex flex-column" style="width: 40%; ">
+        <h5>Active tasks list</h5>
+        <div class="current tasks">
+
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <div class="modal fade" id="markdown-modal" tabindex="-1" role="dialog" aria-labelledby="markdown-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markdown-modal-title">You can format your code with Markdown syntax</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class='table'>
+                    <tbody>
+                        <tr>
+                            <td><p>**bold text**</p></td>
+                            <td><strong>bold text</strong></td>
+                        </tr>
+                        <tr>
+                            <td><p>__italic text__</p></td>
+                            <td><em>italic text</em></td>
+                        </tr>
+
+                        <tr>
+                            <td><p>\`inline fixed-width code\`</p></td>
+                            <td><pre>inline fixed-width code</pre></td>
+                        </tr>
+                        <tr>
+                            <td><p>[Google.com link](https://google.com)</p></td>
+                            <td><a href="https://google.com">Google.com link</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+`,
+});
+
+var opened = false
+function open() {
+    if (opened) {
+        $(".chats-block").removeClass("chats-open")
+        $(".contacts-block").removeClass("contacts-open")
+        $("#createlist").css("display", "block")
+        $(".list-name").css("display", "none")
+    }
+    else {
+        $(".chats-block").addClass("chats-open")
+        $(".contacts-block").addClass("contacts-open")
+    }
+    opened = !opened
+}
+
+$("#chat-hideshow").on('click', open)
+$("#createlist").on('click', function () {
+    if (!opened) 
+    {
+        open()
+        $("#createlist").css("display", "none")
+        $(".list-name").css("display", "flex")
+    }
+    else{
+
+        $("#createlist").css("display", "none")
+        $(".list-name").css("display", "flex")
+    }
+})
 
 
 // Date and time picker initialize
