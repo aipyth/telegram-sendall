@@ -6,6 +6,8 @@ services:
     restart: always
     volumes:
       - redis_vol:/r_data
+    # ports:
+    #   - 6379:6379
 
   redis_insight:
     image: redislabs/redisinsight:latest
@@ -29,10 +31,14 @@ services:
     build: .
     restart: always
     working_dir: /app
+    # If you encounter ssl troubles during local development
+    # just change the first port number to something else
+    # and connect through that port
     ports:
-      - 8080:8000
-    # volumes:
-    #   - ./:/app:Z
+      - 8000:8000
+    volumes:
+      - ./:/app:Z
+      - staticfiles:/app/staticfiles
     depends_on:
       - redis
       - db
@@ -54,13 +60,16 @@ services:
   worker:
     build: .
     working_dir: /app
+    # volumes:
+    #   - ./:/app:Z
+    restart: always
     depends_on: 
       - redis
       - db
     environment: 
       REDIS_URL: redis://redis:6379/0
-
       USE_POSTGRES: 'True'
+
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: "postgres"
       POSTGRES_USER: postgres
@@ -73,6 +82,17 @@ services:
     command: celery worker --app=telegram_sendall.celery.app --without-heartbeat -l debug
 
 
+  nginx:
+    build: ./nginx
+    restart: always
+    volumes:
+      - staticfiles:/app/staticfiles
+    ports:
+      - 80:80
+    depends_on:
+      - web
+
 volumes:
+  staticfiles:
   redis_vol:
   redis_insight_vol:
