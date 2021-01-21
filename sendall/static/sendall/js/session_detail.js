@@ -368,7 +368,7 @@ var vue_messages = new Vue({
     <div class="fixed-card card-shadow">
         <div class='row'>
         <div class='col'>
-            <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="#message" aria-expanded="true" aria-controls="message">Message</button>
+            <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="" aria-expanded="true" aria-controls="message">Message</button>
             
         </div>
         </div>
@@ -468,9 +468,9 @@ function open() {
         $(".chats-block").addClass("chats-open")
         $(".contacts-block").addClass("contacts-open")
     }
-}
-    opened = !opened
 
+    opened = !opened
+}
 
 $("#chat-hideshow").on('click', open)
 $("#createlist").on('click', function () {

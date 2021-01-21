@@ -233,7 +233,7 @@ def get_tasks(request):
         # logger.info(f"got inspect. {i}")
         # logger.info(f"{dir(i)}")
         # logger.info(f"{i.ping()}")
-        def parse_args(args: str):
+        def parse_shit(args: str):
             needed = str.split(",", 1)
             needed[0] = needed[0].split("'")[1]
             sec = needed[1]
@@ -245,7 +245,7 @@ def get_tasks(request):
             return object
 
         scheduled = [{
-            'eta': item[1]['eta']
+            'eta': item[1]['eta'],
             'id': item[1]['request']['id']
         } if item[1]['request']['type'] == "sendall.tasks.send_message" else {} for item in i.active().items()]
 
