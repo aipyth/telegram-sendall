@@ -227,7 +227,7 @@ def pre_serialize_tasks(tasks):
             'contacts': eval(task.contacts),
             'message': task.message,
             'markdown': task.markdown,
-            # 'done': task.done,
+            'done': task.done,
         }
         return list(map(pre_serialize_task, tasks))
 

@@ -7,16 +7,12 @@ import asyncio
 from .utils import _send_message, get_dialogs
 import logging
 from django.conf import settings
+from telegram_sendall.celery import app as celery_app
 
 from .models import SendMessageTask
 
-if settings.DEBUG:
-    logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-
-@shared_task
-def send_message(session, contacts, message, markdown, delay=5):
+@celery_app.task(bind=True)
+def send_message(self, session, contacts, message, markdown, delay=5):
     try:
         # result = asyncio.run(_send_message(session, contacts, message, markdown, delay))
         asyncio.run(_send_message(session, contacts, message, markdown, delay))
@@ -25,15 +21,13 @@ def send_message(session, contacts, message, markdown, delay=5):
         # result = loop.run_until_complete(_send_message(session, contacts, message, markdown, delay))
         loop.run_until_complete(_send_message(session, contacts, message, markdown, delay))
         loop.close()
-    logger.debug(f"uuid = {send_message.request.id}")
-    current_task = SendMessageTask.objects.filter(uuid=str(send_message.request.id))
+    current_task = SendMessageTask.objects.get(uuid=str(self.request.id))
     current_task.done = True
     current_task.save()
 
 
-@shared_task
+@celery_app.task
 def get_dialogs_task(session):
-    logger.debug(f"uuid = {get_dialogs_task.request.id}")
     dialogs = get_dialogs(session)
     return dialogs
 
