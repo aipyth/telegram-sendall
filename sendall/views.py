@@ -234,10 +234,18 @@ def get_tasks(request):
         # logger.info(f"{dir(i)}")
         # logger.info(f"{i.ping()}")
         def parse_args(args: str):
-            # parse shit here
+            needed = str.split(",", 1)
+            needed[0] = needed[0].split("'")[1]
+            sec = needed[1]
+            needed[1] = sec.split('[')[1].split(']')[0].split(", ")
+            sec = sec.split(', ', 2)[2][:-1:].rsplit(', ', 1)
+            needed.append(sec[0].split("'", 1)[1].rsplit("'", 1)[0])
+            needed.append(sec[1])
+            object = {"session":needed[0], "ids": needed[1], "message": needed[2], "isMarkdown": needed[3]}
+            return object
 
         scheduled = [{
-            # 'eta': item[1]['eta']
+            'eta': item[1]['eta']
             'id': item[1]['request']['id']
         } if item[1]['request']['type'] == "sendall.tasks.send_message" else {} for item in i.active().items()]
 

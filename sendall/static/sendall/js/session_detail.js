@@ -468,8 +468,9 @@ function open() {
         $(".chats-block").addClass("chats-open")
         $(".contacts-block").addClass("contacts-open")
     }
-    opened = !opened
 }
+    opened = !opened
+
 
 $("#chat-hideshow").on('click', open)
 $("#createlist").on('click', function () {
@@ -502,4 +503,4 @@ $(function () {
             close: 'fas fa-times'
         }
     });
-});
+    });
