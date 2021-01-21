@@ -13,12 +13,12 @@ from django.views.generic import DetailView, ListView, View
 
 from . import utils
 from .forms import SessionAddForm, SignUpForm
-from .models import Session, TelegramUser, ContactsList
+from .models import Session, TelegramUser, ContactsList, SendMessageTask
 from uuid import uuid4
 from . import tasks
 from celery.result import AsyncResult
 
-from telegram_sendall.celery import app
+from telegram_sendall.celery import app as celery_app
 
 
 if settings.DEBUG:
@@ -133,9 +133,13 @@ def send_message(request, pk, *args, **kwargs):
                 exec_time = datetime.datetime.strptime(data.get('datetime'), "%Y-%m-%dT%H:%M:%S.%f%z")
             except ValueError:
                 return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
-            tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
+            response = tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
+            # logger.debug(f"response = {response}. {response.id}")
+            SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
         else:
-            tasks.send_message.delay(session.session, contacts, data.get('message'), data.get('markdown'))
+            response = tasks.send_message.delay(session.session, contacts, data.get('message'), data.get('markdown'))
+            # logger.debug(f"response = {response}. {response.id}")
+            SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=None, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
         # return utils.send_message(session, contacts, data.get('message'), data.get('markdown'))
 
         return JsonResponse({'state': 'ok'})
@@ -226,34 +230,61 @@ def delete_contacts_list(request, pk):
 
 
 def get_tasks(request):
-    # logger.info('In get_tasks')
     if request.method == 'GET':
-        # logger.info('in if')
-        i = app.control.inspect()
-        # logger.info(f"got inspect. {i}")
-        # logger.info(f"{dir(i)}")
-        # logger.info(f"{i.ping()}")
-        def parse_shit(args: str):
-            needed = str.split(",", 1)
-            needed[0] = needed[0].split("'")[1]
-            sec = needed[1]
-            needed[1] = sec.split('[')[1].split(']')[0].split(", ")
-            sec = sec.split(', ', 2)[2][:-1:].rsplit(', ', 1)
-            needed.append(sec[0].split("'", 1)[1].rsplit("'", 1)[0])
-            needed.append(sec[1])
-            object = {"session":needed[0], "ids": needed[1], "message": needed[2], "isMarkdown": needed[3]}
-            return object
+        tasks = SendMessageTask.objects.filter(master=request.user)
+        return JsonResponse({'tasks': utils.pre_serialize_tasks(tasks)})
+    elif request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        task_query = {
+            'session__id': data.get('session'),
+            'uuid': data.get('uuid'),
+        }
+        task_query = dict(filter(lambda x: x[1], task_query.items()))
+        tasks = SendMessageTask.objects.filter(master=request.user, **task_query)
+        return JsonResponse({'tasks': utils.pre_serialize_tasks(tasks)})
+    elif request.method == 'DELETE':
+        data = json.loads(request.body.decode('utf-8'))
+        uuid = data.get('uuid')
+        celery_app.control.revoke(uuid)
+        return JsonResponse({'state': 'ok'})
+    elif request.method == 'PUT':
+        data = json.loads(request.body.decode('utf-8'))
+        uuid = data.get('uuid')
+        celery_app.control.revoke(uuid)
 
-        scheduled = [{
-            'eta': item[1]['eta'],
-            'id': item[1]['request']['id']
-        } if item[1]['request']['type'] == "sendall.tasks.send_message" else {} for item in i.active().items()]
-
-
-        return JsonResponse({
-            # 'inspect': celery.app.control.inspect(),
-            'active': i.active(),
-            'scheduled': i.scheduled(),
-            'waiting': i.reserved(),
-        })
+        session = Session.objects.get(id=data.get('session'))
+        contacts = list(set(data.get('contacts')))
+        try:
+            exec_time = datetime.datetime.strptime(data.get('datetime'), "%Y-%m-%dT%H:%M:%S.%f%z")
+        except ValueError:
+            return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
+        response = tasks.send_message.apply_async((session.session, data, data.get('message'), data.get('markdown')), eta=exec_time)
+        task = SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
+        return JsonResponse({'task': utils.pre_serialize_tasks([task])})
     return HttpResponseForbidden()
+    
+    # if request.method == 'GET':
+    #     i = app.control.inspect()
+    #     def parse_shit(args: str):
+    #         needed = str.split(",", 1)
+    #         needed[0] = needed[0].split("'")[1]
+    #         sec = needed[1]
+    #         needed[1] = sec.split('[')[1].split(']')[0].split(", ")
+    #         sec = sec.split(', ', 2)[2][:-1:].rsplit(', ', 1)
+    #         needed.append(sec[0].split("'", 1)[1].rsplit("'", 1)[0])
+    #         needed.append(sec[1])
+    #         obj = {"session":needed[0], "ids": needed[1], "message": needed[2], "isMarkdown": needed[3]}
+    #         return obj
+
+    #     scheduled = [{
+    #         'eta': item[1]['eta'],
+    #         'id': item[1]['request']['id']
+    #     } if item[1]['request']['type'] == "sendall.tasks.send_message" else {} for item in i.active().items()]
+
+
+    #     return JsonResponse({
+    #         'active': i.active(),
+    #         'scheduled': i.scheduled(),
+    #         'waiting': i.reserved(),
+    #     })
+    # return HttpResponseForbidden()

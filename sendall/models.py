@@ -60,3 +60,14 @@ class ContactsList(models.Model):
 
     def get_list(self):
         return eval(self.contacts_list)
+
+class SendMessageTask(models.Model):
+    uuid = models.CharField(max_length=36)
+    master = models.ForeignKey(User, on_delete=models.CASCADE)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    eta = models.DateTimeField(null=True)
+    contacts = models.TextField()
+    message = models.TextField()
+    markdown = models.BooleanField()
+
+    done = models.BooleanField(default=False)
