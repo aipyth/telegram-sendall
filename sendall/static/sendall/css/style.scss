@@ -6,8 +6,8 @@ html {
     border: 1px solid rgba(0, 0, 0, 0.15);
     border-radius: 8px;
     box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
-    margin: 20px 0;
-    padding: 20px 15px;
+    margin: 10px 0;
+    padding: 10px 10px;
 }
 @mixin card-like {
     @include card-shadow;
@@ -73,8 +73,9 @@ a:focus {
 }
 
 .fixed-card {
-    max-height: 87vh;
-    overflow: auto;
+    max-height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 
     .btn {
         margin-bottom: 10px;
@@ -180,4 +181,53 @@ a:focus {
 }
 .contacts-open{
     width: 50%;
+}
+
+
+.active-tasks{
+  max-height: 80vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.active-tasks h5{
+    margin-bottom: 5px;
+  }
+.active-tasks .current-tasks .task{
+    max-height: 200px;
+    cursor: pointer;
+    transition: all 0.5s ease;
+}
+.active-tasks .current-tasks .task .time{
+    font-size: 12px;
+    margin-bottom: 0;
+    text-align: end;
+    padding-right: 10px;
+}
+
+.active-tasks .current-tasks .task .task-text{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.active-tasks .current-tasks .task h6{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 15px;
+}
+
+.clicked {
+   background-color:rgb(27, 107, 255);
+   color:rgba(255, 255, 255, 1);
+}
+
+.active-tasks .current-tasks .task .message-text{
+    height: 80%;
+
+}
+
+.active-tasks .current-tasks .task .people{
+    height: 20%;
 }

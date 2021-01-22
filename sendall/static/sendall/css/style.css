@@ -7,8 +7,8 @@ html {
   border-radius: 8px;
   -webkit-box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
           box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
-  margin: 20px 0;
-  padding: 20px 15px;
+  margin: 10px 0;
+  padding: 10px 10px;
 }
 
 .abs-center-x {
@@ -32,8 +32,8 @@ html {
   border-radius: 8px;
   -webkit-box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
           box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
-  margin: 20px 0;
-  padding: 20px 15px;
+  margin: 10px 0;
+  padding: 10px 10px;
   width: 500px;
 }
 
@@ -56,8 +56,8 @@ html {
   border-radius: 8px;
   -webkit-box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
           box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
-  margin: 20px 0;
-  padding: 20px 15px;
+  margin: 10px 0;
+  padding: 10px 10px;
 }
 
 @media (max-width: 540px) {
@@ -95,8 +95,9 @@ a:focus {
 }
 
 .fixed-card {
-  max-height: 87vh;
-  overflow: auto;
+  max-height: 85vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .fixed-card .btn {
@@ -223,5 +224,55 @@ a:focus {
 
 .contacts-open {
   width: 50%;
+}
+
+.active-tasks {
+  max-height: 80vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.active-tasks h5 {
+  margin-bottom: 5px;
+}
+
+.active-tasks .current-tasks .task {
+  max-height: 200px;
+  cursor: pointer;
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+
+.active-tasks .current-tasks .task .time {
+  font-size: 12px;
+  margin-bottom: 0;
+  text-align: end;
+  padding-right: 10px;
+}
+
+.active-tasks .current-tasks .task .task-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.active-tasks .current-tasks .task h6 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 15px;
+}
+
+.clicked {
+  background-color: #1b6bff;
+  color: white;
+}
+
+.active-tasks .current-tasks .task .message-text {
+  height: 80%;
+}
+
+.active-tasks .current-tasks .task .people {
+  height: 20%;
 }
 /*# sourceMappingURL=style.css.map */

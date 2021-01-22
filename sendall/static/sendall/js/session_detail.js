@@ -8,6 +8,7 @@ var selected_contacts_for_list = []; // list for creating new contacts list
 var all_dialogs = []; // list where all dialogs are donwloaded
 var uuidkey = '';
 var get_dialogs_request_sent = false;
+var opened = false
 
 Vue.filter('cutTooLong', function (value) {
     var low_limit = 50;
@@ -87,6 +88,9 @@ var vue_dialogs = new Vue({
                     this.current_dialogs.push(all_dialogs[i]);
                 }
             }
+        },
+        changeContactsIds: function(new_id){
+            this.selected_contacts_ids = new_id
         }
     },
     watch: {
@@ -301,10 +305,14 @@ var vue_messages = new Vue({
     data: {
         message: '',
         markdown: true,
+        time_to_execute: '',
         requesting: false,
         request_result: '',
         errors: [],
         markdown_help: false,
+        activeTasks: [],
+        selected: {},
+        isEditing: false
     },
     methods: {
         sendMessage: function() {
@@ -332,6 +340,7 @@ var vue_messages = new Vue({
 
                 if (response.data.state == 'ok') {
                     this.request_result = 'The messages are being sent';
+                    this.showActiveTasks()
                 } else if (response.state == 'error') {
                     for (i = 0; i < response.data.errors; i++) {
                         this.errors.push(response.data.errors[i]);
@@ -342,7 +351,110 @@ var vue_messages = new Vue({
                     this.errors.push('Forbidden');
                 }
             });
+
         },
+
+        this_task_contact_names: function(contacts) {
+            selected_contacts = []
+            for (dialog of all_dialogs){
+                if (contacts.includes(dialog.id)){
+                    selected_contacts.push(dialog.name)
+                }
+            }
+            names = ''
+            for (let i of selected_contacts){
+                names = names + i + ', '
+                console.log(names, i)
+            }
+            return names.slice(0, -2)
+        },
+
+       
+        getActiveTasks: function() {
+            if (all_dialogs.length != 0){
+                axios.get('/tasks/').then(response => {
+                    console.log(response)
+                    const tasks = response.data.tasks
+
+                    function GetFormattedDate(thisTime) {
+                        time = new Date(thisTime)
+                        console.log(time)
+                        var month = time.getMonth() + 1
+                        if(month < 10){
+                            nul = '0'
+                        }
+                        else {nul = ''}
+                        var day = time.getDate()
+                        var year = time.getFullYear()
+                        var hours = time.getHours()
+                        if (hours > 12){
+                            hours = hours - 12
+                            am_pm = 'PM'
+                        }
+                        else {
+                            am_pm = 'AM'
+                        }
+                        var minutes = time.getMinutes()
+                        return nul + month + "/" + day + "/" + year + ' ' + hours + ':' + minutes + ' ' + am_pm;
+                        }
+
+                    let displayed_tasks = []
+                    for (let item of tasks){
+                        taskich = {
+                            contacts: item.contacts, 
+                            time: GetFormattedDate(item.eta),
+                            message: item.message,
+                            markdown: item.markdown,
+                            session: item.session,
+                            uuid: item.uuid
+                        }
+                        displayed_tasks.push(taskich)
+                    }
+                    this.activeTasks = displayed_tasks.reverse()
+                    console.log(this.activeTasks)
+                })
+            }
+            else {
+                console.log("Contacts isn't loaded yet")
+            }
+        },
+        editTask: function(task){
+            if (task != this.selected){
+            if(!opened){
+                open()
+            }
+            this.isEditing = true
+            this.selected = task
+            this.message = task.message
+            this.markdown = task.markdown
+            this.time_to_execute = task.time
+            selected_contacts_ids = task.contacts
+            vue_dialogs.changeContactsIds(task.contacts)
+            }
+            else {
+                this.isEditing = false
+                this.selected = {}
+                this.message = ''
+                this.markdown = true
+                this.time_to_execute = ''
+                vue_dialogs.changeContactsIds([])
+            }
+        },
+        editMessage: function(){
+            if (this.$refs.exec_datetime.value) {
+                exec_datetime = new Date(this.$refs.exec_datetime.value);
+            } else {
+                exec_datetime = new Date();
+            }
+            axios.put('/tasks/', {
+                uuid: this.selected.uuid,
+                session: this.selected.session,
+                contacts: selected_contacts_ids,
+                message: this.selected.message,
+                markdown: this.selected.markdown,
+                eta: exec_datetime.toISOString(),
+            })
+        }
     },
     template: `
 <div style='position: relative;'>
@@ -368,7 +480,7 @@ var vue_messages = new Vue({
     <div class="fixed-card card-shadow">
         <div class='row'>
         <div class='col'>
-            <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="" aria-expanded="true" aria-controls="message">Message</button>
+            <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="" aria-expanded="true" aria-controls="message" v-on:click="getActiveTasks" >Message</button>
             
         </div>
         </div>
@@ -377,6 +489,7 @@ var vue_messages = new Vue({
             <div class="row">
                 <div class='col form-group shadow-textarea'>
                     <textarea class='form-control z-depth-1' rows=10 placeholder="Write something here..." v-model="message">
+                    {{ message }}
                     </textarea>
                 </div>
             </div>
@@ -392,8 +505,7 @@ var vue_messages = new Vue({
                 <div class="col">
                     <div class="form-group">
                         <div class="input-group date" id="exec-datetime" data-target-input="nearest">
-                            <input ref="exec_datetime" type="text" class="form-control datetimepicker-input" placeholder="Schedule a message to send" data-target="#exec-datetime"/>
-
+                            <input ref="exec_datetime" type="datetime" class="form-control datetimepicker-input" placeholder="Schedule a message to send" v-model="time_to_execute" data-target="#exec-datetime"/>
                             <div class="input-group-append" data-target="#exec-datetime" data-toggle="datetimepicker">
                                 <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                             </div>
@@ -404,14 +516,24 @@ var vue_messages = new Vue({
 
             <div class='row'>
                 <div class='col'>
-                    <button class='btn btn-block btn-primary' v-on:click="sendMessage">Send</button>
+                    <button v-if="!isEditing" class='btn btn-block btn-primary' v-on:click="sendMessage">Send</button>
+                    <button v-else class='btn btn-block btn-primary' v-on:click="editMessage">Edit</button>
                 </div>
             </div>
         </div>
         <div class="active-tasks d-flex flex-column" style="width: 40%; ">
         <h5>Active tasks list</h5>
-        <div class="current tasks">
-
+        <div class="current-tasks">
+        <div class="contact task" v-for="task in activeTasks" :key="task.uuid" v-bind:class="{ clicked: selected == task }" v-on:click="editTask(task)">
+            <div class="row">
+                <div class="col-12 h-25">
+                    <h6>To {{ this_task_contact_names(task.contacts) }}</h6></div> 
+                    <div class="col-12">
+                        <p class="message task-text">{{ task.message }}</p>
+                        <p class="time message" style="">at {{ task.time }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     </div>
@@ -456,7 +578,8 @@ var vue_messages = new Vue({
 `,
 });
 
-var opened = false
+window.setInterval(vue_messages.getActiveTasks(), 2000)
+
 function open() {
     if (opened) {
         $(".chats-block").removeClass("chats-open")
