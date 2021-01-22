@@ -230,7 +230,7 @@ def delete_contacts_list(request, pk):
     return HttpResponseForbidden()
 
 
-def get_tasks(request):
+def get_tasks(request, pk, *args, **kwargs):
     # if request.method == 'GET':
     #     tasks_list = SendMessageTask.objects.filter(master=request.user)
     #     paginator = Paginator(tasks_list, 25)
@@ -246,7 +246,8 @@ def get_tasks(request):
         #   done    -- get whether done or not tasks (optional)
         data = json.loads(request.body.decode('utf-8'))
         task_query = {
-            'session__id': data.get('session'),
+            # 'session__id': data.get('session'),
+            'session__id': pk,
             'uuid': data.get('uuid'),
             'done': data.get('done'),
         }
@@ -279,13 +280,13 @@ def get_tasks(request):
             SendMessageTask.objects.filter(uuid=uuid).delete()
             return JsonResponse({'state': 'ok'})
         else:
-            all_tasks = SendMessageTask.objects.filter(session__id=data.get('session'))
+            all_tasks = SendMessageTask.objects.filter(session__id=pk)
             for task in all_tasks:
                 celery_app.control.revoke(task.uuid)
             all_tasks.delete()
             return JsonResponse({'state': 'ok'})
         if data.get('clear-unactive'):
-            all_tasks = SendMessageTask.objects.filter(session__id=data.get('session'), done=True)
+            all_tasks = SendMessageTask.objects.filter(session__id=pk, done=True)
             # for task in all_tasks:
             #     celery_app.control.revoke(task.uuid)
             all_tasks.delete()
