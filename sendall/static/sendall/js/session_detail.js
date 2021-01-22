@@ -400,7 +400,6 @@ var vue_messages = new Vue({
 
                     function GetFormattedDate(thisTime) {
                         time = new Date(thisTime)
-                        console.log(time)
                         var month = time.getMonth() + 1
                         if(month < 10){
                             nul = '0'
@@ -417,7 +416,10 @@ var vue_messages = new Vue({
                             am_pm = 'AM'
                         }
                         var minutes = time.getMinutes()
-                        return nul + month + "/" + day + "/" + year + ' ' + hours + ':' + minutes + ' ' + am_pm;
+                        nuld = day < 10 ? '0' : ''
+                        nulh = hours < 10 ? '0' : ''
+                        nulm = minutes < 10 ? '0' : ''
+                        return nul + month + "/" + nuld + day + "/" + year + ' ' + nulh+ hours + ':' + nulm + minutes + ' ' + am_pm;
                         }
 
                     let displayed_tasks = []
@@ -473,12 +475,13 @@ var vue_messages = new Vue({
                 uuid: this.selected.uuid,
                 session: this.selected.session,
                 contacts: selected_contacts_ids,
-                message: this.selected.message,
-                markdown: this.selected.markdown,
+                message: this.message,
+                markdown: this.markdown,
                 eta: exec_datetime.toISOString(),
             }).then(response => {
-                this.request_edit_result = response.data.state == ok ? "The message is edited" : "Error editing message"
-
+                this.requesting = false
+                this.request_edit_result = response.data.state == 'ok' ? "The message is edited" : "Error editing message"
+                stopRequesting_edit()
             })
         }
     },
