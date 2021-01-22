@@ -256,9 +256,13 @@ def get_tasks(request):
         return JsonResponse({'tasks': utils.pre_serialize_tasks(page)})
     elif request.method == 'DELETE':
         # DELETE arguments:
-        #   uuid -- uuid of task to be deleted
-        #           if uuid is not specified - all tasks will be deleted
-        #           and you need to specify the session id (key `session`)
+        #   uuid            -- uuid of task to be deleted
+        #                       if uuid is not specified -
+        #                       all tasks will be deleted
+        #                       and you need to specify 
+        #                       the session id (key `session`)
+        #   clear-unactive  -- can be set to True to clear unactive tasks
+        #                       `session` key must exist 
         data = json.loads(request.body.decode('utf-8'))
         uuid = data.get('uuid')
         if uuid:
@@ -269,6 +273,12 @@ def get_tasks(request):
             all_tasks = SendMessageTask.objects.filter(session__id=data.get('session'))
             for task in all_tasks:
                 celery_app.control.revoke(task.uuid)
+            all_tasks.delete()
+            return JsonResponse({'state': 'ok'})
+        if data.get('clear-unactive'):
+            all_tasks = SendMessageTask.objects.filter(session__id=data.get('session'), done=True)
+            # for task in all_tasks:
+            #     celery_app.control.revoke(task.uuid)
             all_tasks.delete()
             return JsonResponse({'state': 'ok'})
     elif request.method == 'PUT':
