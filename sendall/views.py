@@ -272,6 +272,7 @@ def get_tasks(request):
         #                       the session id (key `session`)
         #   clear-unactive  -- can be set to True to clear unactive tasks
         #                       `session` key must exist 
+        logger.debug(request.body)
         data = json.loads(request.body.decode('utf-8'))
         uuid = data.get('uuid')
         if uuid:

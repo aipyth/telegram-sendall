@@ -100,7 +100,7 @@ a:focus {
 }
 
 .fixed-card {
-  max-height: 85vh;
+  height: 85vh;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -265,6 +265,13 @@ a:focus {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 15px;
+}
+
+.active-tasks .current-tasks .task h6.full {
+  white-space: normal;
+  overflow: scroll;
+  text-overflow: inherit;
   font-size: 15px;
 }
 

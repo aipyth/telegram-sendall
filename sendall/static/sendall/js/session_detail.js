@@ -312,9 +312,11 @@ var vue_messages = new Vue({
         errors: [],
         markdown_help: false,
         activeTasks: [],
+        completedTasks: [],
         selected: {},
         isEditing: false,
-        all_dialogs: all_dialogs
+        all_dialogs: all_dialogs,
+        check_completes: true
     },
 
     watch: {
@@ -328,14 +330,16 @@ var vue_messages = new Vue({
         stopRequesting: function(){
             setTimeout(() => {
                 this.request_result = ''
-            }, 5000);
+                this.getActiveTasks()
+            }, 3000);
         },
 
         stopRequesting_edit: function(){
             setTimeout(() => {
                 this.request_edit_result = ''
                 this.getActiveTasks()
-            }, 5000);
+                this.isEditing = false
+            }, 3000);
         },
 
         sendMessage: function() {
@@ -392,57 +396,105 @@ var vue_messages = new Vue({
             return names.slice(0, -2)
         },
 
+        GetFormattedDate: function(thisTime) {
+            time = new Date(thisTime)
+            var month = time.getMonth() + 1
+            if(month < 10){
+                nul = '0'
+            }
+            else {nul = ''}
+            var day = time.getDate()
+            var year = time.getFullYear()
+            var hours = time.getHours()
+            if (hours > 12){
+                hours = hours - 12
+                am_pm = 'PM'
+            }
+            else {
+                am_pm = 'AM'
+            }
+            var minutes = time.getMinutes()
+            nuld = day < 10 ? '0' : ''
+            nulh = hours < 10 ? '0' : ''
+            nulm = minutes < 10 ? '0' : ''
+            return nul + month + "/" + nuld + day + "/" + year + ' ' + nulh+ hours + ':' + nulm + minutes + ' ' + am_pm;
+            },
        
         getActiveTasks: function() {
             if (all_dialogs.length != 0){
-                axios.get('/tasks/').then(response => {
+                axios.post('/tasks/', {
+                    page: 0,
+                    done: false
+                }).then(response => {
                     console.log(response)
                     const tasks = response.data.tasks
-
-                    function GetFormattedDate(thisTime) {
-                        time = new Date(thisTime)
-                        var month = time.getMonth() + 1
-                        if(month < 10){
-                            nul = '0'
-                        }
-                        else {nul = ''}
-                        var day = time.getDate()
-                        var year = time.getFullYear()
-                        var hours = time.getHours()
-                        if (hours > 12){
-                            hours = hours - 12
-                            am_pm = 'PM'
-                        }
-                        else {
-                            am_pm = 'AM'
-                        }
-                        var minutes = time.getMinutes()
-                        nuld = day < 10 ? '0' : ''
-                        nulh = hours < 10 ? '0' : ''
-                        nulm = minutes < 10 ? '0' : ''
-                        return nul + month + "/" + nuld + day + "/" + year + ' ' + nulh+ hours + ':' + nulm + minutes + ' ' + am_pm;
-                        }
 
                     let displayed_tasks = []
                     for (let item of tasks){
                         taskich = {
                             contacts: item.contacts, 
-                            time: GetFormattedDate(item.eta),
+                            time: this.GetFormattedDate(item.eta),
                             message: item.message,
                             markdown: item.markdown,
                             session: item.session,
                             uuid: item.uuid
-                        }
+                            }
                         displayed_tasks.push(taskich)
-                    }
+                        }
                     this.activeTasks = displayed_tasks.reverse()
-                    console.log(this.activeTasks)
+                })
+            }
+            else {
+                console.log("Contacts isn't loaded yet")
+            }   
+        },
+
+
+        getCompletedTasks: function(pageNum) {
+            if (all_dialogs.length != 0){
+                axios.post('/tasks/', {
+                    uuidkey: uuidkey,
+                    page: pageNum,
+                    done: true
+                }).then(response => {
+                    console.log(response)
+                    const tasks = response.data.tasks
+
+                    let completed_tasks = []
+                    for (let item of tasks){
+                        taskich = {
+                            contacts: item.contacts, 
+                            time: this.GetFormattedDate(item.eta),
+                            message: item.message,
+                            markdown: item.markdown,
+                            session: item.session,
+                            uuid: item.uuid
+                            }
+                        completed_tasks.push(taskich)
+                        }
+                    this.completedTasks = completed_tasks.reverse()
                 })
             }
             else {
                 console.log("Contacts isn't loaded yet")
             }
         },
+
+        deleteTask: function(task) {
+          axios.delete('/tasks/', {
+              data:{
+              uuid: task.uuid
+              } 
+          }).then(response => {
+              if(response.status == 200)
+              {
+              id = this.activeTasks.indexOf(task)
+              this.activeTasks.splice(id, 1)
+              this.stopRequesting_edit()
+              }
+          })
+        },
+
         editTask: function(task){
             if (task != this.selected){
             if(!opened){
@@ -481,7 +533,7 @@ var vue_messages = new Vue({
                 eta: exec_datetime.toISOString(),
             }).then(response => {
                 this.requesting = false
-                this.request_edit_result = response.data.state == 'ok' ? "The message is edited" : "Error editing message"
+                this.request_edit_result = response.status == 200 ? "The message is edited" : "Error editing message"
                 this.stopRequesting_edit()
             })
         }
@@ -502,9 +554,11 @@ var vue_messages = new Vue({
             {{ request_result }}
         </h5>
     </div>
-    <div class='loading-card' v-if="request_edit_result != ''">
+    </transition>
+    <transition name="show"
+    <div class='loading-card' v-if="request_edit_result != '' ">
         <h5>
-            {{ request__edit_result }}
+            {{ request_edit_result }}
         </h5>
     </div>
     </transition>
@@ -558,21 +612,26 @@ var vue_messages = new Vue({
             </div>
         </div>
         <div class="active-tasks d-flex flex-column"">
-        <button class="btn btn-light btn-block" type="button" data-toggle="collapse" data-target="#currentTasks" aria-expanded="true" aria-controls="currentTasks">Active tasks list</button>
-        <div class="current-tasks collapse show" id="currentTasks">
-        <div class="contact task" v-for="task in activeTasks" :key="task.uuid" v-bind:class="{ clicked: selected == task }" v-on:click="editTask(task)">
-            <div class="row">
-                <div class="col-12 h-25">
-                    <h6>To {{ this_task_contact_names(task.contacts) }}</h6></div> 
-                    <div class="col-12">
-                        <p class="message task-text">{{ task.message }}</p>
-                        <p class="time message" style="">at {{ task.time }}</p>
+            <button class="btn btn-light btn-block" type="button" data-toggle="collapse" data-target="#currentTasks" aria-expanded="true" aria-controls="currentTasks">Active tasks list</button>
+            <div class="current-tasks collapse show" id="currentTasks">
+                <transition-group name="show">
+                <div class="contact task" v-for="task in activeTasks" :key="task.uuid" v-bind:class="{ clicked: selected == task }" v-on:click="editTask(task)">
+                    <div class="row">
+                        <div class="col-10 h-25">
+                            <h6>To {{ this_task_contact_names(task.contacts) }}</h6>
+                        </div> 
+                        <div class="col-2"><button type="button" v-on:click="deleteTask(task)" title="Delete this task" class="ml-2 mb-2 close"><span aria-hidden="true">×</span></button></div>
+                            <div class="col-12">
+                                <p class="message task-text">{{ task.message }}</p>
+                                <p class="time message" style="">at {{ task.time }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                </transition-group>
+                <button class="btn btn-light btn-block" type="button" data-toggle="modal" data-target="#completes-modal" v-on:click="getCompletedTasks(0)" >Completed tasks list</button>
             </div>
         </div>
-    </div>
-    </div>
     </div>
 
     <div class="modal fade" id="markdown-modal" tabindex="-1" role="dialog" aria-labelledby="markdown-modal-title" aria-hidden="true">
@@ -610,6 +669,34 @@ var vue_messages = new Vue({
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="completes-modal" role="dialog" aria-labelledby="completes-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="completes-modal-title">The list of all completed tasks</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="contact task" v-for="task in completedTasks" :key="task.uuid">
+                <div class="row">
+                    <div class="col-12 h-25">
+                            <h6>To {{ this_task_contact_names(task.contacts) }}</h6>
+                    </div> 
+                    <div class="col-12">
+                        <p class="message">{{ task.message }}</p>
+                        <p class="time message" style="">at {{ task.time }}</p>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+    
 </div>
 `,
 });
@@ -656,9 +743,6 @@ $(document).on("click", "#collapsing_button", function(ev){
         }
 })
 
-vm.$watch(all_dialogs, function(newVal, oldVal){
-    vue_messages.getActiveTasks()
-})
 
 
 // Date and time picker initialize
