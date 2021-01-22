@@ -308,7 +308,7 @@ var vue_messages = new Vue({
         time_to_execute: '',
         requesting: false,
         request_result: '',
-        reques_edit_result: '',
+        request_edit_result: '',
         errors: [],
         markdown_help: false,
         activeTasks: [],
@@ -334,6 +334,7 @@ var vue_messages = new Vue({
         stopRequesting_edit: function(){
             setTimeout(() => {
                 this.request_edit_result = ''
+                this.getActiveTasks()
             }, 5000);
         },
 
@@ -481,7 +482,7 @@ var vue_messages = new Vue({
             }).then(response => {
                 this.requesting = false
                 this.request_edit_result = response.data.state == 'ok' ? "The message is edited" : "Error editing message"
-                stopRequesting_edit()
+                this.stopRequesting_edit()
             })
         }
     },
@@ -499,6 +500,11 @@ var vue_messages = new Vue({
     <div class='loading-card' v-if="request_result != ''">
         <h5>
             {{ request_result }}
+        </h5>
+    </div>
+    <div class='loading-card' v-if="request_edit_result != ''">
+        <h5>
+            {{ request__edit_result }}
         </h5>
     </div>
     </transition>
@@ -547,7 +553,7 @@ var vue_messages = new Vue({
             <div class='row'>
                 <div class='col'>
                     <button v-if="!isEditing" class='btn btn-block btn-primary but-send' v-on:click="sendMessage">Send</button>
-                    <button v-else class='btn btn-block btn-outline-primary but-send' v-on:click="editMessage">Edit</button>
+                    <button v-else class='btn btn-block btn-primary but-send' v-on:click="editMessage">Edit</button>
                 </div>
             </div>
         </div>
