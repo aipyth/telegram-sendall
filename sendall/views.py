@@ -243,10 +243,12 @@ def get_tasks(request):
         #   session -- id of session (optional)
         #   uuid    -- uuid of task (optional)
         #   page    -- number of page (required)
+        #   done    -- get whether done or not tasks (optional)
         data = json.loads(request.body.decode('utf-8'))
         task_query = {
             'session__id': data.get('session'),
             'uuid': data.get('uuid'),
+            'done': data.get('done'),
         }
         task_query = dict(filter(lambda x: x[1], task_query.items()))
         tasks_list = SendMessageTask.objects.filter(master=request.user, **task_query).order_by('-eta')
