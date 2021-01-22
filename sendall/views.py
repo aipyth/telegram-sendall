@@ -259,9 +259,9 @@ def get_tasks(request):
             'tasks': utils.pre_serialize_tasks(page),
             'current_page': page.number,
             'has_next_page': page.has_next(),
-            'next_page_number': page.next_page_number(),
-            'page_end_index': page.end_index(),
-            'page_start_index': page.start_index(),
+            # 'next_page_number': page.next_page_number(),
+            # 'page_end_index': page.end_index(),
+            # 'page_start_index': page.start_index(),
             })
     elif request.method == 'DELETE':
         # DELETE arguments:
