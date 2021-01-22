@@ -8,6 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView, View
+from django.core.paginator import Paginator
 
 # import celery
 
@@ -230,10 +231,18 @@ def delete_contacts_list(request, pk):
 
 
 def get_tasks(request):
-    if request.method == 'GET':
-        tasks_list = SendMessageTask.objects.filter(master=request.user)
-        return JsonResponse({'tasks': utils.pre_serialize_tasks(tasks_list)})
-    elif request.method == 'POST':
+    # if request.method == 'GET':
+    #     tasks_list = SendMessageTask.objects.filter(master=request.user)
+    #     paginator = Paginator(tasks_list, 25)
+    #     page_number = int(1)
+    #     page = paginator.get_page(page_number)
+    #     logger.debug(page[0])
+    #     return JsonResponse({'tasks': utils.pre_serialize_tasks(tasks_list)})
+    if request.method == 'POST':
+        # POST arguments:
+        #   session -- id of session (optional)
+        #   uuid    -- uuid of task (optional)
+        #   page    -- number of page (required)
         data = json.loads(request.body.decode('utf-8'))
         task_query = {
             'session__id': data.get('session'),
@@ -241,13 +250,27 @@ def get_tasks(request):
         }
         task_query = dict(filter(lambda x: x[1], task_query.items()))
         tasks_list = SendMessageTask.objects.filter(master=request.user, **task_query)
-        return JsonResponse({'tasks': utils.pre_serialize_tasks(tasks_list)})
+        paginator = Paginator(tasks_list, 25)
+        page_number = int(data.get('page'))
+        page = paginator.get_page(page_number)
+        return JsonResponse({'tasks': utils.pre_serialize_tasks(page)})
     elif request.method == 'DELETE':
+        # DELETE arguments:
+        #   uuid -- uuid of task to be deleted
+        #           if uuid is not specified - all tasks will be deleted
+        #           and you need to specify the session id (key `session`)
         data = json.loads(request.body.decode('utf-8'))
         uuid = data.get('uuid')
-        celery_app.control.revoke(uuid)
-        SendMessageTask.objects.filter(uuid=uuid).delete()
-        return JsonResponse({'state': 'ok'})
+        if uuid:
+            celery_app.control.revoke(uuid)
+            SendMessageTask.objects.filter(uuid=uuid).delete()
+            return JsonResponse({'state': 'ok'})
+        else:
+            all_tasks = SendMessageTask.objects.filter(session__id=data.get('session'))
+            for task in all_tasks:
+                celery_app.control.revoke(task.uuid)
+            all_tasks.delete()
+            return JsonResponse({'state': 'ok'})
     elif request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
         logger.debug(f"changing message... { data = }")
