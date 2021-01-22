@@ -253,7 +253,14 @@ def get_tasks(request):
         paginator = Paginator(tasks_list, 25)
         page_number = int(data.get('page'))
         page = paginator.get_page(page_number)
-        return JsonResponse({'tasks': utils.pre_serialize_tasks(page)})
+        return JsonResponse({
+            'tasks': utils.pre_serialize_tasks(page),
+            'current_page': page.index,
+            'has_next_page': page.has_next(),
+            'next_page_number': page.next_page_number,
+            'page_end_index': page.end_index,
+            'page_start_index': page.start_index,
+            })
     elif request.method == 'DELETE':
         # DELETE arguments:
         #   uuid            -- uuid of task to be deleted
