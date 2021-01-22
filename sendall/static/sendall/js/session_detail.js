@@ -308,13 +308,35 @@ var vue_messages = new Vue({
         time_to_execute: '',
         requesting: false,
         request_result: '',
+        reques_edit_result: '',
         errors: [],
         markdown_help: false,
         activeTasks: [],
         selected: {},
-        isEditing: false
+        isEditing: false,
+        all_dialogs: all_dialogs
     },
+
+    watch: {
+        all_dialogs: function(oldd, newd){
+            vue_messages.getActiveTasks()
+        }
+    },
+
     methods: {
+
+        stopRequesting: function(){
+            setTimeout(() => {
+                this.request_result = ''
+            }, 5000);
+        },
+
+        stopRequesting_edit: function(){
+            setTimeout(() => {
+                this.request_edit_result = ''
+            }, 5000);
+        },
+
         sendMessage: function() {
             console.log("Selected contacts " + selected_contacts_ids);
             this.requesting = true;
@@ -340,7 +362,7 @@ var vue_messages = new Vue({
 
                 if (response.data.state == 'ok') {
                     this.request_result = 'The messages are being sent';
-                    this.showActiveTasks()
+                    this.stopRequesting()
                 } else if (response.state == 'error') {
                     for (i = 0; i < response.data.errors; i++) {
                         this.errors.push(response.data.errors[i]);
@@ -441,6 +463,7 @@ var vue_messages = new Vue({
             }
         },
         editMessage: function(){
+            this.requesting = true
             if (this.$refs.exec_datetime.value) {
                 exec_datetime = new Date(this.$refs.exec_datetime.value);
             } else {
@@ -453,6 +476,9 @@ var vue_messages = new Vue({
                 message: this.selected.message,
                 markdown: this.selected.markdown,
                 eta: exec_datetime.toISOString(),
+            }).then(response => {
+                this.request_edit_result = response.data.state == ok ? "The message is edited" : "Error editing message"
+
             })
         }
     },
@@ -466,11 +492,13 @@ var vue_messages = new Vue({
             Sending...
         </h3>
     </div>
+    <transition name="show">
     <div class='loading-card' v-if="request_result != ''">
         <h5>
             {{ request_result }}
         </h5>
     </div>
+    </transition>
     <div class="md-card danger" v-show="errors" v-for="error in errors">
         <h5>
             {{ error }} 
@@ -480,12 +508,11 @@ var vue_messages = new Vue({
     <div class="fixed-card card-shadow">
         <div class='row'>
         <div class='col'>
-            <button class="btn btn-lg btn-outline-primary btn-block" type="button" data-toggle="collapse" data-target="" aria-expanded="true" aria-controls="message" v-on:click="getActiveTasks" >Message</button>
-            
+            <button class="btn btn-lg btn-outline-primary btn-block" target="#message" id="collapsing_button">Message</button>
         </div>
         </div>
-        <div id='message' class='collapse show d-flex flex-row'>
-            <div class="message-input" style="width: 60%">
+        <div id='message' class='collapse d-flex flex-column flex-sm-row'>
+            <div class="message-input">
             <div class="row">
                 <div class='col form-group shadow-textarea'>
                     <textarea class='form-control z-depth-1' rows=10 placeholder="Write something here..." v-model="message">
@@ -516,14 +543,14 @@ var vue_messages = new Vue({
 
             <div class='row'>
                 <div class='col'>
-                    <button v-if="!isEditing" class='btn btn-block btn-primary' v-on:click="sendMessage">Send</button>
-                    <button v-else class='btn btn-block btn-primary' v-on:click="editMessage">Edit</button>
+                    <button v-if="!isEditing" class='btn btn-block btn-primary but-send' v-on:click="sendMessage">Send</button>
+                    <button v-else class='btn btn-block btn-outline-primary but-send' v-on:click="editMessage">Edit</button>
                 </div>
             </div>
         </div>
-        <div class="active-tasks d-flex flex-column" style="width: 40%; ">
-        <h5>Active tasks list</h5>
-        <div class="current-tasks">
+        <div class="active-tasks d-flex flex-column"">
+        <button class="btn btn-light btn-block" type="button" data-toggle="collapse" data-target="#currentTasks" aria-expanded="true" aria-controls="currentTasks">Active tasks list</button>
+        <div class="current-tasks collapse show" id="currentTasks">
         <div class="contact task" v-for="task in activeTasks" :key="task.uuid" v-bind:class="{ clicked: selected == task }" v-on:click="editTask(task)">
             <div class="row">
                 <div class="col-12 h-25">
@@ -608,6 +635,20 @@ $("#createlist").on('click', function () {
         $("#createlist").css("display", "none")
         $(".list-name").css("display", "flex")
     }
+})
+
+$(document).on("click", "#collapsing_button", function(ev){
+    elem = $(this).attr('target')
+        if($(elem).hasClass('hidden')){
+            $(elem).removeClass('hidden')
+        }
+        else{
+            $(elem).addClass('hidden')
+        }
+})
+
+vm.$watch(all_dialogs, function(newVal, oldVal){
+    vue_messages.getActiveTasks()
 })
 
 

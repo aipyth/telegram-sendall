@@ -90,8 +90,13 @@ a:focus {
 }
 
 .sm-card {
-  max-height: 68vh;
-  overflow: auto;
+  max-height: 65vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.sm-card p {
+  word-wrap: break-word;
 }
 
 .fixed-card {
@@ -227,7 +232,7 @@ a:focus {
 }
 
 .active-tasks {
-  max-height: 80vh;
+  max-height: 72vh;
   overflow-y: scroll;
   overflow-x: hidden;
 }
@@ -274,5 +279,68 @@ a:focus {
 
 .active-tasks .current-tasks .task .people {
   height: 20%;
+}
+
+.form-group {
+  margin-bottom: 0.7rem !important;
+}
+
+.but-send {
+  margin-bottom: 0 !important;
+}
+
+#chats-contacts {
+  -webkit-transition: all 0.7s ease;
+  transition: all 0.7s ease;
+}
+
+.show-enter-active {
+  -webkit-transition: all 1s ease;
+  transition: all 1s ease;
+}
+
+.show-leave-active {
+  -webkit-transition: all 1s ease;
+  transition: all 1s ease;
+}
+
+.show-enter, .show-leave-to {
+  -webkit-transform: translateY(-15px);
+          transform: translateY(-15px);
+  opacity: 0;
+}
+
+#right-card {
+  padding-right: 0 !important;
+}
+
+@media screen and (max-width: 575px) {
+  .message-input {
+    width: 100%;
+  }
+  .active-tasks {
+    width: 100%;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(142, 168, 252, 0.6);
+    margin-left: 0 !important;
+  }
+  .chats-block {
+    max-height: 10px;
+  }
+  .chats-open {
+    display: block;
+    width: 50% !important;
+    max-height: -webkit-max-content;
+    max-height: -moz-max-content;
+    max-height: max-content;
+  }
+  #right-card {
+    padding-left: 0 !important;
+  }
+  .hidden {
+    max-height: 0;
+    opacity: 0;
+  }
 }
 /*# sourceMappingURL=style.css.map */
