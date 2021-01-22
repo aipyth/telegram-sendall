@@ -104,6 +104,14 @@ a:focus {
         margin-left: 16px;
     }
 }
+
+.contact {
+    box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
+    margin: 10px 5px;
+    padding: 10px 7px;
+}
+
 .fixed-card::-webkit-scrollbar,
 .sm-card::-webkit-scrollbar {
     width: 0px;

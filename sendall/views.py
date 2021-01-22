@@ -252,10 +252,10 @@ def get_tasks(request, pk, *args, **kwargs):
             'done': data.get('done'),
         }
         task_query = dict(filter(lambda x: x[1] is not None, task_query.items()))
-        tasks_list = SendMessageTask.objects.filter(master=request.user, **task_query).order_by('eta')
-        paginator = Paginator(tasks_list, 25)
+        tasks_list = SendMessageTask.objects.filter(master=request.user, **task_query).order_by('-eta')
+        paginator = Paginator(tasks_list, 5)
         page_number = int(data.get('page'))
-        page = paginator.get_page(page_number)
+        page = paginator.page(page_number)
         return JsonResponse({
             'tasks': utils.pre_serialize_tasks(page),
             'current_page': page.number,

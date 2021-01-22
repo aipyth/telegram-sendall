@@ -316,7 +316,8 @@ var vue_messages = new Vue({
         selected: {},
         isEditing: false,
         all_dialogs: all_dialogs,
-        check_completes: true
+        check_completes: true,
+        completed_page: 1
     },
 
     watch: {
@@ -421,9 +422,9 @@ var vue_messages = new Vue({
             },
        
         getActiveTasks: function() {
-            if (all_dialogs.length != 0){
+            // if (all_dialogs.length != 0){
                 axios.post('tasks/', {
-                    page: 0,
+                    page: 1,
                     done: false
                 }).then(response => {
                     console.log(response)
@@ -441,25 +442,21 @@ var vue_messages = new Vue({
                             }
                         displayed_tasks.push(taskich)
                         }
-                    this.activeTasks = displayed_tasks.reverse()
+                    this.activeTasks = displayed_tasks
                 })
-            }
-            else {
-                console.log("Contacts isn't loaded yet")
-            }   
+            
         },
 
 
-        getCompletedTasks: function(pageNum) {
-            if (all_dialogs.length != 0){
+        getCompletedTasks: function() {
+            // if (all_dialogs.length != 0){
                 axios.post('tasks/', {
                     uuidkey: uuidkey,
-                    page: pageNum,
+                    page: this.completed_page,
                     done: true
                 }).then(response => {
                     console.log(response)
                     const tasks = response.data.tasks
-
                     let completed_tasks = []
                     for (let item of tasks){
                         taskich = {
@@ -472,12 +469,34 @@ var vue_messages = new Vue({
                             }
                         completed_tasks.push(taskich)
                         }
-                    this.completedTasks = completed_tasks.reverse()
+                    this.completedTasks = completed_tasks
                 })
-            }
-            else {
-                console.log("Contacts isn't loaded yet")
-            }
+            // }
+            // else {
+            //     console.log("Contacts isn't loaded yet")
+            // }
+        },
+
+        getNextTasks: function (isnext) {
+            var has_next = false
+            var pagesCount = 0
+            console.log(this.completed_page)
+            axios.post('tasks/', {
+                uuidkey: uuidkey,
+                page: this.completed_page,
+                done: true
+            }).then(response => {
+                console.log(response)
+                has_next = response.data.has_next_page
+                pagesCount = response.data.num_pages
+                if (isnext){
+                    this.completed_page = has_next ? this.completed_page + 1 : 1
+                }
+                else {
+                    this.completed_page = this.completed_page == 1 ? pagesCount : this.completed_page - 1
+                }
+                this.getCompletedTasks()
+            })
         },
 
         deleteTask: function(task) {
@@ -629,7 +648,7 @@ var vue_messages = new Vue({
                     </div>
                 </div>
                 </transition-group>
-                <button class="btn btn-light btn-block" type="button" data-toggle="modal" data-target="#completes-modal" v-on:click="getCompletedTasks(0)" >Completed tasks list</button>
+                <button class="btn btn-light btn-block" type="button" data-toggle="modal" data-target="#completes-modal" v-on:click="getCompletedTasks()" >Completed tasks list</button>
             </div>
         </div>
     </div>
@@ -680,7 +699,8 @@ var vue_messages = new Vue({
             </button>
         </div>
         <div class="modal-body">
-            <div class="contact task" v-for="task in completedTasks" :key="task.uuid">
+        <div v-for="task in completedTasks" :key="task.uuid">
+            <div class="contact task">
                 <div class="row">
                     <div class="col-12 h-25">
                             <h6>To {{ this_task_contact_names(task.contacts) }}</h6>
@@ -690,6 +710,11 @@ var vue_messages = new Vue({
                         <p class="time message" style="">at {{ task.time }}</p>
                     </div>
                     </div>
+                </div>
+            </div>
+                <div class="buttons d-flex flex-row justify-content-between">
+                    <button class="btn btn-light btn-block w-25" type="button" v-on:click="getNextTasks(false)" >Prev</button>
+                    <button class="btn btn-light btn-block w-25" type="button" v-on:click="getNextTasks(true)" >Next</button>
                 </div>
             </div>
         </div>
