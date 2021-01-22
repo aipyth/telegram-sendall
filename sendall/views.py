@@ -260,6 +260,7 @@ def get_tasks(request, pk, *args, **kwargs):
             'tasks': utils.pre_serialize_tasks(page),
             'current_page': page.number,
             'has_next_page': page.has_next(),
+            'num_pages': paginator.num_pages,
             # 'next_page_number': page.next_page_number(),
             # 'page_end_index': page.end_index(),
             # 'page_start_index': page.start_index(),
