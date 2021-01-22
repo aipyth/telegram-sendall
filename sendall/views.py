@@ -246,10 +246,11 @@ def get_tasks(request):
         data = json.loads(request.body.decode('utf-8'))
         uuid = data.get('uuid')
         celery_app.control.revoke(uuid)
+        SendMessageTask.objects.filter(uuid=uuid).delete()
         return JsonResponse({'state': 'ok'})
     elif request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
-        logger.debug(f"!!!!!!!!!!!!!!!!!!!!!! { data = }")
+        logger.debug(f"changing message... { data = }")
         uuid = data.get('uuid')
         celery_app.control.revoke(uuid)
 
