@@ -422,7 +422,7 @@ var vue_messages = new Vue({
        
         getActiveTasks: function() {
             if (all_dialogs.length != 0){
-                axios.post('/tasks/', {
+                axios.post('tasks/', {
                     page: 0,
                     done: false
                 }).then(response => {
@@ -452,7 +452,7 @@ var vue_messages = new Vue({
 
         getCompletedTasks: function(pageNum) {
             if (all_dialogs.length != 0){
-                axios.post('/tasks/', {
+                axios.post('tasks/', {
                     uuidkey: uuidkey,
                     page: pageNum,
                     done: true
@@ -481,7 +481,7 @@ var vue_messages = new Vue({
         },
 
         deleteTask: function(task) {
-          axios.delete('/tasks/', {
+          axios.delete('tasks/', {
               data:{
               uuid: task.uuid
               } 
@@ -524,7 +524,7 @@ var vue_messages = new Vue({
             } else {
                 exec_datetime = new Date();
             }
-            axios.put('/tasks/', {
+            axios.put('tasks/', {
                 uuid: this.selected.uuid,
                 session: this.selected.session,
                 contacts: selected_contacts_ids,
