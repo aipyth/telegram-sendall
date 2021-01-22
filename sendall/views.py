@@ -231,8 +231,8 @@ def delete_contacts_list(request, pk):
 
 def get_tasks(request):
     if request.method == 'GET':
-        tasks = SendMessageTask.objects.filter(master=request.user)
-        return JsonResponse({'tasks': utils.pre_serialize_tasks(tasks)})
+        tasks_list = SendMessageTask.objects.filter(master=request.user)
+        return JsonResponse({'tasks': utils.pre_serialize_tasks(tasks_list)})
     elif request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         task_query = {
@@ -240,8 +240,8 @@ def get_tasks(request):
             'uuid': data.get('uuid'),
         }
         task_query = dict(filter(lambda x: x[1], task_query.items()))
-        tasks = SendMessageTask.objects.filter(master=request.user, **task_query)
-        return JsonResponse({'tasks': utils.pre_serialize_tasks(tasks)})
+        tasks_list = SendMessageTask.objects.filter(master=request.user, **task_query)
+        return JsonResponse({'tasks': utils.pre_serialize_tasks(tasks_list)})
     elif request.method == 'DELETE':
         data = json.loads(request.body.decode('utf-8'))
         uuid = data.get('uuid')
@@ -249,17 +249,19 @@ def get_tasks(request):
         return JsonResponse({'state': 'ok'})
     elif request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
+        logger.debug(f"!!!!!!!!!!!!!!!!!!!!!! { data = }")
         uuid = data.get('uuid')
         celery_app.control.revoke(uuid)
 
-        session = Session.objects.get(id=data.get('session'))
+        session = Session.objects.get(id=data.get('session').get('id'))
         contacts = list(set(data.get('contacts')))
         try:
-            exec_time = datetime.datetime.strptime(data.get('datetime'), "%Y-%m-%dT%H:%M:%S.%f%z")
+            exec_time = datetime.datetime.strptime(data.get('eta'), "%Y-%m-%dT%H:%M:%S.%f%z")
         except ValueError:
             return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
-        response = tasks.send_message.apply_async((session.session, data, data.get('message'), data.get('markdown')), eta=exec_time)
+        response = tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
         task = SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
+        SendMessageTask.objects.filter(uuid=uuid).delete()
         return JsonResponse({'task': utils.pre_serialize_tasks([task])})
     return HttpResponseForbidden()
     
