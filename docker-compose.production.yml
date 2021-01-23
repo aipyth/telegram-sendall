@@ -81,18 +81,18 @@ services:
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
       SECRET_KEY: ${DJANGO_SECRET_KEY}
-    command: celery worker --app=telegram_sendall.celery.app --without-heartbeat -l debug
+    command: celery worker --app=telegram_sendall.celery.app --without-heartbeat
 
 
-  nginx:
-    build: ./nginx
-    restart: always
-    volumes:
-      - staticfiles:/app/staticfiles
-    ports:
-      - 8002:80
-    depends_on:
-      - web
+  # nginx:
+  #   build: ./nginx
+  #   restart: always
+  #   volumes:
+  #     - staticfiles:/app/staticfiles
+  #   ports:
+  #     - 8002:80
+  #   depends_on:
+  #     - web
 
 # volumes:
 #   staticfiles:
