@@ -108,7 +108,7 @@ var vue_dialogs = new Vue({
     template: `
 <div class="chats-block pr-1">
     <form class="form" style="margin-bottom: 15px;">
-        <input class="form-control" type="search" placeholder="Search" aria-label="Search" v-model="search_dialogs">
+        <input class="form-control search" type="search" placeholder="Search" aria-label="Search" v-model="search_dialogs">
     </form>
     <div id='chats' class='sm-card collapse show'>
         <div align='center' v-if="loading">
@@ -317,7 +317,8 @@ var vue_messages = new Vue({
         isEditing: false,
         all_dialogs: all_dialogs,
         check_completes: true,
-        completed_page: 1
+        completed_page: 1,
+        right: true
     },
 
     watch: {
@@ -392,7 +393,6 @@ var vue_messages = new Vue({
             names = ''
             for (let i of selected_contacts){
                 names = names + i + ', '
-                console.log(names, i)
             }
             return names.slice(0, -2)
         },
@@ -478,6 +478,7 @@ var vue_messages = new Vue({
         },
 
         getNextTasks: function (isnext) {
+            this.right = isnext
             var has_next = false
             var pagesCount = 0
             console.log(this.completed_page)
@@ -496,6 +497,9 @@ var vue_messages = new Vue({
                     this.completed_page = this.completed_page == 1 ? pagesCount : this.completed_page - 1
                 }
                 this.getCompletedTasks()
+                setTimeout(() => {
+                    document.getElementById('completes-modal-title').scrollIntoView({behavior: "smooth"})
+                }, 150);
             })
         },
 
@@ -557,6 +561,14 @@ var vue_messages = new Vue({
             })
         }
     },
+
+    computed: {
+        direction: function(){
+            if(this.right) return 'show_horiz_right'
+            else if(!this.right) return 'show_horiz_left'
+        }
+    },
+
     template: `
 <div style='position: relative;'>
     <div class='loading-card' v-if="requesting">
@@ -699,6 +711,7 @@ var vue_messages = new Vue({
             </button>
         </div>
         <div class="modal-body">
+        <transition-group v-bind:name="direction" mode="out-in" tag="div">
         <div v-for="task in completedTasks" :key="task.uuid">
             <div class="contact task">
                 <div class="row">
@@ -712,6 +725,7 @@ var vue_messages = new Vue({
                     </div>
                 </div>
             </div>
+            </transition-group>
                 <div class="buttons d-flex flex-row justify-content-between">
                     <button class="btn btn-light btn-block w-25" type="button" v-on:click="getNextTasks(false)" >Prev</button>
                     <button class="btn btn-light btn-block w-25" type="button" v-on:click="getNextTasks(true)" >Next</button>
@@ -726,7 +740,7 @@ var vue_messages = new Vue({
 `,
 });
 
-window.setInterval(vue_messages.getActiveTasks(), 2000)
+
 
 function open() {
     if (opened) {
@@ -785,4 +799,9 @@ $(function () {
             close: 'fas fa-times'
         }
     });
+
+    setInterval(() => {
+        vue_messages.getActiveTasks()
+    }, 3000);
+
     });
