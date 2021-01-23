@@ -90,6 +90,7 @@ services:
     volumes:
       - staticfiles:/app/staticfiles
       - /home/ubuntu/nginx:/nginx
+      - /etc/letsencrypt/live/telegram-sendall.net/:/certs
     ports:
       - 80:80
     depends_on:
