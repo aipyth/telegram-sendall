@@ -84,17 +84,17 @@ services:
     command: celery worker --app=telegram_sendall.celery.app --without-heartbeat
 
 
-  nginx:
-    build: ./nginx
-    restart: always
-    volumes:
-      - staticfiles:/app/staticfiles
-      - /home/ubuntu/nginx:/nginx
-      - /etc/letsencrypt/live/telegram-sendall.net/:/certs
-    ports:
-      - 80:80
-    depends_on:
-      - web
+  # nginx:
+  #   build: ./nginx
+  #   restart: always
+  #   volumes:
+  #     - staticfiles:/app/staticfiles
+  #     - /home/ubuntu/nginx:/nginx
+  #     - /etc/letsencrypt/live/telegram-sendall.net/:/certs
+  #   ports:
+  #     - 80:80
+  #   depends_on:
+  #     - web
 
-volumes:
-  staticfiles:
+# volumes:
+  # staticfiles:
