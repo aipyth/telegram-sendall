@@ -223,7 +223,7 @@ LOGGING = {
             'handlers': ['gunicorn'],
             'level': 'INFO',
             'propagate': True,
-        }
+        },
         'gunicorn.errors': {
             'level': 'DEBUG',
             'handlers': ['gunicorn'],
