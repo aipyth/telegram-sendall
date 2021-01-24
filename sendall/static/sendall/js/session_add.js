@@ -1,9 +1,10 @@
+import MTProto from 'telegram-mtproto'
+
 axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
 axios.defaults.headers.common['is_ajax'] = true;
 
 var errors = [];
-
 var app = new Vue({
     el: '#add-session',
     data: {
