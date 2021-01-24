@@ -643,7 +643,7 @@ var vue_messages = new Vue({
             </div>
         </div>
         <div class="active-tasks d-flex flex-column"">
-            <button class="btn btn-light btn-block" type="button" data-toggle="collapse" data-target="#currentTasks" aria-expanded="true" aria-controls="currentTasks">Active tasks list</button>
+            <button class="btn btn-light btn-block" type="button" data-toggle="collapse" data-target="#currentTasks" aria-expanded="true" aria-controls="currentTasks" v-on:click="getActiveTasks()" >Active tasks list</button>
             <div class="current-tasks collapse show" id="currentTasks">
                 <transition-group name="show">
                 <div class="contact task" v-for="task in activeTasks" :key="task.uuid" v-bind:class="{ clicked: selected == task }" v-on:click="editTask(task)">
@@ -799,9 +799,5 @@ $(function () {
             close: 'fas fa-times'
         }
     });
-
-    setInterval(() => {
         vue_messages.getActiveTasks()
-    }, 3000);
-
     });
