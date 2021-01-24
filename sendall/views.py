@@ -1,19 +1,26 @@
 import json
 import logging
 import datetime
+
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView, View
+from django.core.paginator import Paginator
+
+# import celery
 
 from . import utils
 from .forms import SessionAddForm, SignUpForm
-from .models import Session, TelegramUser, ContactsList
+from .models import Session, TelegramUser, ContactsList, SendMessageTask
 from uuid import uuid4
 from . import tasks
 from celery.result import AsyncResult
+
+from telegram_sendall.celery import app as celery_app
+
 
 if settings.DEBUG:
     logging.basicConfig(level=logging.DEBUG)
@@ -127,9 +134,13 @@ def send_message(request, pk, *args, **kwargs):
                 exec_time = datetime.datetime.strptime(data.get('datetime'), "%Y-%m-%dT%H:%M:%S.%f%z")
             except ValueError:
                 return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
-            tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
+            response = tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
+            # logger.debug(f"response = {response}. {response.id}")
+            SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
         else:
-            tasks.send_message.delay(session.session, contacts, data.get('message'), data.get('markdown'))
+            response = tasks.send_message.delay(session.session, contacts, data.get('message'), data.get('markdown'))
+            # logger.debug(f"response = {response}. {response.id}")
+            SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=None, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
         # return utils.send_message(session, contacts, data.get('message'), data.get('markdown'))
 
         return JsonResponse({'state': 'ok'})
@@ -217,3 +228,111 @@ def delete_contacts_list(request, pk):
                 return JsonResponse({'state': 'ok'})
 
     return HttpResponseForbidden()
+
+
+def get_tasks(request, pk, *args, **kwargs):
+    # if request.method == 'GET':
+    #     tasks_list = SendMessageTask.objects.filter(master=request.user)
+    #     paginator = Paginator(tasks_list, 25)
+    #     page_number = int(1)
+    #     page = paginator.get_page(page_number)
+    #     logger.debug(page[0])
+    #     return JsonResponse({'tasks': utils.pre_serialize_tasks(tasks_list)})
+    if request.method == 'POST':
+        # POST arguments:
+        #   session -- id of session (optional)
+        #   uuid    -- uuid of task (optional)
+        #   page    -- number of page (required)
+        #   done    -- get whether done or not tasks (optional)
+        data = json.loads(request.body.decode('utf-8'))
+        task_query = {
+            # 'session__id': data.get('session'),
+            'session__id': pk,
+            'uuid': data.get('uuid'),
+            'done': data.get('done'),
+        }
+        task_query = dict(filter(lambda x: x[1] is not None, task_query.items()))
+        tasks_list = SendMessageTask.objects.filter(master=request.user, **task_query).order_by('-eta')
+        paginator = Paginator(tasks_list, 5)
+        page_number = int(data.get('page'))
+        page = paginator.page(page_number)
+        return JsonResponse({
+            'tasks': utils.pre_serialize_tasks(page),
+            'current_page': page.number,
+            'has_next_page': page.has_next(),
+            'num_pages': paginator.num_pages,
+            # 'next_page_number': page.next_page_number(),
+            # 'page_end_index': page.end_index(),
+            # 'page_start_index': page.start_index(),
+            })
+    elif request.method == 'DELETE':
+        # DELETE arguments:
+        #   uuid            -- uuid of task to be deleted
+        #                       if uuid is not specified -
+        #                       all tasks will be deleted
+        #                       and you need to specify 
+        #                       the session id (key `session`)
+        #   clear-unactive  -- can be set to True to clear unactive tasks
+        #                       `session` key must exist 
+        logger.debug(request.body)
+        data = json.loads(request.body.decode('utf-8'))
+        uuid = data.get('uuid')
+        if uuid:
+            celery_app.control.revoke(uuid)
+            SendMessageTask.objects.filter(uuid=uuid).delete()
+            return JsonResponse({'state': 'ok'})
+        else:
+            all_tasks = SendMessageTask.objects.filter(session__id=pk)
+            for task in all_tasks:
+                celery_app.control.revoke(task.uuid)
+            all_tasks.delete()
+            return JsonResponse({'state': 'ok'})
+        if data.get('clear-unactive'):
+            all_tasks = SendMessageTask.objects.filter(session__id=pk, done=True)
+            # for task in all_tasks:
+            #     celery_app.control.revoke(task.uuid)
+            all_tasks.delete()
+            return JsonResponse({'state': 'ok'})
+    elif request.method == 'PUT':
+        data = json.loads(request.body.decode('utf-8'))
+        logger.debug(f"changing message... { data = }")
+        uuid = data.get('uuid')
+        celery_app.control.revoke(uuid)
+
+        session = Session.objects.get(id=data.get('session').get('id'))
+        contacts = list(set(data.get('contacts')))
+        try:
+            exec_time = datetime.datetime.strptime(data.get('eta'), "%Y-%m-%dT%H:%M:%S.%f%z")
+        except ValueError:
+            return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
+        response = tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
+        task = SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
+        SendMessageTask.objects.filter(uuid=uuid).delete()
+        return JsonResponse({'task': utils.pre_serialize_tasks([task])})
+    return HttpResponseForbidden()
+    
+    # if request.method == 'GET':
+    #     i = app.control.inspect()
+    #     def parse_shit(args: str):
+    #         needed = str.split(",", 1)
+    #         needed[0] = needed[0].split("'")[1]
+    #         sec = needed[1]
+    #         needed[1] = sec.split('[')[1].split(']')[0].split(", ")
+    #         sec = sec.split(', ', 2)[2][:-1:].rsplit(', ', 1)
+    #         needed.append(sec[0].split("'", 1)[1].rsplit("'", 1)[0])
+    #         needed.append(sec[1])
+    #         obj = {"session":needed[0], "ids": needed[1], "message": needed[2], "isMarkdown": needed[3]}
+    #         return obj
+
+    #     scheduled = [{
+    #         'eta': item[1]['eta'],
+    #         'id': item[1]['request']['id']
+    #     } if item[1]['request']['type'] == "sendall.tasks.send_message" else {} for item in i.active().items()]
+
+
+    #     return JsonResponse({
+    #         'active': i.active(),
+    #         'scheduled': i.scheduled(),
+    #         'waiting': i.reserved(),
+    #     })
+    # return HttpResponseForbidden()

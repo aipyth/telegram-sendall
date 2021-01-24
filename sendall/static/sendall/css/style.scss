@@ -6,8 +6,8 @@ html {
     border: 1px solid rgba(0, 0, 0, 0.15);
     border-radius: 8px;
     box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.08);
-    margin: 20px 0;
-    padding: 20px 15px;
+    margin: 10px 0;
+    padding: 10px 10px;
 }
 @mixin card-like {
     @include card-shadow;
@@ -68,13 +68,19 @@ a:focus {
     color: rgba(0, 0, 0, 0.8);
 }
 .sm-card {
-    max-height: 68vh;
-    overflow: auto;
+    max-height: 65vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.sm-card p{
+   word-wrap: break-word;
 }
 
 .fixed-card {
-    max-height: 87vh;
-    overflow: auto;
+    height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 
     .btn {
         margin-bottom: 10px;
@@ -98,6 +104,14 @@ a:focus {
         margin-left: 16px;
     }
 }
+
+.contact {
+    box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
+    margin: 10px 5px;
+    padding: 10px 7px;
+}
+
 .fixed-card::-webkit-scrollbar,
 .sm-card::-webkit-scrollbar {
     width: 0px;
@@ -149,3 +163,148 @@ a:focus {
     margin: 0 5px;
     border-radius: 25%;
 }
+
+.message-input{
+    width: 60%;
+}
+
+.active-tasks{
+    width: 40%;
+    margin-left: 5px;
+    padding: 5px;
+}
+.active-tasks h5{
+    text-align: center;
+}
+
+.chats-block{
+    width: 0;
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+.contacts-block{
+    width: 100%;
+    transition: all 0.5s ease;
+}
+
+.chats-open{
+    width: 50% !important;
+    opacity: 1 !important;
+}
+.contacts-open{
+    width: 50%;
+}
+
+
+.active-tasks{
+  max-height: 72vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.active-tasks h5{
+    margin-bottom: 5px;
+  }
+.active-tasks .current-tasks .task{
+    max-height: 200px;
+    cursor: pointer;
+    transition: all 0.5s ease;
+}
+.active-tasks .current-tasks .task .time{
+    font-size: 12px;
+    margin-bottom: 0;
+    text-align: end;
+    padding-right: 10px;
+}
+
+.active-tasks .current-tasks .task .task-text{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.active-tasks .current-tasks .task h6{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 15px;
+}
+
+.active-tasks .current-tasks .task h6.full{
+    white-space: normal;
+    overflow: scroll;
+    text-overflow: inherit;
+    font-size: 15px;
+}
+
+.clicked {
+   background-color:rgb(27, 107, 255);
+   color:rgba(255, 255, 255, 1);
+}
+
+.active-tasks .current-tasks .task .message-text{
+    height: 80%;
+
+}
+
+.active-tasks .current-tasks .task .people{
+    height: 20%;
+}
+
+.form-group{
+    margin-bottom: 0.7rem !important;
+}
+.but-send{
+    margin-bottom: 0 !important;
+}
+
+#chats-contacts{
+    transition: all 0.7s ease;
+}
+
+.show-enter-active {
+    transition: all 1s ease;
+  }
+  .show-leave-active {
+    transition: all 1s ease;
+  }
+  .show-enter, .show-leave-to
+  /* .slide-fade-leave-active до версии 2.1.8 */ {
+    transform: translateY(-15px);    
+    opacity: 0;
+  }
+
+#right-card{
+    padding-right: 0 !important;
+}
+
+@media screen and (max-width: 575px){
+    .message-input{
+        width: 100%;
+    }
+    
+    .active-tasks{
+        width: 100%;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(142, 168, 252, 0.6);
+        margin-left: 0 !important;
+    }
+    .chats-block{
+        max-height: 10px;
+    }
+    .chats-open{
+        display: block;
+        width: 50% !important;
+        max-height: max-content;
+    }
+    #right-card{
+        padding-left: 0 !important;
+    }
+    .hidden{
+        max-height: 0;
+        opacity: 0;
+    }
+}
+  
