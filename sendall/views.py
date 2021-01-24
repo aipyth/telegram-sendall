@@ -295,7 +295,7 @@ def get_tasks(request, pk, *args, **kwargs):
             return JsonResponse({'state': 'ok'})
     elif request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
-        logger.debug(f"changing message... { data = }")
+        logger.debug("changing message... {}".format(data))
         uuid = data.get('uuid')
         celery_app.control.revoke(uuid)
 
