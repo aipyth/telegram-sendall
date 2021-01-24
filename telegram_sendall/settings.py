@@ -204,6 +204,10 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 100,  # 100 mb
         }
     },
+    'root': {
+        'handlers': ['gunicorn'],
+        'level': 'DEBUG',
+    },
     'loggers': {
         'gunicorn.errors': {
             'level': 'DEBUG',
