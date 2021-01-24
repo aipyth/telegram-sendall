@@ -84,15 +84,15 @@ services:
     command: celery worker --app=telegram_sendall.celery.app --without-heartbeat -l debug --concurrency=3
 
 
-  # nginx:
-  #   build: ./nginx
-  #   restart: always
-  #   volumes:
-  #     - staticfiles:/app/staticfiles
-  #   ports:
-  #     - 80:80
-  #   depends_on:
-  #     - web
+  nginx:
+    build: ./nginx
+    restart: always
+    volumes:
+      - staticfiles:/app/staticfiles
+    ports:
+      - 80:80
+    depends_on:
+      - web
 
 volumes:
   staticfiles:

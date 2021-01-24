@@ -196,37 +196,41 @@ LOGGING = {
         }
     },
     'handlers': {
-        'gunicorn': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
+        'console': {
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
-            'filename': '/var/log/gunicorn/gunicorn.errors',
-            'maxBytes': 1024 * 1024 * 100,  # 100 mb
-        }
+        },
+        # 'file': {
+        #     'level': 'INFO',
+        #     'class': 'logging.handlers.RotatingFileHandler',
+        #     'formatter': 'verbose',
+        #     'filename': '/var/log/gunicorn/gunicorn.log',
+        #     'maxBytes': 1024 * 1024 * 100,  # 100 mb
+        # }
     },
     'root': {
-        'handlers': ['gunicorn'],
-        'level': 'DEBUG',
+        'handlers': ['console'],
+        'level': 'INFO',
     },
     'loggers': {
         'django': {
-            'handlers': ['gunicorn'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
         'apps': {
-            'handlers': ['gunicorn'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'telethon': {
-            'handlers': ['gunicorn'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
         'gunicorn.errors': {
             'level': 'DEBUG',
-            'handlers': ['gunicorn'],
+            'handlers': ['console'],
             'propagate': True,
         },
     }

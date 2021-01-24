@@ -94,6 +94,46 @@ class SessionAdd(LoginRequiredMixin, View):
 
         return JsonResponse({'state': 'undefined'})
 
+def get_app_id_hash(request):
+    """
+    on /get_app_id_and_hash/
+    Request to get app id and hash
+    Returns: Json response:
+            -- id: id to telegram api
+            -- hash: hash to telegram_api
+    """
+    return JsonResponse({
+        'id': settings.TELEGRAM_API_ID,
+        'hash': settings.TELEGRAM_API_HASH,
+    })
+
+def create_session(request):
+    """
+    on /create_session/
+    Create session basing on session_hash got from frontend
+    POST request:
+        -- session: session hash
+        -- username: username of user session
+        -- firstname
+        -- lastname
+        -- phone
+    """
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        try:
+            Session.objects.create(
+                session=data['session'],
+                user=request.user,
+                username=data['username'],
+                name=utils.str_no_none(data['firstname']) + ' ' + utils.str_no_none(data['lastname']),
+                phone=data['phone'],
+                active=True,
+            )
+            return JsonResponse({'state': 'ok'})
+        except KeyError:
+            return JsonResponse({'error': 'Not enough params'})
+    return HttpResponseForbidden()
+
 
 def dialogs(request, pk, *args, **kwargs):
     session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
