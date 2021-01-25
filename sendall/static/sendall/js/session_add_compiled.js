@@ -60127,6 +60127,7 @@ var app = new Vue({
                 },
                 });
             }
+            console.log(parseInt("55432", 10))
             this.state = "code";
 
             (async () => {
@@ -60136,6 +60137,7 @@ var app = new Vue({
                 console.log("delaying, get the code faster!")
                 await delay(25000)
                 const code = parseInt(this.form_data.code, 10)
+                console.log(typeof code)
                 try {
                 const authResult = await signIn({
                     code,
