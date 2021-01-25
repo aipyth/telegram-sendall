@@ -60128,13 +60128,13 @@ var app = new Vue({
                 });
             }
             this.state = "code";
-            
+
             (async () => {
                 const password = this.form_data.password
                 const phone_code_hash = await sendCode(this.form_data.phone);
                 const phone = this.form_data.phone
                 console.log("delaying, get the code faster!")
-                await delay(5000)
+                await delay(25000)
                 const code = this.form_data.code
                 try {
                 const authResult = await signIn({
