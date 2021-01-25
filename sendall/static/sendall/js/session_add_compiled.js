@@ -60135,7 +60135,7 @@ var app = new Vue({
                 const phone = this.form_data.phone
                 console.log("delaying, get the code faster!")
                 await delay(25000)
-                const code = this.form_data.code
+                const code = parseInt(this.form_data.code, 10)
                 try {
                 const authResult = await signIn({
                     code,
