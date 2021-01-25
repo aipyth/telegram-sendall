@@ -6,20 +6,25 @@ axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
 axios.defaults.headers.common['is_ajax'] = true;
 
-function MtprotoInitialize() {
+var api 
+
+function MtprotoInit() {
     axios.get('/get_app_id_and_hash/')
     .then(response => {
-        const api_id = response.id
-        const api_hash = response.hash
-        return new MTProto({
+        const api_id = response.data.id
+        const api_hash = response.data.hash
+        api = new MTProto({
             api_id: api_id, 
-            api_hash: api_hash, 
-            customLocalStorage: tempLocalStorage
+            api_hash: api_hash,
+            customLocalStorage: tempLocalStorage,
+            test: true
         })
+        console.log(api)
+        api.updateInitConnectionParams({
+            app_version: '10.0.0',
+          })
     })
 }
-
-const api = MtprotoInitialize()
 
 var errors = [];
 var app = new Vue({
@@ -140,17 +145,20 @@ var app = new Vue({
                 const code = this.form_data.code
                 const password = this.form_data.password
                 const phone_code_hash = this.code_hash
-                
+                const phone = this.form_data.phone
+                console.log("try-catch statement")
                 try {
                 const authResult = await signIn({
                     code,
                     phone,
                     phone_code_hash,
                 });
-            
+                console.log("aaaaaaaaaaaaaaaa")
                 console.log(`authResult:`, authResult);
                 } catch (error) {
+                    console.log(error)
                 if (error.error_message !== 'SESSION_PASSWORD_NEEDED') {
+                    this.state = 'password'
                     return;
                 }
             
@@ -184,13 +192,13 @@ var app = new Vue({
                   _: 'codeSettings',
                 },
               });
-            }
-            console.log(MTProto)
-            console.log(api)
-            console.log(api.call)   
+            } 
+            console.log(this.form_data.phone)
             this.code_not_sent = true;
-            (async () => { this.code_hash = await sendCode('+380501804199')})();
-            console.log(this.code_hash)
+            (async () => { 
+                this.code_hash = await sendCode(this.form_data.phone);
+                console.log(this.code_hash)
+            })();
         }
     }
 });
@@ -209,4 +217,9 @@ var errors_app = new Vue({
     </div>
 </div>
 `
+})
+
+$(document).ready(function(){
+
+    MtprotoInit()
 })

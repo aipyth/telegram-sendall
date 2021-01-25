@@ -6,6 +6,8 @@
   "dependencies": {
     "@mtproto/core": "5.3.0",
     "browserify": "^17.0.0",
+    "net-browserify": "^0.2.4",
+    "socket.io": "^3.1.0",
     "telegram-mtproto": "^2.2.2",
     "tinyify": "^3.0.0",
     "watchify": "^3.11.1",
@@ -16,7 +18,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-js": "browserify -p tinyify sendall/static/sendall/js/session_add.js >  sendall/static/sendall/js/session_add_compiled.js",
+    "build-js": "browserify -p tinyify sendall/static/sendall/js/session_add.js > sendall/static/sendall/js/session_add_compiled.js",
     "watch": "watchify sendall/static/sendall/js/session_add.js -o sendall/static/sendall/js/session_add_compiled.js"
   },
   "repository": {

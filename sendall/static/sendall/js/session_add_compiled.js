@@ -21312,13 +21312,13 @@ class Serializer {
 module.exports = Serializer;
 
 },{"../builder/index.cjs":23,"../counter/index.cjs":24,"big-integer":61}],28:[function(require,module,exports){
-const { TCP } = require('./tcp/index.cjs');
+const { Socket } = require('./socket/index.cjs');
 
-const Transport = TCP;
+const Transport = Socket;
 
 module.exports = { Transport };
 
-},{"./tcp/index.cjs":30}],29:[function(require,module,exports){
+},{"./socket/index.cjs":30}],29:[function(require,module,exports){
 const EventEmitter = require('events');
 const { AES } = require('../../utils/crypto/index.cjs');
 const { getRandomBytes } = require('../../utils/common/index.cjs');
@@ -21421,103 +21421,84 @@ module.exports = {
 };
 
 },{"../../utils/common/index.cjs":31,"../../utils/crypto/index.cjs":34,"events":253}],30:[function(require,module,exports){
-const net = require('net');
 const { Obfuscated } = require('../obfuscated/index.cjs');
 
-class TCP extends Obfuscated {
+const subdomainsMap = {
+  1: 'pluto',
+  2: 'venus',
+  3: 'aurora',
+  4: 'vesta',
+  5: 'flora',
+};
+
+class Socket extends Obfuscated {
   constructor(dc) {
     super();
 
     this.dc = dc;
+    this.url = `wss://${subdomainsMap[this.dc.id]}.web.telegram.org${
+      this.dc.test ? '/apiws_test' : '/apiws'
+    }`;
 
     this.connect();
   }
 
   get isAvailable() {
-    return this.socket.writable;
+    return this.socket.readyState === WebSocket.OPEN;
   }
 
   connect() {
-    this.stream = new Uint8Array();
+    this.socket = new WebSocket(this.url, 'binary');
+    this.socket.binaryType = 'arraybuffer';
 
-    this.socket = net.connect(
-      this.dc.port,
-      this.dc.ip,
-      this.handleConnect.bind(this)
-    );
-
-    this.socket.on('data', this.handleData.bind(this));
-    this.socket.on('error', this.handleError.bind(this));
-    this.socket.on('close', this.handleClose.bind(this));
+    this.socket.addEventListener('error', this.handleError.bind(this));
+    this.socket.addEventListener('open', this.handleOpen.bind(this));
+    this.socket.addEventListener('close', this.handleClose.bind(this));
+    this.socket.addEventListener('message', this.handleMessage.bind(this));
   }
 
-  async handleData(data) {
-    const bytes = new Uint8Array(data);
-
-    const deobfuscatedBytes = await this.deobfuscate(bytes);
-
-    this.stream = new Uint8Array([...this.stream, ...deobfuscatedBytes]);
-
-    // The minimum length is eight (transport error with a intermediate header)
-    while (this.stream.length >= 8) {
-      const dataView = new DataView(this.stream.buffer);
-      const payloadLength = dataView.getUint32(0, true);
-
-      if (payloadLength <= this.stream.length - 4) {
-        const payload = this.stream.slice(4, payloadLength + 4);
-
-        if (payloadLength === 4) {
-          const code = dataView.getInt32(4, true) * -1;
-
-          this.emit('error', {
-            type: 'transport',
-            code,
-          });
-        } else {
-          this.emit('message', payload.buffer);
-        }
-
-        this.stream = this.stream.slice(payloadLength + 4);
-      } else {
-        break;
-      }
-    }
-  }
-
-  async handleError(error) {
+  async handleError() {
     this.emit('error', {
       type: 'socket',
     });
   }
 
-  async handleClose(hadError) {
-    if (!this.socket.destroyed) {
-      this.socket.destroy();
+  async handleOpen() {
+    const initialMessage = await this.generateObfuscationKeys();
+    this.socket.send(initialMessage);
+
+    this.emit('open');
+  }
+
+  async handleClose() {
+    if (this.isAvailable) {
+      this.socket.close();
     }
 
     this.connect();
   }
 
-  async handleConnect() {
-    const initialMessage = await this.generateObfuscationKeys();
+  async handleMessage(event) {
+    const obfuscatedBytes = new Uint8Array(event.data);
+    const bytes = await this.deobfuscate(obfuscatedBytes);
 
-    this.socket.write(initialMessage);
+    const payload = this.getIntermediatePayload(bytes);
 
-    this.emit('open');
+    this.emit('message', payload.buffer);
   }
 
   async send(bytes) {
     const intermediateBytes = this.getIntermediateBytes(bytes);
 
-    const obfuscatedBytes = await this.obfuscate(intermediateBytes);
+    const { buffer } = await this.obfuscate(intermediateBytes);
 
-    this.socket.write(obfuscatedBytes);
+    this.socket.send(buffer);
   }
 }
 
-module.exports = { TCP };
+module.exports = { Socket };
 
-},{"../obfuscated/index.cjs":29,"net":252}],31:[function(require,module,exports){
+},{"../obfuscated/index.cjs":29}],31:[function(require,module,exports){
 const bigInt = require('big-integer');
 const { getRandomBytes } = require('./random/index.cjs');
 
@@ -46952,30 +46933,35 @@ utils.intFromLE = intFromLE;
 arguments[4][55][0].apply(exports,arguments)
 },{"buffer":64,"dup":55}],146:[function(require,module,exports){
 module.exports={
-  "_from": "elliptic@^6.5.3",
+  "_args": [
+    [
+      "elliptic@6.5.3",
+      "C:\\Users\\Den\\source\\repos\\telegram-sendall"
+    ]
+  ],
+  "_from": "elliptic@6.5.3",
   "_id": "elliptic@6.5.3",
   "_inBundle": false,
   "_integrity": "sha512-IMqzv5wNQf+E6aHeIqATs0tOLeOTwj1QKbRcS3jBbYkl5oLAserA8yJTT7/VyHUYG91PRmPyeQDObKLPpeS4dw==",
   "_location": "/elliptic",
   "_phantomChildren": {},
   "_requested": {
-    "type": "range",
+    "type": "version",
     "registry": true,
-    "raw": "elliptic@^6.5.3",
+    "raw": "elliptic@6.5.3",
     "name": "elliptic",
     "escapedName": "elliptic",
-    "rawSpec": "^6.5.3",
+    "rawSpec": "6.5.3",
     "saveSpec": null,
-    "fetchSpec": "^6.5.3"
+    "fetchSpec": "6.5.3"
   },
   "_requiredBy": [
     "/browserify-sign",
     "/create-ecdh"
   ],
   "_resolved": "https://registry.npmjs.org/elliptic/-/elliptic-6.5.3.tgz",
-  "_shasum": "cb59eb2efdaf73a0bd78ccd7015a62ad6e0f93d6",
-  "_spec": "elliptic@^6.5.3",
-  "_where": "C:\\Users\\Den\\source\\repos\\telegram-sendall\\node_modules\\browserify-sign",
+  "_spec": "6.5.3",
+  "_where": "C:\\Users\\Den\\source\\repos\\telegram-sendall",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
@@ -46983,7 +46969,6 @@ module.exports={
   "bugs": {
     "url": "https://github.com/indutny/elliptic/issues"
   },
-  "bundleDependencies": false,
   "dependencies": {
     "bn.js": "^4.4.0",
     "brorand": "^1.0.1",
@@ -46993,7 +46978,6 @@ module.exports={
     "minimalistic-assert": "^1.0.0",
     "minimalistic-crypto-utils": "^1.0.0"
   },
-  "deprecated": false,
   "description": "EC cryptography",
   "devDependencies": {
     "brfs": "^1.4.3",
@@ -59893,20 +59877,25 @@ axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
 axios.defaults.headers.common['is_ajax'] = true;
 
-function MtprotoInitialize() {
+var api 
+
+function MtprotoInit() {
     axios.get('/get_app_id_and_hash/')
     .then(response => {
-        const api_id = response.id
-        const api_hash = response.hash
-        return new MTProto({
+        const api_id = response.data.id
+        const api_hash = response.data.hash
+        api = new MTProto({
             api_id: api_id, 
-            api_hash: api_hash, 
-            customLocalStorage: tempLocalStorage
+            api_hash: api_hash,
+            customLocalStorage: tempLocalStorage,
+            test: true
         })
+        console.log(api)
+        api.updateInitConnectionParams({
+            app_version: '10.0.0',
+          })
     })
 }
-
-const api = MtprotoInitialize()
 
 var errors = [];
 var app = new Vue({
@@ -60027,17 +60016,20 @@ var app = new Vue({
                 const code = this.form_data.code
                 const password = this.form_data.password
                 const phone_code_hash = this.code_hash
-                
+                const phone = this.form_data.phone
+                console.log("try-catch statement")
                 try {
                 const authResult = await signIn({
                     code,
                     phone,
                     phone_code_hash,
                 });
-            
+                console.log("aaaaaaaaaaaaaaaa")
                 console.log(`authResult:`, authResult);
                 } catch (error) {
+                    console.log(error)
                 if (error.error_message !== 'SESSION_PASSWORD_NEEDED') {
+                    this.state = 'password'
                     return;
                 }
             
@@ -60071,13 +60063,13 @@ var app = new Vue({
                   _: 'codeSettings',
                 },
               });
-            }
-            console.log(MTProto)
-            console.log(api)
-            console.log(api.call)   
+            } 
+            console.log(this.form_data.phone)
             this.code_not_sent = true;
-            (async () => { this.code_hash = await sendCode('+380501804199')})();
-            console.log(this.code_hash)
+            (async () => { 
+                this.code_hash = await sendCode(this.form_data.phone);
+                console.log(this.code_hash)
+            })();
         }
     }
 });
@@ -60096,5 +60088,10 @@ var errors_app = new Vue({
     </div>
 </div>
 `
+})
+
+$(document).ready(function(){
+
+    MtprotoInit()
 })
 },{"@mtproto/core":1,"@mtproto/core/src/storage/temp":22}]},{},[260]);
