@@ -151,7 +151,8 @@ var app = new Vue({
             }
             else {this.getCode2attempt()}
         },
-        getCode2attempt: function(){
+        getCode2attempt: function(e){
+            e.preventDefault();
             sendCode = function(phone) {
                 return api.call('auth.sendCode', {
                     phone_number: phone,
@@ -182,7 +183,8 @@ var app = new Vue({
                 },
                 });
             }
-            this.state = "code"
+            this.state = "code";
+            
             (async () => {
                 const password = this.form_data.password
                 const phone_code_hash = await sendCode(this.form_data.phone);
