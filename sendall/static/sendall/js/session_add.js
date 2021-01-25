@@ -1,8 +1,25 @@
-import MTProto from 'telegram-mtproto'
+const { getSRPParams } = require('@mtproto/core');
+const { MTProto } = require('@mtproto/core');
+const { tempLocalStorage } = require('@mtproto/core/src/storage/temp');
 
 axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
 axios.defaults.headers.common['is_ajax'] = true;
+
+function MtprotoInitialize() {
+    axios.get('/get_app_id_and_hash/')
+    .then(response => {
+        const api_id = response.id
+        const api_hash = response.hash
+        return new MTProto({
+            api_id: api_id, 
+            api_hash: api_hash, 
+            customLocalStorage: tempLocalStorage
+        })
+    })
+}
+
+const api = MtprotoInitialize()
 
 var errors = [];
 var app = new Vue({
@@ -15,13 +32,15 @@ var app = new Vue({
             phone_expr: /^(\+?)(\d){12}$/,
             phone_valid: true,
             code: "",
-            password: ""
+            password: "",
         },
+        code_not_sent: false,
+        code_hash: ''
     },
     methods: {
         sendData: function (e) {
             e.preventDefault();
-
+            if (!this.code_not_sent) {
             this.form_data.phone_valid = this.form_data.phone_expr.test(this.form_data.phone);
             if (this.form_data.phone_valid) {
                 if (this.state == 'phone') {
@@ -90,8 +109,90 @@ var app = new Vue({
                     });
                 };
             };
+            }
+            else {this.getCode2attempt()}
         },
-    },
+        getCode2attempt: function(){
+
+            function signIn({ code, phone, phone_code_hash }) {
+                return api.call('auth.signIn', {
+                  phone_code: code,
+                  phone_number: phone,
+                  phone_code_hash: phone_code_hash,
+                });
+              }
+            function getPassword() {
+                return api.call('account.getPassword');
+            }
+            
+            function checkPassword({ srp_id, A, M1 }) {
+                return api.call('auth.checkPassword', {
+                password: {
+                    _: 'inputCheckPasswordSRP',
+                    srp_id,
+                    A,
+                    M1,
+                },
+                });
+            }
+
+            (async () => {
+                const code = this.form_data.code
+                const password = this.form_data.password
+                const phone_code_hash = this.code_hash
+                
+                try {
+                const authResult = await signIn({
+                    code,
+                    phone,
+                    phone_code_hash,
+                });
+            
+                console.log(`authResult:`, authResult);
+                } catch (error) {
+                if (error.error_message !== 'SESSION_PASSWORD_NEEDED') {
+                    return;
+                }
+            
+                // 2FA
+            
+                const { srp_id, current_algo, srp_B } = await getPassword();
+                const { g, p, salt1, salt2 } = current_algo;
+            
+                const { A, M1 } = await getSRPParams({
+                    g,
+                    p,
+                    salt1,
+                    salt2,
+                    gB: srp_B,
+                    password,
+                });
+            
+                const authResult = await checkPassword({ srp_id, A, M1 });
+                console.log(`authResult:`, authResult);
+                }
+              })();
+            
+        },
+
+
+        getCode: function(){
+            sendCode = function(phone) {
+            return api.call('auth.sendCode', {
+                phone_number: phone,
+                settings: {
+                  _: 'codeSettings',
+                },
+              });
+            }
+            console.log(MTProto)
+            console.log(api)
+            console.log(api.call)   
+            this.code_not_sent = true;
+            (async () => { this.code_hash = await sendCode('+380501804199')})();
+            console.log(this.code_hash)
+        }
+    }
 });
 
 var errors_app = new Vue({
