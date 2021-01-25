@@ -1,6 +1,8 @@
 const { getSRPParams } = require('@mtproto/core');
 const { MTProto } = require('@mtproto/core');
 const { tempLocalStorage } = require('@mtproto/core/src/storage/temp');
+const delay = require('delay')
+const { sleep } = require('@mtproto/core/src/utils/common');
 
 axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
@@ -13,16 +15,48 @@ function MtprotoInit() {
     .then(response => {
         const api_id = response.data.id
         const api_hash = response.data.hash
-        api = new MTProto({
+        mtproto = new MTProto({
             api_id: api_id, 
             api_hash: api_hash,
             customLocalStorage: tempLocalStorage,
-            test: true
         })
-        console.log(api)
-        api.updateInitConnectionParams({
-            app_version: '10.0.0',
-          })
+        api = {
+            call(method, params, options = {}) {
+              return mtproto.call(method, params, options).catch(async error => {
+                console.log(`${method} error:`, error);
+          
+                const { error_code, error_message } = error;
+          
+                if (error_code === 420) {
+                  const seconds = +error_message.split('FLOOD_WAIT_')[1];
+                  const ms = seconds * 1000;
+          
+                  await sleep(ms);
+          
+                  return this.call(method, params, options);
+                }
+          
+                if (error_code === 303) {
+                  const [type, dcId] = error_message.split('_MIGRATE_');
+          
+                  // If auth.sendCode call on incorrect DC need change default DC, because call auth.signIn on incorrect DC return PHONE_CODE_EXPIRED error
+                  if (type === 'PHONE') {
+                    await mtproto.setDefaultDc(+dcId);
+                  } else {
+                    options = {
+                      ...options,
+                      dcId: +dcId,
+                    };
+                  }
+          
+                  return this.call(method, params, options);
+                }
+          
+                return Promise.reject(error);
+              });
+            },
+          };
+        
     })
 }
 
@@ -118,6 +152,14 @@ var app = new Vue({
             else {this.getCode2attempt()}
         },
         getCode2attempt: function(){
+            sendCode = function(phone) {
+                return api.call('auth.sendCode', {
+                    phone_number: phone,
+                    settings: {
+                      _: 'codeSettings',
+                    },
+                  });
+                } 
 
             function signIn({ code, phone, phone_code_hash }) {
                 return api.call('auth.signIn', {
@@ -142,11 +184,12 @@ var app = new Vue({
             }
 
             (async () => {
-                const code = this.form_data.code
                 const password = this.form_data.password
-                const phone_code_hash = this.code_hash
+                const phone_code_hash = await sendCode(this.form_data.phone);
                 const phone = this.form_data.phone
-                console.log("try-catch statement")
+                console.log("delaying, get the code faster!")
+                await delay(5000)
+                const code = this.form_data.code
                 try {
                 const authResult = await signIn({
                     code,
@@ -184,22 +227,21 @@ var app = new Vue({
         },
 
 
-        getCode: function(){
-            sendCode = function(phone) {
-            return api.call('auth.sendCode', {
-                phone_number: phone,
-                settings: {
-                  _: 'codeSettings',
-                },
-              });
-            } 
-            console.log(this.form_data.phone)
-            this.code_not_sent = true;
-            (async () => { 
-                this.code_hash = await sendCode(this.form_data.phone);
-                console.log(this.code_hash)
-            })();
-        }
+        // getCode: function(){
+        //     sendCode = function(phone) {
+        //     return api.call('auth.sendCode', {
+        //         phone_number: phone,
+        //         settings: {
+        //           _: 'codeSettings',
+        //         },
+        //       });
+        //     } 
+        //     this.code_not_sent = true;
+        //     (async () => { 
+        //         this.code_hash = await sendCode(this.form_data.phone);
+        //         console.log(this.code_hash)
+        //     })();
+        // }
     }
 });
 
