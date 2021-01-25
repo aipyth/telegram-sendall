@@ -103,8 +103,8 @@ def get_app_id_hash(request):
             -- hash: hash to telegram_api
     """
     return JsonResponse({
-        'id': settings.TELEGRAM_API_ID,
-        'hash': settings.TELEGRAM_API_HASH,
+        'id': settings.API_ID,
+        'hash': settings.API_HASH,
     })
 
 def create_session(request):
