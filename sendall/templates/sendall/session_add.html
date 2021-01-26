@@ -31,8 +31,8 @@
                 {{ form.password.label_tag }}
                 {{ form.password|add_class:"form-control"|attr:"v-model:form_data.password" }}
             </div>
-            <button class="btn btn-lg btn-block btn-light" v-on:click="getCode2attempt">Next</button>
-            <button  type="button" v-if="false" class="btn btn-lg btn-block btn-light" v-on:click="getCode()">Code not sent? Try again</button>
+            <button class="btn btn-lg btn-block btn-light" v-on:click="sendData">Next</button>
+            <button  type="button" v-if="state == 'code'" class="btn btn-lg btn-block btn-light" v-on:click="getCode()">Code not sent? Try again</button>
         </form>
     </div>
 </div>

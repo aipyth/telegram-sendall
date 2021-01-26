@@ -350,6 +350,17 @@ def get_tasks(request, pk, *args, **kwargs):
         SendMessageTask.objects.filter(uuid=uuid).delete()
         return JsonResponse({'task': utils.pre_serialize_tasks([task])})
     return HttpResponseForbidden()
+
+# def get_auth_data(request, pk):
+#     if request.method == 'POST'
+#         # POST arguments:
+#         #   server_adress: str
+#         #   dc_id:  int  
+#         #   port: int   
+#         #   key   
+
+
+
     
     # if request.method == 'GET':
     #     i = app.control.inspect()

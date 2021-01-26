@@ -26,6 +26,7 @@ var MTproto;
             api_id: api_id, 
             api_hash: api_hash,
             customLocalStorage: tempLocalStorage,
+            test: true
         })
         MTproto = mtproto
         console.log(mtproto)
@@ -77,7 +78,7 @@ var app = new Vue({
         errors: errors,
         form_data: {
             phone: "",
-            phone_expr: /^(\+?)(\d){12}$/,
+            phone_expr: /^(\+?)(\d){10,12}$/,
             phone_valid: true,
             code: "",
             password: "",
@@ -162,15 +163,6 @@ var app = new Vue({
         },
         getCode2attempt: function(e){
             e.preventDefault();
-            sendCode = function(phone) {
-                return api.call('auth.sendCode', {
-                    phone_number: phone,
-                    settings: {
-                      _: 'codeSettings',
-                    },
-                  });
-                } 
-
             function signIn({ code, phone, phone_code_hash }) {
                 return api.call('auth.signIn', {
                   phone_code: code,
@@ -196,11 +188,8 @@ var app = new Vue({
 
             (async () => {
                 const password = this.form_data.password
-                var phone_code_hash = await sendCode(this.form_data.phone);
-                phone_code_hash = phone_code_hash.phone_code_hash
+                const phone_code_hash = this.code_hash
                 const phone = this.form_data.phone
-                console.log(api)
-                await delay(15000)
                 const code = this.form_data.code
                 console.log(typeof code)
                 console.log(code)
@@ -242,21 +231,23 @@ var app = new Vue({
         },
 
 
-        // getCode: function(){
-        //     sendCode = function(phone) {
-        //     return api.call('auth.sendCode', {
-        //         phone_number: phone,
-        //         settings: {
-        //           _: 'codeSettings',
-        //         },
-        //       });
-        //     } 
-        //     this.code_not_sent = true;
-        //     (async () => { 
-        //         this.code_hash = await sendCode(this.form_data.phone);
-        //         console.log(this.code_hash)
-        //     })();
-        // }
+        getCode: function(){
+            sendCode = function() {
+            return api.call('auth.sendCode', {
+                phone_number: this.form_data.phone,
+                settings: {
+                  _: 'codeSettings',
+                },
+              });
+            } 
+            console.log(this.form_data.phone) 
+            this.code_not_sent = true;
+            (async () => { 
+                const phone_code_hash = await sendCode();
+                this.code_hash = phone_code_hash.phone_code_hash
+                console.log(this.code_hash)
+            })();
+        }
     }
 });
 
