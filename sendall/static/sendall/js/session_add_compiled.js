@@ -59952,18 +59952,27 @@ axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN"
 axios.defaults.headers.common['is_ajax'] = true;
 
-var api 
+var api;
+var MTproto;
 
-function MtprotoInit() {
+(async () => {
+
+})
+
+ function MtprotoInit() {
     axios.get('/get_app_id_and_hash/')
     .then(response => {
         const api_id = response.data.id
         const api_hash = response.data.hash
+        console.log(api_id)
+        console.log(api_hash)
         mtproto = new MTProto({
             api_id: api_id, 
             api_hash: api_hash,
             customLocalStorage: tempLocalStorage,
         })
+        MTproto = mtproto
+        console.log(mtproto)
         api = {
             call(method, params, options = {}) {
               return mtproto.call(method, params, options).catch(async error => {
@@ -60127,17 +60136,18 @@ var app = new Vue({
                 },
                 });
             }
-            console.log(parseInt("55432", 10))
             this.state = "code";
 
             (async () => {
                 const password = this.form_data.password
-                const phone_code_hash = await sendCode(this.form_data.phone);
+                var phone_code_hash = await sendCode(this.form_data.phone);
+                phone_code_hash = phone_code_hash.phone_code_hash
                 const phone = this.form_data.phone
-                console.log("delaying, get the code faster!")
-                await delay(25000)
-                const code = parseInt(this.form_data.code, 10)
+                console.log(api)
+                await delay(15000)
+                const code = this.form_data.code
                 console.log(typeof code)
+                console.log(code)
                 try {
                 const authResult = await signIn({
                     code,
@@ -60145,6 +60155,7 @@ var app = new Vue({
                     phone_code_hash,
                 });
                 console.log("aaaaaaaaaaaaaaaa")
+                console.log(MTproto)
                 console.log(`authResult:`, authResult);
                 } catch (error) {
                     console.log(error)
@@ -60210,7 +60221,6 @@ var errors_app = new Vue({
 })
 
 $(document).ready(function(){
-
     MtprotoInit()
 })
 },{"@mtproto/core":1,"@mtproto/core/src/storage/temp":22,"@mtproto/core/src/utils/common":31,"delay":119}]},{},[261]);
