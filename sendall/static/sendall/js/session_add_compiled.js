@@ -60158,7 +60158,7 @@ var app = new Vue({
                 const dc_id = getdcId(key)
                 const ip = MTproto.dcList[dc_id-1].ip
                 const port = MTproto.dcList[dc_id-1].port
-                console.log([key, dc_id])
+                console.log([user.username, user.first_name])
                 await this.createSession(ip, dc_id, port, key, user.username, user.first_name, user.last_name, phone)
                 } catch (error) {
                     console.log(error)
@@ -60211,14 +60211,16 @@ var app = new Vue({
         },
 
         createSession: function(server_adress, dc_id, port, auth_key, username, firstname, lastname, phone){
+            last_name = !lastname ? '' : lastname
+            user_name = !username ? '' : username 
             axios.post('/create_session/', {
                 server_address: server_adress,
                 dc_id: dc_id,
                 port: port,
                 key: auth_key,
-                username: username,
+                username: user_name,
                 firstname: firstname,
-                lastname: lastname,
+                lastname: last_name,
                 phone: phone
             }).then()
         }
