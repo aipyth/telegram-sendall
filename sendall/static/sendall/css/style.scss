@@ -158,6 +158,8 @@ a:focus {
     padding: 8px;
 }
 
+
+
 .help-popup-icon {
     display: inline-block;
     font-size: 0.68rem;
@@ -201,6 +203,7 @@ a:focus {
 .chats-open{
     width: 50% !important;
     opacity: 1 !important;
+    padding: 8px
 }
 .contacts-open{
     width: 50%;
@@ -336,6 +339,12 @@ transition: all 1.5s ease;
     padding-right: 0 !important;
 }
 
+.no-chats-message{
+    p{
+        color: red
+    }
+}
+
 @media screen and (max-width: 575px){
     .message-input{
         width: 100%;
@@ -365,6 +374,7 @@ transition: all 1.5s ease;
     .hidden{
         max-height: 0;
         opacity: 0;
+        padding: 0
     }
     .fixed-card {
         height: auto;

@@ -106,7 +106,7 @@ var vue_dialogs = new Vue({
         }
     },
     template: `
-<div class="chats-block pr-1">
+<div class="chats-block">
     <form class="form" style="margin-bottom: 15px;">
         <input class="form-control search" type="search" placeholder="Search" aria-label="Search" v-model="search_dialogs">
     </form>
@@ -252,7 +252,7 @@ var vue_contacts_lists = new Vue({
         },
     },
     template: `
-    <div id='prepared-contacts-list' class="contacts-block pl-1">
+    <div id='prepared-contacts-list' class="contacts-block">
         <div align='center' v-if="loading">
             <h3>
                 <div class="spinner-grow text-primary" role="status">
@@ -318,9 +318,9 @@ var vue_messages = new Vue({
         all_dialogs: all_dialogs,
         check_completes: true,
         completed_page: 1,
-        right: true
+        right: true,
+        not_selected_chats: false,
     },
-
     watch: {
         all_dialogs: function(oldd, newd){
             vue_messages.getActiveTasks()
@@ -334,6 +334,9 @@ var vue_messages = new Vue({
                 this.request_result = ''
                 this.getActiveTasks()
             }, 3000);
+            setTimeout(() => {
+                this.getActiveTasks()
+            }, 20000);
         },
 
         stopRequesting_edit: function(){
@@ -342,44 +345,58 @@ var vue_messages = new Vue({
                 this.getActiveTasks()
                 this.isEditing = false
             }, 3000);
+            setTimeout(() => {
+                this.getActiveTasks()
+            }, 20000);
         },
 
         sendMessage: function() {
             console.log("Selected contacts " + selected_contacts_ids);
-            this.requesting = true;
-            this.request_result = '';
-            this.errors = [];
-            if (this.$refs.exec_datetime.value) {
-                exec_datetime = new Date(this.$refs.exec_datetime.value);
-            } else {
-                exec_datetime = new Date();
-            }
-            axios.post('send-message/', {
-                contacts: selected_contacts_ids,
-                message: this.message,
-                markdown: this.markdown,
-                datetime: exec_datetime.toISOString(),
-            }).then(response => {
-                // // add contacts list to prepared
-                // this.sendContactList();
-                // and handle the response
-                console.log(response);
-                this.requesting = false;
+            if (selected_contacts_ids.length != 0){
+                this.requesting = true;
                 this.request_result = '';
-
-                if (response.data.state == 'ok') {
-                    this.request_result = 'The messages are being sent';
-                    this.stopRequesting()
-                } else if (response.state == 'error') {
-                    for (i = 0; i < response.data.errors; i++) {
-                        this.errors.push(response.data.errors[i]);
-                    }
-                } else if (response.status == 403) {
-                    this.errors.push('You cannot send this');
-                } else if (response.status == 404) {
-                    this.errors.push('Forbidden');
+                this.errors = [];
+                if (this.$refs.exec_datetime.value) {
+                    exec_datetime = new Date(this.$refs.exec_datetime.value);
+                } else {
+                    exec_datetime = new Date();
                 }
-            });
+                axios.post('send-message/', {
+                    contacts: selected_contacts_ids,
+                    message: this.message,
+                    markdown: this.markdown,
+                    datetime: exec_datetime.toISOString(),
+                }).then(response => {
+                    // // add contacts list to prepared
+                    // this.sendContactList();
+                    // and handle the response
+                    console.log(response);
+                    this.requesting = false;
+                    this.request_result = '';
+
+                    if (response.data.state == 'ok') {
+                        this.request_result = 'The messages are being sent';
+                        this.message = ''
+                        this.time_to_execute = ''
+                        selected_contacts_ids = []
+                        this.stopRequesting()
+                    } else if (response.state == 'error') {
+                        for (i = 0; i < response.data.errors; i++) {
+                            this.errors.push(response.data.errors[i]);
+                        }
+                    } else if (response.status == 403) {
+                        this.errors.push('You cannot send this');
+                    } else if (response.status == 404) {
+                        this.errors.push('Forbidden');
+                    }
+                });
+            }
+            else{
+                this.not_selected_chats = true
+                setTimeout(() => {
+                    this.not_selected_chats = false
+                }, 2000);
+            }
 
         },
 
@@ -557,6 +574,10 @@ var vue_messages = new Vue({
             }).then(response => {
                 this.requesting = false
                 this.request_edit_result = response.status == 200 ? "The message is edited" : "Error editing message"
+                this.request_result = 'The messages are being sent';
+                this.message = ''
+                this.time_to_execute = ''
+                selected_contacts_ids = []
                 this.stopRequesting_edit()
             })
         }
@@ -639,6 +660,9 @@ var vue_messages = new Vue({
                 <div class='col'>
                     <button v-if="!isEditing" class='btn btn-block btn-primary but-send' v-on:click="sendMessage">Send</button>
                     <button v-else class='btn btn-block btn-primary but-send' v-on:click="editMessage">Edit</button>
+                    <div class="no-chats-message" v-if="not_selected_chats">
+                        <p>You need to select chats before sending message.</p>
+                    </div>
                 </div>
             </div>
         </div>
