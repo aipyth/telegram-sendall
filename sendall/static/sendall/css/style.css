@@ -247,6 +247,7 @@ a:focus {
 .chats-open {
   width: 50% !important;
   opacity: 1 !important;
+  padding: 8px;
 }
 
 .contacts-open {
@@ -409,6 +410,10 @@ a:focus {
   padding-right: 0 !important;
 }
 
+.no-chats-message p {
+  color: red;
+}
+
 @media screen and (max-width: 575px) {
   .message-input {
     width: 100%;
@@ -440,6 +445,7 @@ a:focus {
   .hidden {
     max-height: 0;
     opacity: 0;
+    padding: 0;
   }
   .fixed-card {
     height: auto;
