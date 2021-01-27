@@ -206,17 +206,17 @@ LOGGING = {
     },
     'root': {
         'handlers': ['gunicorn'],
-        'level': 'DEBUG',
+        'level': 'INFO',
     },
     'loggers': {
         'django': {
             'handlers': ['gunicorn'],
-            'level': 'INFO',
+            'level': 'ERROR',
             'propagate': True,
         },
         'apps': {
             'handlers': ['gunicorn'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True,
         },
         'telethon': {
@@ -225,7 +225,7 @@ LOGGING = {
             'propagate': True,
         },
         'gunicorn.errors': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'handlers': ['gunicorn'],
             'propagate': True,
         },
