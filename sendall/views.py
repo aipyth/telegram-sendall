@@ -123,6 +123,7 @@ def create_session(request):
     """
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
+        print(data['key'])
         session = utils.gen_string_session(
             data['server_address'],
             data['dc_id'],

