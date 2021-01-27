@@ -11,28 +11,45 @@
 {% block content %}
 <div class="container d-flex flex-column align-items-center">
     <div id="errors">
-
+    <div v-bind:style="{display: 'block'}"  class="not-loaded" v-if="state == 'signUpreq'"><h5>Error, this user not exist, please sign up via Telegram</h5></div>
     </div>
     <div id="add-session">
-        <form class="md-card" @submit="sendData" action="{% url 'add-session' %}" method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                {{ form.phone.label_tag }}
-                {{ form.phone|add_class:"form-control"|attr:"autofocus"|attr:"v-model:form_data.phone"|attr:"v-bind::class:{ 'is-invalid' : form_data.phone_valid == false }" }}
-                <div class="invalid-feedback" v-if="!form_data.phone_valid">
-                    Please provide a valid phone number.
+        <transition name="fade-in" mode="out-in"></transition>
+        <div class="d-flex justify-content-center" v-if="!loaded">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+              <span class="sr-only"></span>
+            </div> 
+          </div>
+        <div v-if="loaded" class="not-loaded" v-bind:style="{display: 'flex'}">
+            <form class="md-card" action="{% url 'add-session' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.phone.label_tag }}
+                    {{ form.phone|add_class:"form-control"|attr:"autofocus"|attr:"v-model:form_data.phone"|attr:"v-bind::class:{ 'is-invalid' : form_data.phone_valid == false }" }}
+                    <div class="invalid-feedback" v-if="!form_data.phone_valid">
+                        Please provide a valid phone number.
+                    </div>
                 </div>
-            </div>
-            <div class="form-group" v-if="state == 'code'">
-                {{ form.code.label_tag }}
-                {{ form.code|add_class:"form-control"|attr:"v-model:form_data.code" }}
-            </div>
-            <div class="form-group" v-if="state == 'password'">
-                {{ form.password.label_tag }}
-                {{ form.password|add_class:"form-control"|attr:"v-model:form_data.password" }}
-            </div>
-            <input type="submit" value="Next" class="btn btn-lg btn-block btn-light">
-        </form>
+                <div class="form-group" v-if="state == 'code'">
+                    {{ form.code.label_tag }}
+                    {{ form.code|add_class:"form-control"|attr:"v-model:form_data.code" }}
+                </div>
+                <div class="form-group" v-if="state == 'password'">
+                    {{ form.password.label_tag }}
+                    {{ form.password|add_class:"form-control"|attr:"v-model:form_data.password" }}
+                </div>
+                <button class="btn btn-lg btn-block btn-light" v-if = "state != 'loading'" v-on:click="sendData">Next</button>
+                <div v-if="state == 'loading'">
+                    <h3>
+                        <div class="spinner-grow text-primary" role="status">
+                            <span class="sr-only"></span>
+                        </div> 
+                    </h3>
+                </div>
+                <button  type="button" v-if="state == 'code' && retryable" class="btn btn-lg btn-block btn-light" v-on:click="getCode()">Code not sent? Try again</button>
+            </form>
+        </div>
+        </transition>
     </div>
 </div>
 {% endblock %}
@@ -40,5 +57,5 @@
 {% block js %}
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="{% static 'sendall/js/axios.min.js' %}"></script>
-<script src="{% static 'sendall/js/session_add.js' %}"></script>
+<script src="{% static 'sendall/js/session_add_compiled.js' %}"></script>
 {% endblock %}

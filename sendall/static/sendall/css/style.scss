@@ -130,6 +130,9 @@ a:focus {
 .message {
     font-family: 'Montserrat', sans-serif;
     font-size: 0.93rem;
+    word-break:normal;
+    overflow-wrap: break-word;
+    hyphens: manual;
 }
 .message::before {
     content: ' ';
@@ -173,6 +176,12 @@ a:focus {
     margin-left: 5px;
     padding: 5px;
 }
+
+.contact h5{
+    word-break:normal;
+    overflow-wrap: break-word;
+    hyphens: manual;
+}
 .active-tasks h5{
     text-align: center;
 }
@@ -181,6 +190,7 @@ a:focus {
     width: 0;
     opacity: 0;
     transition: all 0.5s ease;
+    display: block;
 }
 
 .contacts-block{
@@ -266,14 +276,61 @@ a:focus {
 .show-enter-active {
     transition: all 1s ease;
   }
-  .show-leave-active {
+.show-leave-active {
     transition: all 1s ease;
   }
-  .show-enter, .show-leave-to
+.show-enter, .show-leave-to
   /* .slide-fade-leave-active до версии 2.1.8 */ {
     transform: translateY(-15px);    
     opacity: 0;
   }
+
+.show_horiz_right-enter-active {
+    transition: all 1.5s ease;
+  }
+.show_horiz_right-leave-active {
+    transition: all 0.3s linear;
+  }
+.show_horiz_right-enter {
+    transform: translateX(-15px);    
+    opacity: 0;
+  }
+.show_horiz_right-leave-to{
+    transform: translateX(15px);
+    opacity: 0;
+}
+
+.show_horiz_left-enter-active {
+transition: all 1.5s ease;
+}
+.show_horiz_left-leave-active {
+    transition: all 0.3s linear;
+  }
+.show_horiz_left-enter {
+    transform: translateX(15px);    
+    opacity: 0;
+  }
+.show_horiz_left-leave-to{
+    transform: translateX(-15px);
+    opacity: 0;
+}
+
+.fade-in-enter-active {
+    transition: all 0.5s ease;
+}
+.fade-in-leave-active {
+    transition: all 0.5s ease;
+}
+.fade-in-enter {   
+    opacity: 0;
+}
+.fade-in-leave-to{
+    opacity: 0;
+}
+
+.not-loaded{
+    display: none;
+}
 
 #right-card{
     padding-right: 0 !important;
@@ -298,6 +355,9 @@ a:focus {
         display: block;
         width: 50% !important;
         max-height: max-content;
+        input.search{
+            flex-basis: 100%;
+        }
     }
     #right-card{
         padding-left: 0 !important;
@@ -305,6 +365,11 @@ a:focus {
     .hidden{
         max-height: 0;
         opacity: 0;
+    }
+    .fixed-card {
+        height: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 }
   

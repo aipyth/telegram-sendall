@@ -133,3 +133,5 @@ credentials.txt
 staticfiles/
 redis/
 rinsight/
+
+node_modules

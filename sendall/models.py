@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
+import logging
+logger = logging.getLogger(__name__)
+
 class DefaultManager(models.Manager):
     def get_or_create(self, *args, **kwargs):
         try:
@@ -41,16 +44,16 @@ class Session(models.Model):
             return "{}".format(self.name)
 
     def update_session(self, session):
-        print("Session update {}".format(session))
+        logger.debug("Session update {}".format(session))
         self.session = session
         self.save()
-        print("Updated!")
+        logger.debug("Updated!")
     
     def set_active(self):
-        print("Session set True")
+        logger.debug("Session set True")
         self.active = True
         self.save()
-        print("updated")
+        logger.debug("updated")
 
 
 class ContactsList(models.Model):
