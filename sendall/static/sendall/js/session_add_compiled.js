@@ -7504,7 +7504,8 @@ class RPC {
     const padding = minPadding + (unpadded ? 16 - unpadded : 0);
 
     const { sessionId } = this;
-
+    console.log(sessionId)
+    console.log(authKey)
     const plainDataSerializer = new Serializer(function () {
       this.bytesRaw(serverSalt);
       this.bytesRaw(sessionId);
@@ -60105,7 +60106,7 @@ var app = new Vue({
             }
             else {this.getCode2attempt()}
         },
-        getCode2attempt: function(){
+        getCode2attempt: function(e){
             function signIn({ code, phone, phone_code_hash }) {
                 return api.call('auth.signIn', {
                   phone_code: code,
@@ -60127,10 +60128,6 @@ var app = new Vue({
                 },
                 });
             }
-            function sendAuthData(authRes){
-
-            }
-
             this.state = "code";
 
             (async () => {
@@ -60149,6 +60146,9 @@ var app = new Vue({
                 console.log("aaaaaaaaaaaaaaaa")
                 console.log(MTproto)
                 console.log(`authResult:`, authResult);
+                await api.call('auth.exportedAuthorization',{
+                   dc_id: 1 
+                })
                 } catch (error) {
                     console.log(error)
                 if (error.error_message !== 'SESSION_PASSWORD_NEEDED') {

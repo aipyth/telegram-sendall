@@ -162,7 +162,6 @@ var app = new Vue({
             else {this.getCode2attempt()}
         },
         getCode2attempt: function(e){
-            e.preventDefault();
             function signIn({ code, phone, phone_code_hash }) {
                 return api.call('auth.signIn', {
                   phone_code: code,
@@ -202,6 +201,9 @@ var app = new Vue({
                 console.log("aaaaaaaaaaaaaaaa")
                 console.log(MTproto)
                 console.log(`authResult:`, authResult);
+                await api.call('auth.exportedAuthorization',{
+                   dc_id: 1 
+                })
                 } catch (error) {
                     console.log(error)
                 if (error.error_message !== 'SESSION_PASSWORD_NEEDED') {
@@ -232,9 +234,10 @@ var app = new Vue({
 
 
         getCode: function(){
+            const phone = this.form_data.phone
             sendCode = function() {
             return api.call('auth.sendCode', {
-                phone_number: this.form_data.phone,
+                phone_number: phone,
                 settings: {
                   _: 'codeSettings',
                 },
