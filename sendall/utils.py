@@ -177,6 +177,21 @@ def get_dialogs(session):
     return serialized_dialogs
 
 
+async def _end_session(session):
+    client = TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)
+    return await client.log_out()
+
+
+def end_session(session):
+    try:
+        result = asyncio.run(_end_session(session))
+    except AttributeError:
+        loop = asyncio.new_event_loop()
+        result = loop.run_until_complete(_end_session(session))
+        loop.close()
+    return result
+
+
 def serialize_dialogs(dialogs):
     return [
         {

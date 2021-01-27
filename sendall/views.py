@@ -64,6 +64,13 @@ class SessionDetail(DetailView):
     template = 'sendall/session_detail.html'
     queryset = Session.objects.all()
 
+    def delete(self, request, *args, **kwargs):
+        session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
+        if utils.end_session(session.session):
+            session.delete()
+            return JsonResponse({'state': 'ok'})
+        return JsonResponse({'state': 'error'})
+
 
 class SessionAdd(LoginRequiredMixin, View):
     template = 'sendall/session_add.html'
@@ -154,6 +161,7 @@ def create_session(request):
         except KeyError:
             return JsonResponse({'error': 'Not enough params'})
     return HttpResponseForbidden()
+
 
 
 def dialogs(request, pk, *args, **kwargs):
