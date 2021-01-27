@@ -64,7 +64,7 @@ class SessionDetail(DetailView):
     template = 'sendall/session_detail.html'
     queryset = Session.objects.all()
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request, pk, *args, **kwargs):
         session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
         if utils.end_session(session.session):
             session.delete()
