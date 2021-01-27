@@ -15,7 +15,6 @@ urlpatterns = [
     path('sessions/<int:pk>/edit-contacts-list/', edit_contacts_list),
     path('sessions/<int:pk>/delete-contacts-list/', delete_contacts_list),
     path('sessions/<int:pk>/tasks/', get_tasks),
-    path('sessions/<int:pk>/delete/', delete_session)
     path('sessions/add/', SessionAdd.as_view(), name='add-session'),
     path('get_app_id_and_hash/', get_app_id_hash),
     path('create_session/', create_session),

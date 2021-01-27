@@ -26,7 +26,7 @@ var MTproto;
             api_id: api_id, 
             api_hash: api_hash,
             customLocalStorage: tempLocalStorage,
-            test: true
+            test: false
         })
         MTproto = mtproto
         console.log(mtproto)
@@ -83,7 +83,9 @@ var app = new Vue({
             password: "",
         },
         code_not_sent: false,
-        code_hash: ''
+        code_hash: '',
+        retryable: true,
+        loaded: false,
     },
     methods: {
         sendData: function (e) {
@@ -182,17 +184,15 @@ var app = new Vue({
                 },
                 });
             }
-            function getdcId(arr){
-              search_value = '[' + arr.toString() + ']'
-              console.log(search_value)
-              founded_key = ''
-              for (let [key, value] of MTproto.customLocalStorage.storage.entries()){
-                if (value == search_value) {founded_key = key}
-              }
-              dc_id = parseInt(founded_key.charAt(0))
-              return dc_id
+            function getKey(dcid){
+              mapkey = `${dcid}authKey`
+              authkey = MTproto.customLocalStorage.storage.get(mapkey)
+              authkey = authkey.split('[')[1].split(']')[0]
+              authkeyarr = authkey.split(',').map(x=>+x)
+              console.log(authkeyarr)
+              return authkeyarr
             }
-            this.state = "code";
+            this.state = "loading";
 
             (async () => {
                 const password = this.form_data.password
@@ -209,12 +209,20 @@ var app = new Vue({
                 });
                 console.log(MTproto)
                 console.log(`authResult:`, authResult);
+                if(authResult._ == 'auth.authorizationSignUpRequired'){
+                    this.state = 'signUpreq'
+                    setTimeout(() => {
+                        this.state = "phone"
+                    }, 4000);
+                    this.code_not_sent = false
+                    return
+                }
                 const user = authResult.user
-                const key = window.value
-                const dc_id = getdcId(key)
+                const dc_id = 2
+                const key = getKey(dc_id)
                 const ip = MTproto.dcList[dc_id-1].ip
                 const port = MTproto.dcList[dc_id-1].port
-                console.log([key, dc_id])
+                console.log([user.username, user.first_name])
                 await this.createSession(ip, dc_id, port, key, user.username, user.first_name, user.last_name, phone)
                 } catch (error) {
                     console.log(error)
@@ -258,28 +266,29 @@ var app = new Vue({
             this.code_not_sent = true;
             (async () => { 
                 const phone_code_hash = await sendCode();
-                const dcId = MTproto.storage
                 this.code_hash = phone_code_hash.phone_code_hash
-                console.log(this.code_hash)
                 console.log(MTproto)
-                console.log(dcId)
+                this.retryable = false
             })();
         },
 
         createSession: function(server_adress, dc_id, port, auth_key, username, firstname, lastname, phone){
-            user_name = !username ? '' : username;
-            last_name = !lastname ? '' : lastname;
-            first_name = !firstname ? '' : firstname;
+            last_name = !lastname ? '' : lastname
+            user_name = !username ? '' : username 
             axios.post('/create_session/', {
                 server_address: server_adress,
                 dc_id: dc_id,
                 port: port,
                 key: auth_key,
-                user_name: username,
-                first_name: firstname,
-                last_name: lastname,
+                username: user_name,
+                firstname: firstname,
+                lastname: last_name,
                 phone: phone
-            }).then()
+            }).then(response => {
+              if (response.data.state == 'ok'){
+                  window.location.href = response.data.redirect
+              }
+            })
         }
     }
     
@@ -303,4 +312,5 @@ var errors_app = new Vue({
 
 $(document).ready(function(){
     MtprotoInit()
+    app.loaded = true
 })

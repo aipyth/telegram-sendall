@@ -295,14 +295,14 @@ a:focus {
     transform: translateX(-15px);    
     opacity: 0;
   }
-  .show_horiz_right-leave-to{
+.show_horiz_right-leave-to{
     transform: translateX(15px);
     opacity: 0;
-  }
+}
 
-  .show_horiz_left-enter-active {
-    transition: all 1.5s ease;
-  }
+.show_horiz_left-enter-active {
+transition: all 1.5s ease;
+}
 .show_horiz_left-leave-active {
     transition: all 0.3s linear;
   }
@@ -310,11 +310,27 @@ a:focus {
     transform: translateX(15px);    
     opacity: 0;
   }
-  .show_horiz_left-leave-to{
+.show_horiz_left-leave-to{
     transform: translateX(-15px);
     opacity: 0;
-  }
+}
 
+.fade-in-enter-active {
+    transition: all 0.5s ease;
+}
+.fade-in-leave-active {
+    transition: all 0.5s ease;
+}
+.fade-in-enter {   
+    opacity: 0;
+}
+.fade-in-leave-to{
+    opacity: 0;
+}
+
+.not-loaded{
+    display: none;
+}
 
 #right-card{
     padding-right: 0 !important;

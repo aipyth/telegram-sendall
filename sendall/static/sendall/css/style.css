@@ -383,6 +383,28 @@ a:focus {
   opacity: 0;
 }
 
+.fade-in-enter-active {
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+
+.fade-in-leave-active {
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+
+.fade-in-enter {
+  opacity: 0;
+}
+
+.fade-in-leave-to {
+  opacity: 0;
+}
+
+.not-loaded {
+  display: none;
+}
+
 #right-card {
   padding-right: 0 !important;
 }
