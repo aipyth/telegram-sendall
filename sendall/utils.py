@@ -1,6 +1,8 @@
 import asyncio
 import logging
 import time
+import struct
+import ipaddress
 
 from django.conf import settings
 from django.core.cache import cache
@@ -12,6 +14,7 @@ from telethon.errors import (FloodWaitError, PasswordHashInvalidError,
                              SessionPasswordNeededError)
 from telethon.sessions import StringSession
 from telethon.tl.types import PeerUser
+from telethon.sessions import string as str_session
 
 logger = logging.getLogger(__name__)
 
@@ -251,3 +254,18 @@ async def _send_message(session, contacts, message, markdown, delay=5):
             pass
 
     return JsonResponse({'state': 'ok'})
+
+
+def gen_string_session(server_address: str, dc_id: int, port: int, key: bytes) -> str:
+        # What is key and how to get it??
+        if not key:
+                return ''
+
+        ip = ipaddress.ip_address(server_address).packed
+        return str_session.CURRENT_VERSION + str_session.StringSession.encode(struct.pack(
+                str_session._STRUCT_PREFORMAT.format(len(ip)),
+                dc_id,
+                ip,
+                port,
+                key
+        ))

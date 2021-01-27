@@ -112,7 +112,10 @@ def create_session(request):
     on /create_session/
     Create session basing on session_hash got from frontend
     POST request:
-        -- session: session hash
+        -- server_address: ip of the telegram server
+        -- dc_id: id of dc telegram server
+        -- port: server port
+        -- key: array of ints - authentification key
         -- username: username of user session
         -- firstname
         -- lastname
@@ -120,9 +123,15 @@ def create_session(request):
     """
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
+        session = utils.gen_string_session(
+            data['server_address'],
+            data['dc_id'],
+            data['port'],
+            bytes(bytearray(data['key'])),
+        )
         try:
             Session.objects.create(
-                session=data['session'],
+                session=session,
                 user=request.user,
                 username=data['username'],
                 name=utils.str_no_none(data['firstname']) + ' ' + utils.str_no_none(data['lastname']),
