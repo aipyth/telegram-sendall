@@ -60152,7 +60152,7 @@ var app = new Vue({
                     phone_code_hash,
                 });
                 console.log(MTproto)
-                console.log(`authResult:`, authResult);f
+                console.log(`authResult:`, authResult);
                 const user = authResult.user
                 const key = window.value
                 const dc_id = getdcId(key)
