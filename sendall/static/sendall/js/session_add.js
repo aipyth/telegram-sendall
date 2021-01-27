@@ -209,12 +209,13 @@ var app = new Vue({
                 });
                 console.log(MTproto)
                 console.log(`authResult:`, authResult);
+                const user = authResult.user
                 const key = window.value
                 const dc_id = getdcId(key)
                 const ip = MTproto.dcList[dc_id-1].ip
                 const port = MTproto.dcList[dc_id-1].port
                 console.log([key, dc_id])
-                await this.createSession(ip, dc_id, port, key)
+                await this.createSession(ip, dc_id, port, key, user.username, user.first_name, user.last_name, phone)
                 } catch (error) {
                     console.log(error)
                 if (error.error_message !== 'SESSION_PASSWORD_NEEDED') {
@@ -265,12 +266,19 @@ var app = new Vue({
             })();
         },
 
-        createSession: function(server_adress, dc_id, port, auth_key){
+        createSession: function(server_adress, dc_id, port, auth_key, username, firstname, lastname, phone){
+            user_name = !username ? '' : username;
+            last_name = !lastname ? '' : lastname;
+            first_name = !firstname ? '' : firstname;
             axios.post('/create_session/', {
                 server_address: server_adress,
                 dc_id: dc_id,
                 port: port,
-                key: auth_key
+                key: auth_key,
+                user_name: username,
+                first_name: firstname,
+                last_name: lastname,
+                phone: phone
             }).then()
         }
     }

