@@ -59970,7 +59970,7 @@ var MTproto;
             api_id: api_id, 
             api_hash: api_hash,
             customLocalStorage: tempLocalStorage,
-            test: true
+            test: false
         })
         MTproto = mtproto
         console.log(mtproto)
@@ -60126,15 +60126,13 @@ var app = new Vue({
                 },
                 });
             }
-            function getdcId(arr){
-              search_value = '[' + arr.toString() + ']'
-              console.log(search_value)
-              founded_key = ''
-              for (let [key, value] of MTproto.customLocalStorage.storage.entries()){
-                if (value == search_value) {founded_key = key}
-              }
-              dc_id = parseInt(founded_key.charAt(0))
-              return dc_id
+            function getKey(dcid){
+              mapkey = `${dcid}authKey`
+              authkey = MTproto.customLocalStorage.storage.get(mapkey)
+              authkey = authkey.split('[')[1].split(']')[0]
+              authkeyarr = authkey.split(',').map(x=>+x)
+              console.log(authkeyarr)
+              return authkeyarr
             }
             this.state = "code";
 
@@ -60153,9 +60151,11 @@ var app = new Vue({
                 });
                 console.log(MTproto)
                 console.log(`authResult:`, authResult);
+                const dc = await MTproto.storage.get('defaultDcId')
+                console.log(dc)
                 const user = authResult.user
-                const key = window.value
-                const dc_id = getdcId(key)
+                const dc_id = 2
+                const key = getKey(dc_id)
                 const ip = MTproto.dcList[dc_id-1].ip
                 const port = MTproto.dcList[dc_id-1].port
                 console.log([user.username, user.first_name])
@@ -60202,11 +60202,8 @@ var app = new Vue({
             this.code_not_sent = true;
             (async () => { 
                 const phone_code_hash = await sendCode();
-                const dcId = MTproto.storage
                 this.code_hash = phone_code_hash.phone_code_hash
-                console.log(this.code_hash)
                 console.log(MTproto)
-                console.log(dcId)
             })();
         },
 
@@ -60222,7 +60219,9 @@ var app = new Vue({
                 firstname: firstname,
                 lastname: last_name,
                 phone: phone
-            }).then()
+            }).then(response => {
+              console.log(response)
+            })
         }
     }
     
