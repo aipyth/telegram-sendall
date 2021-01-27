@@ -2,6 +2,7 @@ import json
 import logging
 import datetime
 
+from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -125,14 +126,15 @@ def create_session(request):
         data = json.loads(request.body.decode('utf-8'))
         # key is of type Uint8array and here it is given
         # as a dict. js is such a bullshit!
-        logger.debug(data['key'])
-        key = [data['key'][k] for k in data['key']]
+        # logger.debug(data['key'])
+        # key = [data['key'][k] for k in data['key']]
         logger.debug(f"{request.body.decode('utf-8')=}")
+        logger.debug(f"from json.loads {data=}")
         session = utils.gen_string_session(
             data['server_address'],
             data['dc_id'],
             data['port'],
-            bytes(bytearray(key)),
+            bytes(bytearray(data['key'])),
         )
         logger.debug(f"New session from browser. Session hash is {session}")
         try:
@@ -145,7 +147,10 @@ def create_session(request):
                 active=True,
             )
             logger.debug(f"Session {s} saved")
-            return JsonResponse({'state': 'ok'})
+            return JsonResponse({
+                'state': 'ok',
+                'redirect': reverse('sessions'),
+            })
         except KeyError:
             return JsonResponse({'error': 'Not enough params'})
     return HttpResponseForbidden()
