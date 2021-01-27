@@ -59970,7 +59970,7 @@ var MTproto;
             api_id: api_id, 
             api_hash: api_hash,
             customLocalStorage: tempLocalStorage,
-            test: false
+            test: true
         })
         MTproto = mtproto
         console.log(mtproto)

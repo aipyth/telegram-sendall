@@ -55,7 +55,7 @@ services:
 
       DEBUG: 'True'
       DISABLE_SSL: 'True'
-      USE_TEST_SERVERS: 'False'
+      USE_TEST_SERVERS: 'True'
 
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}

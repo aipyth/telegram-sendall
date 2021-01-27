@@ -125,8 +125,9 @@ def create_session(request):
         data = json.loads(request.body.decode('utf-8'))
         # key is of type Uint8array and here it is given
         # as a dict. js is such a bullshit!
+        logger.debug(data['key'])
         key = [data['key'][k] for k in data['key']]
-        logger.debug(f"auth key {key}")
+        logger.debug(f"{request.body.decode('utf-8')=}")
         session = utils.gen_string_session(
             data['server_address'],
             data['dc_id'],
@@ -137,9 +138,9 @@ def create_session(request):
         try:
             s = Session.objects.create(
                 session=session,
-                user=request.user,
-                username=data['username'],
-                name=utils.str_no_none(data['firstname']) + ' ' + utils.str_no_none(data['lastname']),
+                user=request.user.telegramuser,
+                username=data.get('username'),
+                name=utils.str_no_none(data.get('firstname')) + ' ' + utils.str_no_none(data.get('lastname')),
                 phone=data['phone'],
                 active=True,
             )
