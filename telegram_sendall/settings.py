@@ -216,12 +216,12 @@ LOGGING = {
         },
         'apps': {
             'handlers': ['gunicorn'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': True,
         },
         'telethon': {
             'handlers': ['gunicorn'],
-            'level': 'INFO',
+            'level': 'ERROR',
             'propagate': True,
         },
         'gunicorn.errors': {
