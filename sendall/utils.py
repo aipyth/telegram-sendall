@@ -3,6 +3,7 @@ import logging
 import time
 import struct
 import ipaddress
+import os
 
 from django.conf import settings
 from django.core.cache import cache
@@ -21,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 async def _send_code_request(phone):
     client = TelegramClient(StringSession(), settings.API_ID, settings.API_HASH)
+    if os.environ.get('USE_TEST_SERVERS') == 'True':
+        client.session.set_dc(2, '149.154.167.40', 443)
     await client.connect()
     # await client.start()
     try:
@@ -68,6 +71,8 @@ def send_code_request(session, phone):
 
 async def _sign_in(session, phone, code, password=None):
     client = TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)
+    if os.environ.get('USE_TEST_SERVERS') == 'True':
+        client.session.set_dc(2, '149.154.167.40', 443)
     await client.connect()
     phone_code_hash = cache.get(phone)
     if not phone_code_hash:
@@ -141,6 +146,8 @@ def sign_in(session, phone, code, password=None):
 
 async def _get_dialogs(session):
     client = TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)
+    if os.environ.get('USE_TEST_SERVERS') == 'True':
+        client.session.set_dc(2, '149.154.167.40', 443)
     await client.connect()
     if not await client.is_user_authorized():
         return [{'not_logged': True}]
@@ -237,6 +244,8 @@ def pre_serialize_tasks(tasks):
 
 async def _send_message(session, contacts, message, markdown, delay=5):
     client = TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)
+    if os.environ.get('USE_TEST_SERVERS') == 'True':
+        client.session.set_dc(2, '149.154.167.40', 443)
     await client.connect()
     client.parse_mode = 'md' if markdown else None
     await client.get_dialogs()
