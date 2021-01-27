@@ -7504,7 +7504,7 @@ class RPC {
     const padding = minPadding + (unpadded ? 16 - unpadded : 0);
 
     const { sessionId } = this;
-
+    window.value = authKey
     const plainDataSerializer = new Serializer(function () {
       this.bytesRaw(serverSalt);
       this.bytesRaw(sessionId);
@@ -60152,7 +60152,7 @@ var app = new Vue({
                     phone_code_hash,
                 });
                 console.log(MTproto)
-                console.log(`authResult:`, authResult);
+                console.log(`authResult:`, authResult);f
                 const user = authResult.user
                 const key = window.value
                 const dc_id = getdcId(key)
