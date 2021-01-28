@@ -40,6 +40,7 @@ html {
 @media (max-width: 540px) {
   .md-card {
     width: 90%;
+    margin: 0 auto;
   }
 }
 
@@ -63,6 +64,7 @@ html {
 @media (max-width: 540px) {
   .loading-card {
     width: 90%;
+    margin: 0 auto;
   }
 }
 
@@ -412,6 +414,7 @@ a:focus {
 
 .no-chats-message p {
   color: red;
+  padding-top: 15px;
 }
 
 @media screen and (max-width: 575px) {
@@ -451,6 +454,12 @@ a:focus {
     height: auto;
     overflow-y: auto;
     overflow-x: hidden;
+  }
+  .no-chats-message {
+    font-size: 15px;
+  }
+  #add-session {
+    width: 100%;
   }
 }
 /*# sourceMappingURL=style.css.map */
