@@ -26,6 +26,9 @@ class TelegramUser(models.Model):
 
     objects = DefaultManager
 
+    def __str__(self):
+        return "{}".format(self.user.username)
+
 
 class Session(models.Model):
     session = models.TextField(blank=True)
