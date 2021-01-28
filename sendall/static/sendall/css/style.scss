@@ -14,6 +14,7 @@ html {
 
     @media (max-width: 540px) {
         width: 90%;
+        margin: 0 auto;
     }
 
     h1, h2, h3, h4, h5, h6, p {
@@ -341,7 +342,8 @@ transition: all 1.5s ease;
 
 .no-chats-message{
     p{
-        color: red
+        color: red;
+        padding-top: 15px;
     }
 }
 
@@ -380,6 +382,12 @@ transition: all 1.5s ease;
         height: auto;
         overflow-y: auto;
         overflow-x: hidden;
+    }
+    .no-chats-message{
+        font-size: 15px;
+    }
+    #add-session{
+        width: 100% ;
     }
 }
   
