@@ -458,5 +458,8 @@ a:focus {
   .no-chats-message {
     font-size: 15px;
   }
+  #add-session {
+    width: 100%;
+  }
 }
 /*# sourceMappingURL=style.css.map */
