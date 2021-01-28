@@ -336,7 +336,7 @@ var vue_messages = new Vue({
             }, 3000);
             setTimeout(() => {
                 this.getActiveTasks()
-            }, 20000);
+            }, 60000);
         },
 
         stopRequesting_edit: function(){
@@ -347,7 +347,7 @@ var vue_messages = new Vue({
             }, 3000);
             setTimeout(() => {
                 this.getActiveTasks()
-            }, 20000);
+            }, 60000);
         },
 
         sendMessage: function() {
@@ -395,7 +395,7 @@ var vue_messages = new Vue({
                 this.not_selected_chats = true
                 setTimeout(() => {
                     this.not_selected_chats = false
-                }, 2000);
+                }, 4000);
             }
 
         },
@@ -660,9 +660,11 @@ var vue_messages = new Vue({
                 <div class='col'>
                     <button v-if="!isEditing" class='btn btn-block btn-primary but-send' v-on:click="sendMessage">Send</button>
                     <button v-else class='btn btn-block btn-primary but-send' v-on:click="editMessage">Edit</button>
+                    <transition name="show" >
                     <div class="no-chats-message" v-if="not_selected_chats">
                         <p>You need to select chats before sending message.</p>
                     </div>
+                    </transition>
                 </div>
             </div>
         </div>
