@@ -14,7 +14,7 @@ from django.core.paginator import Paginator
 # import celery
 
 from . import utils
-from .forms import SessionAddForm, SignUpForm
+from .forms import SessionAddForm, SignUpForm, ChangePasswordForm
 from .models import Session, TelegramUser, ContactsList, SendMessageTask
 from uuid import uuid4
 from . import tasks
@@ -48,6 +48,31 @@ class SignUpView(View):
             return redirect('index')
         else:
             return render(request, self.template_name, {'form': form})
+
+
+class ChangePasswordView(View):
+    form_class = ChangePasswordForm
+    template_name = 'sendall/change_password.html'
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            current_password = form.cleaned_data.get('current_password')
+            new_password = form.cleaned_data.get('new_password')
+            new_password_repeat = form.cleaned_data.get('new_password_repeat')
+            if not request.user.check_password(current_password):
+                form.add_error('current_password', 'Invalid password')
+            elif new_password != new_password_repeat:
+                form.add_error('new_password_repeat', 'Passwords do not match')
+            else:
+                request.user.set_password(new_password)
+                request.user.save()
+                return redirect('sessions')
+        return render(request, self.template_name, {'form': form})
 
 
 class SessionList(LoginRequiredMixin, ListView):

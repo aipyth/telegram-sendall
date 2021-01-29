@@ -18,6 +18,7 @@ urlpatterns = [
     path('sessions/add/', SessionAdd.as_view(), name='add-session'),
     path('get_app_id_and_hash/', get_app_id_hash),
     path('create_session/', create_session),
+    path('change_password/', ChangePasswordView.as_view(), name='change_password'),
     path('login/', auth_views.LoginView.as_view(template_name='sendall/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='sendall/logout.html'), name='logout'),
     path('signup/', SignUpView.as_view(), name='signup')
