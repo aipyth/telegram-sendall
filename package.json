@@ -19,7 +19,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-js": "browserify -p tinyify sendall/static/sendall/js/session_add.js > sendall/static/sendall/js/session_add_compiled.js",
+    "build-js": "browserify -p tinyify sendall/static/sendall/js/session_add.js > sendall/static/sendall/js/session_add_compiled.js -d",
     "watch": "watchify sendall/static/sendall/js/session_add.js -o sendall/static/sendall/js/session_add_compiled.js"
   },
   "repository": {
