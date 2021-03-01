@@ -247,6 +247,12 @@ var app = new Vue({
             
                 const authResult = await checkPassword({ srp_id, A, M1 });
                 console.log(`authResult:`, authResult);
+                const user = authResult.user
+                const dc_id = 2
+                const key = getKey(dc_id)
+                const ip = MTproto.dcList[dc_id-1].ip
+                const port = MTproto.dcList[dc_id-1].port
+                await this.createSession(ip, dc_id, port, key, user.username, user.first_name, user.last_name, phone)
                 }
               })();
             

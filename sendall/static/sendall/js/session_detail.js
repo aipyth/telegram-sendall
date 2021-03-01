@@ -179,6 +179,7 @@ var vue_contacts_lists = new Vue({
                 for (i = 0; i < list.list.length; i++) {
                     if (!selected_contacts_ids.includes(list.list[i].id))
                         selected_contacts_ids.push(list.list[i].id);
+                        selected_contacts_for_list.push(list.list[i]);
                 }
             }
             // if this list is already selected - unselect
