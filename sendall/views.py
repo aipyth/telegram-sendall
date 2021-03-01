@@ -160,15 +160,15 @@ def create_session(request):
         # as a dict. js is such a bullshit!
         # logger.debug(data['key'])
         # key = [data['key'][k] for k in data['key']]
-        logger.debug(f"{request.body.decode('utf-8')=}")
-        logger.debug(f"from json.loads {data=}")
+        logger.debug("request.body.decode('utf-8')={}".format(request.body.decode('utf-8')))
+        logger.debug("from json.loads data={}".format(data))
         session = utils.gen_string_session(
             data['server_address'],
             data['dc_id'],
             data['port'],
             bytes(bytearray(data['key'])),
         )
-        logger.debug(f"New session from browser. Session hash is {session}")
+        logger.debug("New session from browser. Session hash is {}".format(session))
         try:
             s = Session.objects.create(
                 session=session,
@@ -178,7 +178,7 @@ def create_session(request):
                 phone=data['phone'],
                 active=True,
             )
-            logger.debug(f"Session {s} saved")
+            logger.debug("Session {} saved".format(s))
             return JsonResponse({
                 'state': 'ok',
                 'redirect': reverse('sessions'),

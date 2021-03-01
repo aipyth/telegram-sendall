@@ -9,15 +9,15 @@ services:
     # ports:
     #   - 6379:6379
 
-  redis_insight:
-    image: redislabs/redisinsight:latest
-    restart: always
-    depends_on:
-      - redis
-    ports:
-      - 8001:8001
-    volumes:
-      - ./rinsight:/ri_data:Z
+  # redis_insight:
+  #   image: redislabs/redisinsight:latest
+  #   restart: always
+  #   depends_on:
+  #     - redis
+  #   ports:
+  #     - 8001:8001
+  #   volumes:
+  #     - ./rinsight:/ri_data:Z
 
   db:
     image: postgres:latest
@@ -61,6 +61,29 @@ services:
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
     command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     # command: bash -c "python manage.py migrate && gunicorn telegram_sendall.wsgi --bind 0.0.0.0:8000"
+
+  collectstatic:
+    build: .
+    working_dir: /app
+    volumes:
+      - staticfiles:/app/staticfiles
+    depends_on:
+      - web
+    environment: 
+      REDIS_URL: redis://redis:6379/0
+
+      USE_POSTGRES: 'True'
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_USER: postgres
+
+      DEBUG: 'True'
+      DISABLE_SSL: 'True'
+      USE_TEST_SERVERS: 'False'
+
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+    command: bash -c "python manage.py collectstatic --noinput --clear && python manage.py compress"
 
   worker:
     build: .
