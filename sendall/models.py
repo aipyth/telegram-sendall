@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 import logging
 logger = logging.getLogger(__name__)
 
+
 class DefaultManager(models.Manager):
     def get_or_create(self, *args, **kwargs):
         try:
@@ -17,8 +18,6 @@ class DefaultManager(models.Manager):
             return self.get(*args, **kwargs)
         except ObjectDoesNotExist:
             return None
-    
-
 
 
 class TelegramUser(models.Model):
@@ -32,7 +31,11 @@ class TelegramUser(models.Model):
 
 class Session(models.Model):
     session = models.TextField(blank=True)
-    user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, related_name='sessions')
+    user = models.ForeignKey(
+        TelegramUser,
+        on_delete=models.CASCADE,
+        related_name='sessions',
+    )
     username = models.CharField(max_length=200, blank=True, null=True)
     name = models.CharField(max_length=500, blank=True)
     phone = models.CharField(max_length=13, blank=True)
@@ -51,7 +54,7 @@ class Session(models.Model):
         self.session = session
         self.save()
         logger.debug("Updated!")
-    
+
     def set_active(self):
         logger.debug("Session set True")
         self.active = True
@@ -60,12 +63,17 @@ class Session(models.Model):
 
 
 class ContactsList(models.Model):
-    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='contacts_lists')
+    session = models.ForeignKey(
+        Session,
+        on_delete=models.CASCADE,
+        related_name='contacts_lists',
+    )
     name = models.TextField(blank=True, default='Contacts List')
     contacts_list = models.TextField(default='[]')
 
     def get_list(self):
         return eval(self.contacts_list)
+
 
 class SendMessageTask(models.Model):
     uuid = models.CharField(max_length=36)

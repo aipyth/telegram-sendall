@@ -81,7 +81,10 @@ class SessionList(LoginRequiredMixin, ListView):
     context_object_name = 'sessions'
 
     def get_queryset(self):
-        objects = Session.objects.filter(user__user=self.request.user, active=True)
+        objects = Session.objects.filter(
+            user__user=self.request.user,
+            active=True
+        )
         return objects
 
 
@@ -90,9 +93,15 @@ class SessionDetail(DetailView):
     queryset = Session.objects.all()
 
     def delete(self, request, pk, *args, **kwargs):
-        session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
+        session = get_object_or_404(
+            Session,
+            pk=pk,
+            user=request.user.telegramuser
+        )
         if utils.end_session(session.session):
-            session.delete()
+            # session.delete()
+            session.active = False
+            session.save()
             return JsonResponse({'state': 'ok'})
         return JsonResponse({'state': 'error'})
 
@@ -113,7 +122,10 @@ class SessionAdd(LoginRequiredMixin, View):
             code = form.cleaned_data.get('code')
             password = form.cleaned_data.get('password')
 
-            session, created = Session.objects.get_or_create(phone=phone, user=request.user.telegramuser)
+            session, created = Session.objects.get_or_create(
+                phone=phone,
+                user=request.user.telegramuser
+            )
 
             if code and password:
                 return utils.sign_in(session, phone, code, password)
@@ -123,9 +135,9 @@ class SessionAdd(LoginRequiredMixin, View):
 
             elif phone:
                 return utils.send_code_request(session, phone)
-                
 
         return JsonResponse({'state': 'undefined'})
+
 
 def get_app_id_hash(request):
     """
@@ -140,6 +152,7 @@ def get_app_id_hash(request):
         'hash': settings.API_HASH,
     })
 
+
 def create_session(request):
     """
     on /create_session/
@@ -148,7 +161,7 @@ def create_session(request):
         -- server_address: ip of the telegram server
         -- dc_id: id of dc telegram server
         -- port: server port
-        -- key: array of ints - authentification key
+        -- key: array of ints - authentication key
         -- username: username of user session
         -- firstname
         -- lastname
@@ -160,7 +173,9 @@ def create_session(request):
         # as a dict. js is such a bullshit!
         # logger.debug(data['key'])
         # key = [data['key'][k] for k in data['key']]
-        logger.debug("request.body.decode('utf-8')={}".format(request.body.decode('utf-8')))
+        logger.debug(
+            "request.body.decode('utf-8')={}".format(request.body.decode('utf-8'))
+        )
         logger.debug("from json.loads data={}".format(data))
         session = utils.gen_string_session(
             data['server_address'],
@@ -168,7 +183,9 @@ def create_session(request):
             data['port'],
             bytes(bytearray(data['key'])),
         )
-        logger.debug("New session from browser. Session hash is {}".format(session))
+        logger.debug(
+            "New session from browser. Session hash is {}".format(session)
+        )
         try:
             s = Session.objects.create(
                 session=session,

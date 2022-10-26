@@ -95,7 +95,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'telegram_sendall.wsgi.application'
 
 
-
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
@@ -196,50 +195,51 @@ API_ID = os.environ.get('TELEGRAM_API_ID')
 API_HASH = os.environ.get('TELEGRAM_API_HASH')
 
 # if not DEBUG:
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': True,
-    'formatters': {
-        'verbose': {
-            'format': '%(asctime)s %(levelname)s [%(name)s:%(lineno)s] %(module)s %(process)d %(thread)d %(message)s'
-        }
-    },
-    'handlers': {
-        'gunicorn': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'verbose',
-            'filename': '/var/log/gunicorn/gunicorn.errors',
-            'maxBytes': 1024 * 1024 * 100,  # 100 mb
-        }
-    },
-    'root': {
-        'handlers': ['gunicorn'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['gunicorn'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'apps': {
-            'handlers': ['gunicorn'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'telethon': {
-            'handlers': ['gunicorn'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'gunicorn.errors': {
-            'level': 'ERROR',
-            'handlers': ['gunicorn'],
-            'propagate': True,
-        },
-    }
-}
+LOGGING = {}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': True,
+#     'formatters': {
+#         'verbose': {
+#             'format': '%(asctime)s %(levelname)s [%(name)s:%(lineno)s] %(module)s %(process)d %(thread)d %(message)s'
+#         }
+#     },
+#     'handlers': {
+#         'gunicorn': {
+#             'level': 'DEBUG',
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'formatter': 'verbose',
+#             'filename': '/var/log/gunicorn/gunicorn.errors',
+#             'maxBytes': 1024 * 1024 * 100,  # 100 mb
+#         }
+#     },
+#     'root': {
+#         'handlers': ['gunicorn'],
+#         'level': 'INFO',
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['gunicorn'],
+#             'level': 'ERROR',
+#             'propagate': True,
+#         },
+#         'apps': {
+#             'handlers': ['gunicorn'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#         'telethon': {
+#             'handlers': ['gunicorn'],
+#             'level': 'ERROR',
+#             'propagate': True,
+#         },
+#         'gunicorn.errors': {
+#             'level': 'ERROR',
+#             'handlers': ['gunicorn'],
+#             'propagate': True,
+#         },
+#     }
+# }
 
 # Importing Heroku settings
 # try:
@@ -251,7 +251,10 @@ LOGGING = {
 
 
 # Stuff for local development
-try:
-    from .local_settings import *
-except ImportError:
-    pass
+# try:
+#     from .local_settings import *
+# except ImportError:
+#     pass
+
+if os.environ.get('environment') == 'development':
+    from .dev_settings import *

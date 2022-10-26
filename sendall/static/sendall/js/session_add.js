@@ -11,9 +11,9 @@ axios.defaults.headers.common['is_ajax'] = true;
 var api;
 var MTproto;
 
-(async () => {
-
-})
+// (async () => {
+//
+// })
 
  function MtprotoInit() {
     axios.get('/get_app_id_and_hash/')
