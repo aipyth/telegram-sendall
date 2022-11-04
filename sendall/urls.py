@@ -1,7 +1,7 @@
-from django.urls import path, re_path, include
+from django.urls import path, re_path
 from django.contrib.auth import views as auth_views
 
-from .views import *
+from .views import SessionList, SessionDetail, SessionAdd, ChangePasswordView, SignUpView, dialogs, send_message, get_contacts_list, add_contacts_list, edit_contacts_list, delete_contacts_list, get_tasks, get_app_id_hash, create_session, deadline_message_settings, deadline_message_text, deadline_message_time
 
 
 urlpatterns = [
@@ -14,6 +14,9 @@ urlpatterns = [
     path('sessions/<int:pk>/add-contacts-list/', add_contacts_list),
     path('sessions/<int:pk>/edit-contacts-list/', edit_contacts_list),
     path('sessions/<int:pk>/delete-contacts-list/', delete_contacts_list),
+    path('sessions/<int:pk>/deadline_message_settings/', deadline_message_settings),
+    path('sessions/<int:pk>/add_deadline_message_text/', deadline_message_text),
+    path('sessions/<int:pk>/add_deadline_message_time/', deadline_message_time),
     path('sessions/<int:pk>/tasks/', get_tasks),
     path('sessions/add/', SessionAdd.as_view(), name='add-session'),
     path('get_app_id_and_hash/', get_app_id_hash),

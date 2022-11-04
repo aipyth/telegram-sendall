@@ -40,6 +40,7 @@ class Session(models.Model):
     name = models.CharField(max_length=500, blank=True)
     phone = models.CharField(max_length=13, blank=True)
     active = models.BooleanField(default=False)
+    user_blacklist = models.TextField(default="[]")
 
     objects = DefaultManager
 
@@ -75,6 +76,36 @@ class ContactsList(models.Model):
         return eval(self.contacts_list)
 
 
+class DeadlineMessageSettings(models.Model):
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    messages = models.TextField(default='[]')
+    deadline_time = models.IntegerField(default=15)
+    trigger_substring = models.TextField(default="\\d\\d\\d\\d+")
+
+    objects = DefaultManager
+
+    def get_list(self):
+        return eval(self.messages)
+
+    def set_list(self, list):
+        self.messages = str(list)
+        self.save()
+
+
+class ReplyMessageTask(models.Model):
+    dialog_id = models.IntegerField(default=0)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    done = models.BooleanField(default=False)
+    start_time = models.DateTimeField(null=True)
+    objects = DefaultManager
+
+
+class UserBlackList():
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    id = models.IntegerField()
+    name = models.TextField()
+
+
 class SendMessageTask(models.Model):
     uuid = models.CharField(max_length=36)
     master = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -83,5 +114,4 @@ class SendMessageTask(models.Model):
     contacts = models.TextField()
     message = models.TextField()
     markdown = models.BooleanField()
-
     done = models.BooleanField(default=False)

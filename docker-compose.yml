@@ -59,7 +59,7 @@ services:
 
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
-    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:3005"
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:3005"
     # command: bash -c "python manage.py migrate && gunicorn telegram_sendall.wsgi --bind 0.0.0.0:8000"
 
   # collectstatic:
@@ -88,8 +88,8 @@ services:
   worker:
     build: .
     working_dir: /app
-    # volumes:
-    #   - ./:/app:Z
+    volumes:
+      - ./:/app:Z
     restart: always
     depends_on: 
       - redis
@@ -105,8 +105,29 @@ services:
 
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
-    command: celery worker --app=telegram_sendall.celery.app --without-heartbeat -l debug --concurrency=3
+    command: celery worker --app=telegram_sendall.celery.app --without-heartbeat --loglevel=INFO --concurrency=3
 
+  beat:
+    build: .
+    working_dir: /app
+    volumes:
+      - ./:/app:Z
+    restart: always
+    depends_on: 
+      - redis
+      - db
+    environment: 
+      REDIS_URL: redis://redis:6379/0
+      USE_POSTGRES: 'True'
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_USER: postgres
+      DEBUG: 'True'
+      DISABLE_SSL: 'True'
+
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+    command: celery --app=telegram_sendall.celery.app beat
 
   # nginx:
   #   build: ./nginx

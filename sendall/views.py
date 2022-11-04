@@ -15,8 +15,8 @@ from django.core.paginator import Paginator
 
 from . import utils
 from .forms import SessionAddForm, SignUpForm, ChangePasswordForm
-from .models import Session, TelegramUser, ContactsList, SendMessageTask
-from uuid import uuid4
+from .models import Session, TelegramUser, ContactsList, SendMessageTask, DeadlineMessageSettings, UserBlackList
+# from uuid import uuid4
 from . import tasks
 from celery.result import AsyncResult
 
@@ -205,7 +205,6 @@ def create_session(request):
     return HttpResponseForbidden()
 
 
-
 def dialogs(request, pk, *args, **kwargs):
     session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
     if request.method == 'GET':
@@ -229,11 +228,11 @@ def dialogs(request, pk, *args, **kwargs):
             return JsonResponse({'uuidkey': task_id})
         return HttpResponseForbidden()
 
+
 def send_message(request, pk, *args, **kwargs):
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         session = get_object_or_404(Session, id=pk, user=request.user.telegramuser)
-        
         if not session:
             return HttpResponseForbidden()
         if not data.get('contacts'):
@@ -267,6 +266,7 @@ def get_contacts_list(request, pk):
     logger.debug("Sending contacts lists from {} to {}".format(session, request.user))
     return JsonResponse({'lists': lists})
 
+
 def add_contacts_list(request, pk):
     if request.method == 'POST':
         session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
@@ -287,6 +287,7 @@ def add_contacts_list(request, pk):
                 cl.save()
             return JsonResponse({'state': 'ok'})
     return HttpResponseForbidden()
+
 
 def edit_contacts_list(request, pk):
     if request.method == 'POST':
@@ -312,8 +313,6 @@ def edit_contacts_list(request, pk):
             # and this list has all dialogs, old and new ones
             all_list = [dict(t) for t in {tuple(inner_list_dict.items()) for inner_list_dict in contacts_list + added_contacts_list}]
             all_str_list = str(all_list)
-
-
             db_contacts_list = session.contacts_lists.filter(contacts_list=str_list)
             # if len(db_contacts_list) == 1:
             try:
@@ -326,11 +325,12 @@ def edit_contacts_list(request, pk):
             return JsonResponse({'state': 'ok'})
     return HttpResponseForbidden()
 
+
 def delete_contacts_list(request, pk):
     if request.method == 'POST':
         session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
         data = json.loads(request.body.decode('utf-8'))
-        
+
         strlist = data.get('strlist')
         if strlist:
             cl = ContactsList.objects.filter(contacts_list=strlist, session=session)
@@ -375,16 +375,16 @@ def get_tasks(request, pk, *args, **kwargs):
             # 'next_page_number': page.next_page_number(),
             # 'page_end_index': page.end_index(),
             # 'page_start_index': page.start_index(),
-            })
+        })
     elif request.method == 'DELETE':
         # DELETE arguments:
         #   uuid            -- uuid of task to be deleted
         #                       if uuid is not specified -
         #                       all tasks will be deleted
-        #                       and you need to specify 
+        #                       and you need to specify
         #                       the session id (key `session`)
         #   clear-unactive  -- can be set to True to clear unactive tasks
-        #                       `session` key must exist 
+        #                       `session` key must exist
         logger.debug(request.body)
         data = json.loads(request.body.decode('utf-8'))
         uuid = data.get('uuid')
@@ -422,17 +422,63 @@ def get_tasks(request, pk, *args, **kwargs):
         return JsonResponse({'task': utils.pre_serialize_tasks([task])})
     return HttpResponseForbidden()
 
+
+def deadline_message_settings(request, pk, *args, **kwargs):
+    session = get_object_or_404(Session, id=pk, user=request.user.telegramuser)
+    if not session:
+        return HttpResponseForbidden()
+    if request.method == 'GET':
+        settings = DeadlineMessageSettings.objects.get_or_create(
+            session=session
+        )
+        return JsonResponse({
+            'messages': settings.get_list(),
+            'deadline_time': settings.deadline_time
+        })
+    return HttpResponseForbidden()
+
+
+def deadline_message_text(request, pk, *args, **kwargs):
+    session = get_object_or_404(Session, id=pk, user=request.user.telegramuser)
+    if not session:
+        return HttpResponseForbidden()
+    if request.method == 'PUT':
+        settings = DeadlineMessageSettings.objects.get(session__id=pk)
+        data = json.loads(request.body.decode('utf-8'))
+        settings.set_list(data.get('messages'))
+        settings.save()
+        return JsonResponse({'state': 'ok'})
+    return HttpResponseForbidden()
+
+
+def deadline_message_time(request, pk, *args, **kwargs):
+    session = get_object_or_404(Session, id=pk, user=request.user.telegramuser)
+    if not session:
+        return HttpResponseForbidden()
+    if request.method == 'PUT':
+        settings = DeadlineMessageSettings.objects.get(session=session)
+        data = json.loads(request.body.decode('utf-8'))
+        settings.deadline_time = data.get('deadline_time')
+        settings.save()
+        return JsonResponse({'state': 'ok'})
+    return HttpResponseForbidden()
+
+
+def user_blacklist(request, pk, *args, **kwargs):
+    session = get_object_or_404(Session, id=pk, user=request.user.telegramuser)
+    if not session:
+        return HttpResponseForbidden()
+    if request.method == 'GET':
+        users 
+
+
 # def get_auth_data(request, pk):
 #     if request.method == 'POST'
 #         # POST arguments:
 #         #   server_adress: str
-#         #   dc_id:  int  
-#         #   port: int   
-#         #   key   
-
-
-
-    
+#         #   dc_id:  int
+#         #   port: int
+#         #   key
     # if request.method == 'GET':
     #     i = app.control.inspect()
     #     def parse_shit(args: str):
@@ -450,8 +496,6 @@ def get_tasks(request, pk, *args, **kwargs):
     #         'eta': item[1]['eta'],
     #         'id': item[1]['request']['id']
     #     } if item[1]['request']['type'] == "sendall.tasks.send_message" else {} for item in i.active().items()]
-
-
     #     return JsonResponse({
     #         'active': i.active(),
     #         'scheduled': i.scheduled(),

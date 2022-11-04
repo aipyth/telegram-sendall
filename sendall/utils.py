@@ -4,11 +4,13 @@ import time
 import struct
 import ipaddress
 import os
+import re
 
 from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.urls import reverse
+from django.utils import timezone
 from telethon import TelegramClient
 from telethon.errors import (FloodWaitError, PasswordHashInvalidError,
                              PhoneCodeExpiredError, PhoneNumberInvalidError,
@@ -281,15 +283,55 @@ async def _send_message(session, contacts, message, markdown, delay=5):
 
 
 def gen_string_session(server_address: str, dc_id: int, port: int, key: bytes) -> str:
-        # What is key and how to get it??
-        if not key:
-                return ''
+    # What is key and how to get it??
+    if not key:
+        return ''
 
-        ip = ipaddress.ip_address(server_address).packed
-        return str_session.CURRENT_VERSION + str_session.StringSession.encode(struct.pack(
-                str_session._STRUCT_PREFORMAT.format(len(ip)),
-                dc_id,
-                ip,
-                port,
-                key
-        ))
+    ip = ipaddress.ip_address(server_address).packed
+    return str_session.CURRENT_VERSION + str_session.StringSession.encode(struct.pack(
+        str_session._STRUCT_PREFORMAT.format(len(ip)),
+        dc_id,
+        ip,
+        port,
+        key
+    ))
+
+
+async def _read_last_messages(session, dialog, lastcheck):
+    client = TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)
+    if os.environ.get('USE_TEST_SERVERS') == 'True':
+        client.session.set_dc(2, '149.154.167.40', 443)
+    await client.connect()
+    async with client.takeout() as takeout:
+        list_messages = {'my': [], 'not-my': []}
+        logger.info(f"{dialog['id']} {dialog['name']}")
+        await takeout.get_dialogs()
+        chat = await takeout.get_entity(dialog['id'])
+        async for msg in takeout.iter_messages(chat):
+            if msg.date < (timezone.now() - lastcheck):
+                break
+            if msg.message != '':
+                if msg.from_id != None:
+                    list_messages['my'].append({'text': msg.message, 'date': msg.date})
+                else:
+                    list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
+        return list_messages
+
+
+def read_last_messages(session, dialog, lastcheck):
+    try:
+        list_messages = asyncio.run(_read_last_messages(session, dialog, lastcheck))
+    except AttributeError:
+        loop = asyncio.new_event_loop()
+        list_messages = loop.run_until_complete(_read_last_messages(session, dialog, lastcheck))
+        loop.close()
+    return list_messages
+
+
+def check_substring(messages, substr):
+    messages.reverse()
+    for msg in messages:
+        logger.info(msg)
+        if re.search(substr, msg['text']):
+            return True, msg
+    return False, {}

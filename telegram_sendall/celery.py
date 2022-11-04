@@ -1,4 +1,5 @@
 from __future__ import absolute_import, unicode_literals
+from datetime import timedelta
 import os
 from celery import Celery
 
@@ -14,10 +15,8 @@ app = Celery('telegram_sendall')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 
-
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
-
 
 @app.task(bind=True)
 def debug_task(self):

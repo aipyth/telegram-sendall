@@ -1,4 +1,5 @@
 from __future__ import absolute_import, unicode_literals
+from datetime import timedelta
 
 import os
 
@@ -14,11 +15,19 @@ CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL')
 CELERY_BROKER_HEARTBEAT = None # We're using TCP keep-alive instead
 CELERY_BROKER_CONNECTION_TIMEOUT = 30 # May require a long timeout due to Linux DNS timeouts etc
 CELERY_EVENT_QUEUE_EXPIRES = 60 # Will delete all celeryev. queues without consumers after 1 minute.
-CELERY_WORKER_PREFETCH_MULTIPLIER = 1 # Disable prefetching, it's causes problems and doesn't help performance
+CELERY_WORKER_PREFETCH_MULTIPLIER = 0 # Disable prefetching, it's causes problems and doesn't help performance
 CELERY_WORKER_CONCURRENCY = 5
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
+# CELERYBEAT_SCHEDULE = {
+#     'add-every-30-seconds': {
+#         'task': 'tasks.check_new_messages',
+#         'schedule': timedelta(seconds=10),
+#     },
+# }
+
+CELERY_TIMEZONE = 'UTC'
 
 """
 Django settings for telegram_sendall project.
