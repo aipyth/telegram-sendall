@@ -302,20 +302,19 @@ async def _read_last_messages(session, dialog, lastcheck):
     if os.environ.get('USE_TEST_SERVERS') == 'True':
         client.session.set_dc(2, '149.154.167.40', 443)
     await client.connect()
-    async with client.takeout() as takeout:
-        list_messages = {'my': [], 'not-my': []}
-        logger.info(f"{dialog['id']} {dialog['name']}")
-        await takeout.get_dialogs()
-        chat = await takeout.get_entity(dialog['id'])
-        async for msg in takeout.iter_messages(chat):
-            if msg.date < (timezone.now() - lastcheck):
-                break
-            if msg.message != '':
-                if msg.from_id != None:
-                    list_messages['my'].append({'text': msg.message, 'date': msg.date})
-                else:
-                    list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
-        return list_messages
+    # async with client.takeout() as takeout:
+    list_messages = {'my': [], 'not-my': []}
+    await client.get_dialogs()
+    chat = await client.get_entity(dialog['id'])
+    async for msg in client.iter_messages(chat):
+        if msg.date < (timezone.now() - lastcheck):
+            break
+        if msg.message != '':
+            if msg.from_id != None:
+                list_messages['my'].append({'text': msg.message, 'date': msg.date})
+            else:
+                list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
+    return list_messages
 
 
 def read_last_messages(session, dialog, lastcheck):

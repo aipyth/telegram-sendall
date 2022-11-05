@@ -43,6 +43,9 @@ def check_new_messages():
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
         dialogs = get_dialogs(session.session)
         for dialog in dialogs:
+            logger.info(dialog)
+            if 'not_logged' in dialog:
+                break
             # Check for blacklist
             blacklist = session.get_blacklist()
             if len(blacklist) > 0:
@@ -50,42 +53,55 @@ def check_new_messages():
                     continue
 
             messages = read_last_messages(session.session, dialog, check_period)
-            logger.info(f"messages {messages}")
-            logger.info(f"dialog, {dialog}")
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
                 break
             # Delete reply task if another user sent some msg
             reply_task = ReplyMessageTask.objects.filter(dialog_id=dialog["id"], done=False)
             if len(reply_task) > 0 and len(messages['not-my']) > 0:
                 logger.info(f"Session={session}: Denied reply message task to {dialog['name']}")
-                bot.notify_user(session, f"Denied reply message task to {dialog['name']}")
+                notify_user(session, f"Denied reply message task to {dialog['name']}")
                 ReplyMessageTask.objects.delete(dialog_id=dialog.id, done=False)
             # Set new reply task if current user sent some trigger_substring
             has_price, price_msg = check_substring(messages['my'], deadline_msg_settings.trigger_substring)
             if has_price:
                 if len(messages['not-my']) == 0:
-                    ReplyMessageTask.objects.create(
-                        dialog_id=dialog['id'],
-                        session=session,
-                        start_time=price_msg['date'],
-                    )
-                    logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
-                    bot.notify_user(session, f"Added reply message task to {dialog['name']}")
-
-                for msg in messages['not-my']:
-                    if msg['date'] < price_msg['date']:
+                    t = ReplyMessageTask.objects.filter(dialog_id=dialog['id'], session=session)
+                    if t.length == 0:
                         ReplyMessageTask.objects.create(
                             dialog_id=dialog['id'],
                             session=session,
                             start_time=price_msg['date'],
                         )
+                    else:
+                        t[0].start_time = price_msg['date']
+                        t[0].save()
+                    logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
+                    notify_user(session, f"Added reply message task to {dialog['name']}")
+
+                for msg in messages['not-my']:
+                    if msg['date'] < price_msg['date']:
+                        t = ReplyMessageTask.objects.filter(dialog_id=dialog['id'], session=session)
+                        if t.length == 0:
+                            ReplyMessageTask.objects.create(
+                                dialog_id=dialog['id'],
+                                session=session,
+                                start_time=price_msg['date'],
+                            )
+                        else:
+                            t[0].start_time = price_msg['date']
+                            t[0].save()
                         logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
-                        bot.notify_user(session, f"Added reply message task to {dialog['name']}")
+                        notify_user(session, f"Added reply message task to {dialog['name']}")
                         break
 
         # Execute all reply message tasks if time is up
         for task in ReplyMessageTask.objects.filter(session=session, done=False):
+            logger.info(task)
             if (timezone.now() - task.start_time) >= timedelta(minutes=deadline_msg_settings.deadline_time):
+                msgs = deadline_msg_settings.get_messages()
+                logger.info(msgs)
+                if len(msgs) == 0:
+                    break
                 message = random.choice(deadline_msg_settings.get_messages())
                 try:
                     dialog = next(dialog for dialog in dialogs if task.dialog_id == dialog['id'])

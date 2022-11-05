@@ -101,10 +101,10 @@ class DeadlineMessageSettings(models.Model):
 
     def get_messages(self):
         return eval(self.messages)
-        # return ['Ярик', 'ты', 'просто', 'лучший)']
 
     def set_messages(self, list):
         self.messages = str(list)
+        logger.info(self.messages)
         self.save()
 
 
