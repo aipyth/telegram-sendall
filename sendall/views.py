@@ -15,7 +15,7 @@ from django.core.paginator import Paginator
 
 from . import utils
 from .forms import SessionAddForm, SignUpForm, ChangePasswordForm
-from .models import Session, TelegramUser, ContactsList, SendMessageTask, DeadlineMessageSettings, UserBlackList
+from .models import Session, TelegramUser, ContactsList, SendMessageTask, DeadlineMessageSettings
 # from uuid import uuid4
 from . import tasks
 from celery.result import AsyncResult
@@ -428,11 +428,11 @@ def deadline_message_settings(request, pk, *args, **kwargs):
     if not session:
         return HttpResponseForbidden()
     if request.method == 'GET':
-        settings = DeadlineMessageSettings.objects.get_or_create(
+        settings, _ = DeadlineMessageSettings.objects.get_or_create(
             session=session
         )
         return JsonResponse({
-            'messages': settings.get_list(),
+            'messages': settings.get_messages(),
             'deadline_time': settings.deadline_time
         })
     return HttpResponseForbidden()
@@ -445,8 +445,7 @@ def deadline_message_text(request, pk, *args, **kwargs):
     if request.method == 'PUT':
         settings = DeadlineMessageSettings.objects.get(session__id=pk)
         data = json.loads(request.body.decode('utf-8'))
-        settings.set_list(data.get('messages'))
-        settings.save()
+        settings.set_messages(data.get('messages'))
         return JsonResponse({'state': 'ok'})
     return HttpResponseForbidden()
 
@@ -469,7 +468,15 @@ def user_blacklist(request, pk, *args, **kwargs):
     if not session:
         return HttpResponseForbidden()
     if request.method == 'GET':
-        users 
+        return JsonResponse({
+            'list': session.get_blacklist()
+        })
+    if request.method == 'PUT':
+        data = json.loads(request.body.decode('utf-8'))
+        list = data.get('list')
+        session.set_blacklist(list)
+        return JsonResponse({'state': 'ok'})
+    return HttpResponseForbidden()
 
 
 # def get_auth_data(request, pk):

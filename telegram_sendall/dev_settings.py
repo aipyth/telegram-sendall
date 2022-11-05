@@ -203,6 +203,7 @@ if os.environ.get('DISABLE_SSL', 'False') != 'False':
 # Telethon settings
 API_ID = os.environ.get('TELEGRAM_API_ID')
 API_HASH = os.environ.get('TELEGRAM_API_HASH')
+BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
 LOGGING = {}
 # LOGGING = {

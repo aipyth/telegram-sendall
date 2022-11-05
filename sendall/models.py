@@ -15,6 +15,7 @@ class DefaultManager(models.Manager):
 
     def get_or_none(self, *args, **kwargs):
         try:
+            logger.info('self_get', self.get(*args, **kwargs))
             return self.get(*args, **kwargs)
         except ObjectDoesNotExist:
             return None
@@ -40,6 +41,7 @@ class Session(models.Model):
     name = models.CharField(max_length=500, blank=True)
     phone = models.CharField(max_length=13, blank=True)
     active = models.BooleanField(default=False)
+    bot_settings = models.TextField(default="{'active': False, 'silent': False}")
     user_blacklist = models.TextField(default="[]")
 
     objects = DefaultManager
@@ -62,6 +64,19 @@ class Session(models.Model):
         self.save()
         logger.debug("updated")
 
+    def get_blacklist(self):
+        return eval(self.user_blacklist)
+
+    def set_blacklist(self, list):
+        self.user_blacklist = str(list)
+        self.save()
+
+    def get_bot_settings(self):
+        return eval(self.bot_settings)
+
+    def set_bot_settings(self, settings):
+        self.bot_settings = str(settings)
+        self.save()
 
 class ContactsList(models.Model):
     session = models.ForeignKey(
@@ -84,10 +99,11 @@ class DeadlineMessageSettings(models.Model):
 
     objects = DefaultManager
 
-    def get_list(self):
+    def get_messages(self):
         return eval(self.messages)
+        # return ['Ярик', 'ты', 'просто', 'лучший)']
 
-    def set_list(self, list):
+    def set_messages(self, list):
         self.messages = str(list)
         self.save()
 
@@ -98,12 +114,6 @@ class ReplyMessageTask(models.Model):
     done = models.BooleanField(default=False)
     start_time = models.DateTimeField(null=True)
     objects = DefaultManager
-
-
-class UserBlackList():
-    session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    id = models.IntegerField()
-    name = models.TextField()
 
 
 class SendMessageTask(models.Model):

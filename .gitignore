@@ -135,3 +135,5 @@ redis/
 rinsight/
 
 node_modules
+bot.session
+bot.session-journal
