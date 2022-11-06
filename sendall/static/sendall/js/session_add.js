@@ -15,7 +15,7 @@ var MTproto;
 //
 // })
 
- function MtprotoInit() {
+  function MtprotoInit() {
     axios.get('/get_app_id_and_hash/')
     .then(response => {
         const api_id = response.data.id

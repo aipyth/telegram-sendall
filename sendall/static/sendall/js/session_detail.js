@@ -312,7 +312,16 @@ var vue_messages = new Vue({
         request_edit_result: '',
         errors: [],
         markdown_help: false,
-        activeTasks: [],
+        activeTasks: [
+          {
+            contacts: [], 
+            time: new Date(),
+            message: "txt",
+            markdown: false,
+            session: 5,
+            uuid: ""
+            }
+        ],
         completedTasks: [],
         selected: {},
         isEditing: false,
@@ -527,12 +536,12 @@ var vue_messages = new Vue({
               uuid: task.uuid
               } 
           }).then(response => {
-              if(response.status == 200)
-              {
+            if(response.status == 200)
+            {
               id = this.activeTasks.indexOf(task)
               this.activeTasks.splice(id, 1)
               this.stopRequesting_edit()
-              }
+            }
           })
         },
 
@@ -643,7 +652,7 @@ var vue_messages = new Vue({
                     <span class='help-popup-icon' data-toggle="modal" data-target="#markdown-modal">?</span>
                     
                 </div>
-            </div>
+            </div>  
             <div class='row'>
                 <div class="col">
                     <div class="form-group">
@@ -678,11 +687,16 @@ var vue_messages = new Vue({
                         <div class="col-10 h-25">
                             <h6>To {{ this_task_contact_names(task.contacts) }}</h6>
                         </div> 
-                        <div class="col-2"><button type="button" v-on:click="deleteTask(task)" title="Delete this task" class="ml-2 mb-2 close"><span aria-hidden="true">×</span></button></div>
-                            <div class="col-12">
-                                <p class="message task-text">{{ task.message }}</p>
-                                <p class="time message" style="">at {{ task.time }}</p>
-                            </div>
+                        <div class="col-2">
+                            <button type="button" v-on:click="deleteTask(task)" title="Delete this task" class="ml-2 mb-2 close">
+                                <span aria-hidden="true">
+                                    ×  
+                                </span>
+                            </button>
+                        </div>
+                        <div class="col-12">
+                          <p class="message task-text">{{ task.message }}</p>   
+                          <p class="time message" style="">at {{ task.time }}</p>
                         </div>
                     </div>
                 </div>

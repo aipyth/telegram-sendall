@@ -2,47 +2,51 @@
 {% load static %}
 
 {% block nav_header %}
- <h1 class='page-title'>Session {{ session.name }}</h1>
+<h1 class='page-title'>Session {{ session.name }}</h1>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-sm-12 col-md-5 fixed-card card-shadow">
-            <button class="btn btn-lg btn-outline-primary btn-block" target="#chats-contacts" id="collapsing_button">Chats and contacts list</button>
-            <div id="chats-contacts">
-            <button class="btn btn-light btn-block" id="chat-hideshow">Show/hide dialogs</button>
-            <div class="d-flex flex-row show">
-            <div id="vue-dialogs"></div>
-            <div id="vue-contacts-list"></div>
-            </div>
-            </div>
-        </div>
-        <div class="col-sm-12 col-md-7" id="right-card">
-            <div id="vue-message"></div>
-        </div>
-    </div>
-    <div class="modal" id="not-logged-modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Session not valid</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>The access to your account cannot be gained. Maybe you accidentally ended your session via official Telegram app.</p>
-                    <p>You need to relogin to your Telegram account to continue.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <a type="button" class="btn btn-primary" role="button" href="{% url 'add-session' %}">Relogin</a>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div class="row justify-content-center">
+		<div class="col-sm-12 col-md-5 fixed-card card-shadow">
+			<button class="btn btn-lg btn-outline-primary btn-block" target="#chats-contacts" id="collapsing_button">Chats and contacts list</button>
+			<div id="chats-contacts">
+				<button class="btn btn-light btn-block" id="chat-hideshow">Show/hide dialogs</button>
+				<div class="d-flex flex-row show">
+					<div id="vue-dialogs"></div>
+					<div id="vue-contacts-list"></div>
+					
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-12 col-md-7" id="right-card">
+			<div id="vue-message"></div>
+			<div id="scheduled"></div>
+		</div>
+	</div>
+	<div class="modal" id="not-logged-modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Session not valid</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>The access to your account cannot be gained. Maybe you accidentally ended your session via official Telegram app.</p>
+					<p>You need to relogin to your Telegram account to continue.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<a type="button" class="btn btn-primary" role="button" href="{% url 'add-session' %}">Relogin</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
 </div>
+
 {% endblock %}
 
 {% block js %}
@@ -52,4 +56,7 @@
 
 <script src="{% static 'sendall/js/axios.min.js' %}"></script>
 <script src="{% static 'sendall/js/session_detail.js' %}"></script>
+<script src="{% static 'sendall/js/scheduled_messages.js' %}"></script>
+
 {% endblock %}
+
