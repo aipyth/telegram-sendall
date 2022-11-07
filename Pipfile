@@ -8,7 +8,6 @@ verify_ssl = true
 [packages]
 amqp = "==2.5.0"
 billiard = "==3.6.0.0"
-celery = "==5.2.7"
 dj-database-url = "==0.5.0"
 django-heroku = "==0.3.1"
 django-widget-tweaks = "==1.4.5"
@@ -29,6 +28,8 @@ Django = "==2.2.3"
 Telethon = "==1.18.2"
 psycopg2-binary = "*"
 django-compressor = "*"
+requests = "*"
+celery = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"

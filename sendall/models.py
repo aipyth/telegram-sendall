@@ -111,7 +111,6 @@ class DeadlineMessageSettings(models.Model):
 class ReplyMessageTask(models.Model):
     dialog_id = models.IntegerField(default=0)
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    done = models.BooleanField(default=False)
     start_time = models.DateTimeField(null=True)
     objects = DefaultManager
 

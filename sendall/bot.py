@@ -1,9 +1,10 @@
 import asyncio
+import requests
 from telethon import TelegramClient, events
-# from telethon.sessions import StringSession
+from telethon.sessions import StringSession
 from django.core.exceptions import ObjectDoesNotExist
 # from telethon.tl.types import PeerChat
-from .models import Session, DeadlineMessageSettings
+from .models import Session, ReplyMessageTask, DeadlineMessageSettings
 from django.conf import settings
 import logging
 logger = logging.getLogger(__name__)
@@ -11,26 +12,44 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 bot = TelegramClient(None, settings.API_ID, settings.API_HASH).start(bot_token=settings.BOT_TOKEN)
 
-async def _notify_user(session, msg):
-    return
-    # session_settings = session.get_bot_settings()
-    # logger.info(session_settings['active'])
-    # if session_settings['active'] and not session_settings['silent']:
-    #     client = TelegramClient(StringSession(session.session), settings.API_ID, settings.API_HASH)
-    #     await client.connect()
-    #     user = await client.get_me()
-    #     logger.info("BEFORE MESSAGE SENT")
-    #     res = await bot.send_message(user, message=msg)
-    #     logger.info(res)
-    #     logger.info('MESSAGE SENT')
+async def _get_user(session):
+    client = TelegramClient(StringSession(session.session), settings.API_ID, settings.API_HASH)
+    await client.connect()
+    user = await client.get_me()
+    return user.id
 
-def notify_user(session, msg):
+
+def notify_user(session, msg, dialog_id=0):
     try:
-        asyncio.run(_notify_user(session, msg))
+        chat_id = asyncio.run(_get_user(session))
     except AttributeError:
         loop = asyncio.new_event_loop()
-        loop.run_until_complete(_notify_user(session, msg))
+        chat_id = loop.run_until_complete(_get_user(session))
         loop.close()
+    except:
+        pass
+    METHOD = 'sendMessage'
+    url = "https://api.telegram.org/bot{}/{}".format(settings.BOT_TOKEN, METHOD)
+    body = ''
+    if dialog_id != 0:
+        body = {
+            'chat_id': chat_id,
+            'text': msg,
+            'reply_markup': {
+                'inline_keyboard': [[
+                    {
+                        'text': "Cancel message", 'callback_data': f"cancel-{dialog_id}"
+                    }
+                ]]
+            }
+        }
+    else:
+        body = {
+            'chat_id': chat_id,
+            'text': msg,
+        }
+
+    requests.post(url, json=body)
 
 @bot.on(events.NewMessage(pattern="/start"))
 async def start(event):
@@ -102,7 +121,7 @@ async def message(event):
         s = Session.objects.get(name=sender.first_name + ' ' + sender.last_name)
         d = DeadlineMessageSettings.objects.get(session=s)
         messages = d.get_messages()
-        messages.append(splitted_text[1])
+        messages.append(' '.join(splitted_text[1:]))
         logger.info(messages)
         d.set_messages(messages)
         d.save()
@@ -136,3 +155,23 @@ async def deadline(event):
     except ObjectDoesNotExist:
         text = "This session isn't yet logged in Telegram Sendall!"
     await bot.send_message(sender, text)
+
+@bot.on(events.CallbackQuery(pattern="cancel"))
+async def cancel(event):
+    sender = await event.get_sender()
+    dialog_id = int(event.data.decode('utf-8').split('-')[1])
+    try:
+        s = Session.objects.get(name=sender.first_name + ' ' + sender.last_name)
+        try:
+            d = ReplyMessageTask.objects.get(session=s, dialog_id=dialog_id)
+            d.delete()
+        except ObjectDoesNotExist:
+            text = "This task is already done or canceled"
+            await event.answer()
+            await bot.send_message(sender, text)
+            return
+        text = "You have canceled message"
+    except ObjectDoesNotExist:
+        text = "This session isn't yet logged in Telegram Sendall!"
+    await bot.send_message(sender, text)
+    await event.answer()

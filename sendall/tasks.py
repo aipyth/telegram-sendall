@@ -40,10 +40,11 @@ def send_message(self, session, contacts, message, markdown, delay=5):
 @celery_app.task
 def check_new_messages():
     for session in Session.objects.all():
+        if not session.get_bot_settings()['active']:
+            return
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
         dialogs = get_dialogs(session.session)
         for dialog in dialogs:
-            logger.info(dialog)
             if 'not_logged' in dialog:
                 break
             # Check for blacklist
@@ -56,17 +57,17 @@ def check_new_messages():
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
                 break
             # Delete reply task if another user sent some msg
-            reply_task = ReplyMessageTask.objects.filter(dialog_id=dialog["id"], done=False)
+            reply_task = ReplyMessageTask.objects.filter(dialog_id=dialog["id"])
             if len(reply_task) > 0 and len(messages['not-my']) > 0:
                 logger.info(f"Session={session}: Denied reply message task to {dialog['name']}")
                 notify_user(session, f"Denied reply message task to {dialog['name']}")
-                ReplyMessageTask.objects.delete(dialog_id=dialog.id, done=False)
+                reply_task.delete()
             # Set new reply task if current user sent some trigger_substring
             has_price, price_msg = check_substring(messages['my'], deadline_msg_settings.trigger_substring)
             if has_price:
                 if len(messages['not-my']) == 0:
                     t = ReplyMessageTask.objects.filter(dialog_id=dialog['id'], session=session)
-                    if t.length == 0:
+                    if len(t) == 0:
                         ReplyMessageTask.objects.create(
                             dialog_id=dialog['id'],
                             session=session,
@@ -76,12 +77,12 @@ def check_new_messages():
                         t[0].start_time = price_msg['date']
                         t[0].save()
                     logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
-                    notify_user(session, f"Added reply message task to {dialog['name']}")
+                    notify_user(session, f"Added reply message task to {dialog['name']}", dialog['id'])
 
                 for msg in messages['not-my']:
                     if msg['date'] < price_msg['date']:
                         t = ReplyMessageTask.objects.filter(dialog_id=dialog['id'], session=session)
-                        if t.length == 0:
+                        if len(t) == 0:
                             ReplyMessageTask.objects.create(
                                 dialog_id=dialog['id'],
                                 session=session,
@@ -91,12 +92,12 @@ def check_new_messages():
                             t[0].start_time = price_msg['date']
                             t[0].save()
                         logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
-                        notify_user(session, f"Added reply message task to {dialog['name']}")
+                        notify_user(session, f"Added reply message task to {dialog['name']}", dialog['id'])
                         break
 
         # Execute all reply message tasks if time is up
-        for task in ReplyMessageTask.objects.filter(session=session, done=False):
-            logger.info(task)
+        logger.info(ReplyMessageTask.objects.filter(session=session))
+        for task in ReplyMessageTask.objects.filter(session=session):
             if (timezone.now() - task.start_time) >= timedelta(minutes=deadline_msg_settings.deadline_time):
                 msgs = deadline_msg_settings.get_messages()
                 logger.info(msgs)
@@ -109,9 +110,8 @@ def check_new_messages():
                     return
                 send_message.delay(session.session, [dialog['id']], message, markdown=True)
                 logger.info(f"Session={session}: Sent reply message to {dialog['name']}, text {message}")
-                task.done = True
-                task.save()
-                notify_user(session, f"Sent reply message to {dialog['name']}, text {message}")
+                task.delete()
+                notify_user(session, f"Sent reply message to {dialog['name']}, text:\n{message}")
 
 
 @celery_app.task
