@@ -41,9 +41,9 @@ def send_message(self, session, contacts, message, markdown, delay=5):
 def check_new_messages():
     logger.debug(f"All sessions: {Session.objects.all()}")
     for session in Session.objects.all():
-        logger.debug(f"Bot settings: {session.get_bot_settings()}")
+        logger.debug(f"Bot settings: {session.get_bot_settings()} for session {session}")
         if not session.get_bot_settings()['active']:
-            return
+            continue
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
         dialogs = get_dialogs(session.session)
         for dialog in dialogs:
