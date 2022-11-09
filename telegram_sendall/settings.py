@@ -266,6 +266,3 @@ try:
     from .local_settings import *
 except ImportError:
     pass
-
-if os.environ.get('environment') == 'development':
-    from .dev_settings import *
