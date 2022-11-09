@@ -1,5 +1,3 @@
-
-
 var vue_dialogs = new Vue({
   el: '#scheduled', 
   data: {
@@ -13,7 +11,9 @@ var vue_dialogs = new Vue({
     items: [],
     selected: '',
     errorMessage: "",
+    errorMessage2: "",
     notification: "",
+    time: 0,
   },
   methods: {
     // getDialogs: function() {
@@ -75,10 +75,10 @@ var vue_dialogs = new Vue({
     saveText(){
       if (this.items.includes(this.message) || this.message == ""){
         this.errorMessage = "This text alredy exist or empty"
-        setTimeout(() => { this.errorMessage = "" }, 2000)
+        setTimeout(() => { this.errorMessage = "" }, 3000)
         return 
       }
-      
+      console.log(message)
       this.items.push(this.message);
       axios.put('add_deadline_message_text/', { messages: this.items })
         .then((response) => {
@@ -123,7 +123,22 @@ var vue_dialogs = new Vue({
     notify(message) {
       this.notification = message
       setTimeout(() => this.notification = '', 3000)
-    }
+    },
+
+    saveTime() {
+      if (this.time <= 0 || isNaN(this.time) ){
+        this.errorMessage2 = "Time should be positive number"
+        setTimeout(() => { this.errorMessage2 = "" }, 3000)
+        return 
+      }
+      axios.put('add_deadline_message_time/', { deadline_time: this.time })
+      .then((response) => { if (response.status == 200) this.notify("Deadline is set")
+          console.log(response)})
+        .catch((error) => console.log(error))
+      
+    },
+
+
   },
     // watch: {
     // search_dialogs: function(newSearchText, oldSearchText) {
@@ -140,12 +155,17 @@ var vue_dialogs = new Vue({
   // },
   mounted() {
     axios.get('deadline_message_settings/')
-      .then(response => this.items = response.data.messages)
-      .catch(error => console.log(error));
+      .then((response) => {
+        this.items = response.data.messages
+        this.time = response.data.deadline_time
+      }
+      )
+      .catch((error) => console.log(error))
+      
   },
   
   sendMessage(){
-    axios.put('add_deadline_message_text', this.items)
+    axios.put('add_deadline_message_text/', this.items)
   },
 
 template: `
@@ -157,7 +177,7 @@ template: `
         </h5>
     </div>
   </transition>
-  <div class="contariner fixed-card card-shadow" style="height: 100%; " >
+  <div class="contariner fixed-card card-shadow " style="height: 100%; " >
     <div class="wrapper col d-sm-none d-md-block">
       <div class="blanlk-btn" style=""> 
         <button class="btn btn-lg btn-outline-primary btn-block" target="#chats-contacts" id="collapsing_button">
@@ -182,8 +202,8 @@ template: `
                   </button>
                   <button class='btn btn-block btn-primary but-send' v-on:click="saveEditedText" v-else> 
                     Edit
-                    <i class="fa fa-download " style="padding-left: 4px " ></i>
-                  </button>
+                    <i class="fa fa-solid fa-pen" style="padding-left: 4px" ></i>
+                    </button>
                   <transition name="show" >
                   <div class="no-chats-message" v-if="errorMessage !== ''">
                       <p>{{ errorMessage }}</p>
@@ -216,6 +236,24 @@ template: `
           </div>
         </div>
       </div>
+      <div class="text mt-3 ml-3">
+        Add deadline hours:
+      </div>
+      <div class="col-lg-5 col-sm-0 h-25">
+      </div>
+        <div class="d-flex align-items-start">
+          <div class="input-group col-lg-7 col-sm-12 ">
+            <input type="number" class="form-control" aria-describedby="basic-addon2"  v-model="time">
+            <div class="input-group-append">
+              <button class="btn btn-primary" type="button" id="button-addon1"  v-on:click="saveTime">Send</button>
+            </div>
+          </div>
+          <transition name="show" >
+            <div class="no-chats-message" v-if="errorMessage2 !== ''">
+              <p class="pt-0" >{{ errorMessage2 }}</p>
+            </div>
+          </transition>
+        </div>
       <div>
       </div>
     </div>

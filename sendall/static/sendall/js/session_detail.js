@@ -27,13 +27,15 @@ Vue.filter('cutTooLong', function (value) {
 
 var vue_dialogs = new Vue({
     el: '#vue-dialogs',
-    data: {
+    data() {
+      return{
         selected_contacts_ids: selected_contacts_ids,
         all_dialogs: all_dialogs,
         current_dialogs: [],
         search_dialogs: '',
         history: {},
         loading: false,
+      }
     },
     methods: {
         getDialogs: function() {
@@ -44,12 +46,14 @@ var vue_dialogs = new Vue({
                 axios.post('dialogs/', {
                         uuidkey: uuidkey
                     }).then(response => {
+                      
                         console.log(response);
                         if (response.data.state == 'not_logged') {
                             $('#not-logged-modal').modal('show');
                             this.loading = false;
                             return;
                         } else if (response.data.uuidkey) {
+                          
                             return;
                         }
                         for (i = 0; i < response.data.dialogs.length; i++) {
@@ -105,6 +109,8 @@ var vue_dialogs = new Vue({
             // }
         }
     },
+  
+    
     template: `
 <div class="chats-block">
     <form class="form" style="margin-bottom: 15px;">
@@ -262,41 +268,39 @@ var vue_contacts_lists = new Vue({
             </h3>
         </div>
         <button class='btn btn-light btn-block' v-on:click="enterNewListName" v-show="!entering_new_list_name" id="createlist">Create new list from selected contacts</button>
-        <div class="list-name input-group mb-3" v-show="entering_new_list_name">
+          <div class="list-name input-group mb-3" v-show="entering_new_list_name">
             <input type="text" class="form-control" placeholder="Contact List Name" aria-describedby="name-ok" v-model="new_list_name">
             <div class="input-group-append">
                 <button class="btn btn-dark" type="button" id="name-ok" v-on:click="createContactsList">OK</button>
             </div>
-        </div>
+          </div>
 
-        <div class="contact" v-for="list in lists" v-on:click="selectList(list)" v-bind:class="{selected: isSelected(list)}">
+          <div class="contact" v-for="list in lists" v-on:click="selectList(list)" v-bind:class="{selected: isSelected(list)}">
             <div class='row'>
                 <div class='col-8 col-md-6'>
                     <h4>
                         {{ list.name }}
                     </h4>
-                    
                 </div>
                 <div class='col-4 col-md-6'>
-                    <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="deleteContactsList(list)" title='Delete this list'>
+                  <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="deleteContactsList(list)" title='Delete this list'>
                     <span aria-hidden="true">&times;</span>
-                    </button>
-                    <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="list.show_names = !list.show_names" title="Show list's dialogs">
-                        <span aria-hidden="true">...</span>
-                    </button>
-                    <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="editContactsList(list)" title='Add selected dialogs to this list'>
-                        <span aria-hidden="true">+</span>
-                    </button>
-                    
+                  </button>
+                  <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="list.show_names = !list.show_names" title="Show list's dialogs">
+                    <span aria-hidden="true">...</span>
+                  </button>
+                  <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="editContactsList(list)" title='Add selected dialogs to this list'>
+                      <span aria-hidden="true">+</span>
+                  </button>
                 </div>
-            </div>
+              </div>
             <div class='row'>
-                <div class='col'>
+              <div class='col'>
                 <p class="message" v-show="list.show_names">{{ prepareNames(list.list) }}</p>
-                </div>
+              </div>
             </div>
-        </div>
-    </div>
+          </div>
+      </div>
 `,
 });
 vue_contacts_lists.getLists();
@@ -336,6 +340,7 @@ var vue_messages = new Vue({
             vue_messages.getActiveTasks()
         }
     },
+  
 
     methods: {
 
@@ -447,7 +452,7 @@ var vue_messages = new Vue({
             nulm = minutes < 10 ? '0' : ''
             return nul + month + "/" + nuld + day + "/" + year + ' ' + nulh+ hours + ':' + nulm + minutes + ' ' + am_pm;
             },
-       
+      
         getActiveTasks: function() {
             // if (all_dialogs.length != 0){
                 axios.post('tasks/', {
@@ -599,6 +604,7 @@ var vue_messages = new Vue({
             else if(!this.right) return 'show_horiz_left'
         }
     },
+    
 
     template: `
 <div style='position: relative;'>
