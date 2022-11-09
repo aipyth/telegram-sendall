@@ -124,61 +124,6 @@ var vue_dialogs = new Vue({
     enterNewListName: function() {
         this.entering_new_list_name = true;
     },
-  // createContactsList: function() {
-  //     axios.post('add-contacts-list/', {
-  //         'name': this.new_list_name,
-  //         'list': this.selected_contacts_for_list,
-  //     }).then(() => {
-  //         this.new_list_name = '';
-  //         this.entering_new_list_name = false;
-  //         this.lists.splice(0, this.lists.length);
-  //         this.getLists();
-  //     });
-  // },
-  //   editContactsList: function(list) {
-  //       axios.post('edit-contacts-list/', {
-  //           'name': list.name,
-  //           'added': this.selected_contacts_for_list,
-  //           'list': list.list
-  //       }).then((response) => {
-  //           if (response.data.state == 'ok') {
-  //               this.lists.splice(0, this.lists.length);
-  //               this.getLists();
-  //           }
-  //       });
-  //   },
-  //   deleteContactsList: function(list) {
-  //       axios.post('delete-contacts-list/', {
-  //           'strlist': list.strlist,
-  //       }).then((response) => {
-  //           if (response.data.state == 'ok') {
-  //               this.lists.splice(0, this.lists.length);
-  //               this.getLists();
-  //           }
-  //       });
-  //   },
-  //   editTask: function(task){
-  //     if (task != this.selected){
-  //     if(!opened){
-  //         open()
-  //     }
-  //     this.isEditing = true
-  //     this.selected = task
-  //     this.message = task.message
-  //     this.markdown = task.markdown
-  //     this.time_to_execute = task.time
-  //     selected_contacts_ids = task.contacts
-  //     vue_dialogs.changeContactsIds(task.contacts)
-  //     }
-  //     else {
-  //         this.isEditing = false
-  //         this.selected = {}
-  //         this.message = ''
-  //         this.markdown = true
-  //         this.time_to_execute = ''
-  //         vue_dialogs.changeContactsIds([])
-  //     }
-  // },
   changeHideShow() {
     this.opened = !this.opened
     },
@@ -187,7 +132,6 @@ var vue_dialogs = new Vue({
       if (all_dialogs.length != 0)
           return;
       this.loading = true;
-      console.log("shoto")
       if (get_dialogs_request_sent) {
           this.current_dialogs = this.all_dialogs
           this.loading = false
@@ -195,18 +139,14 @@ var vue_dialogs = new Vue({
                   uuidkey: uuidkey
               }).then(response => {
                 
-                  console.log("hi", response);
                   if (response.data.state == 'not_logged') {
                       $('#not-logged-modal').modal('show');
                       this.loading = false;
                       return;
                   } else if (response.data.uuidkey) {
-                    console.log("ti ne proidesh")
                       return;
                   }
-                  console.log("shoto")
                   for (i = 0; i < response.data.dialogs.length; i++) {
-                    console.log("shoto")
                       all_dialogs.push(response.data.dialogs[i]);
                       this.current_dialogs.push(response.data.dialogs[i]);
                   }
@@ -261,22 +201,16 @@ var vue_dialogs = new Vue({
       search_dialogs: function(newSearchText, oldSearchText) {
           this.current_dialogs.splice(0, this.current_dialogs.length);
           this.searchText(newSearchText);
-          // if (this.history[newSearchText]) {
-          //     this.current_dialogs = this.history[newSearchText];
-          // } else {
-          //     this.searchText(newSearchText);
-          //     this.history[newSearchText] = this.current_dialogs;
-          // }
       }
   },
 
   
 
   template: `
-  <div class="mt-0">
+  <div class="d-none mt-2" id="whlist">
     <div class="row justify-content-center">
       <div class="col-sm-12 col-12">
-        <div class="fixed-card card-shadow">
+        <div class="fixed-card card-shadow" style="height: 85vh; margin-top: 0px">
           <button class="btn btn-lg btn-outline-primary btn-block" target="#chats-contacts" id="collapsing_button">White contacts list</button>
           <div id="chats-contacts">
             <button class="btn btn-light btn-block" @click="changeHideShow" id="chatHideshow">Show/hide dialogs</button>
@@ -315,7 +249,8 @@ var vue_dialogs = new Vue({
                       </div> 
                     </h3>
                   </div>
-                  <div class="contact" v-for="dialog in white_list" >
+                <transition-group name="show">
+                  <div class="contact" v-for="dialog in white_list" v-bind:key="dialog.id">
                     <h5>
                       {{ dialog.name }}
                       <button type="button" v-on:click="deleteFromWhiteList(dialog)" title="Delete this message" class="ml-2 mb-2 close">
@@ -329,6 +264,7 @@ var vue_dialogs = new Vue({
                     </h5>
                     <p class="message">{{ dialog.message | cutTooLong }}</p>
                   </div>  
+                </transition-group>
               </div>
             </div>
           </div>
@@ -358,4 +294,3 @@ function open() {
 }
 
 $("#chatHideshow").on('click', open)
-//         <button class='btn btn-light btn-block' v-on:click="enterNewListName" v-show="!entering_new_list_name" id="createlist">Create new list from selected contacts</button>

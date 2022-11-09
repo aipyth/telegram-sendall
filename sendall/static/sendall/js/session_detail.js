@@ -607,7 +607,7 @@ var vue_messages = new Vue({
     
 
     template: `
-<div style='position: relative;'>
+<div id="msgs" style='position: relative;'>
     <div class='loading-card' v-if="requesting">
         <h3>
             <div class="spinner-grow text-primary" role="status">
@@ -829,7 +829,23 @@ $(document).on("click", "#collapsing_button", function(ev){
         }
 })
 
+$("#pills-sched-tab").on("click", function() {
+  $("#pills-reply-tab").removeClass('active')
+  $("#pills-sched-tab").addClass('active')
+  $("#dials").removeClass('d-none')
+  $("#msgs").removeClass('d-none')
+  $("#whlist").addClass('d-none')
+  $("#blanks").addClass('d-none')
+})
 
+$("#pills-reply-tab").on("click", function() {
+  $("#pills-sched-tab").removeClass('active')
+  $("#pills-reply-tab").addClass('active')
+  $("#dials").addClass('d-none')
+  $("#msgs").addClass('d-none')
+  $("#whlist").removeClass('d-none')
+  $("#blanks").removeClass('d-none')
+})
 
 // Date and time picker initialize
 $(function () {

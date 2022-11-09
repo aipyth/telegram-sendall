@@ -9,7 +9,7 @@
 <div class="container-fluid">
 	<div class="row justify-content-center">
 		<div class="col-sm-12 col-md-5">
-			<div class="fixed-card card-shadow">
+			<div id="dials" class="fixed-card card-shadow">
 				<button class="btn btn-lg btn-outline-primary btn-block" target="#chats-contacts" id="collapsing_button">Chats and contacts list</button>
 				<div id="chats-contacts">
 					<button class="btn btn-light btn-block" id="chat-hideshow">Show/hide dialogs</button>
@@ -26,6 +26,16 @@
 			<div id="scheduled"></div>
 		</div>
 	</div>
+  <div class="flex justify-content-center mb-2">
+    <ul class="nav nav-pills flex justify-content-center" id="pills-tab" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="pills-sched-tab" data-toggle="pill" href="#pills-home" role="tab" aria-controls="pills-home" aria-selected="true">Scheduled messages page</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="pills-reply-tab" data-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false">Reply messages page</a>
+      </li>
+    </ul>
+  </div>
 	<div class="modal" id="not-logged-modal" tabindex="-1" role="dialog">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">

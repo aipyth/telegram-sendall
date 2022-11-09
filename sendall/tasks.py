@@ -97,8 +97,13 @@ def check_new_messages():
 
         # Execute all reply message tasks if time is up
         logger.info(ReplyMessageTask.objects.filter(session=session))
+        logger.info(f"Current hours: {timezone.now().hour + 2}")
+
+        def is_worktime():
+            return timezone.now().hour >= 8 - 2 and timezone.now().hour <= 20 - 2
+
         for task in ReplyMessageTask.objects.filter(session=session):
-            if (timezone.now() - task.start_time) >= timedelta(minutes=deadline_msg_settings.deadline_time):
+            if (timezone.now() - task.start_time) >= timedelta(hours=deadline_msg_settings.deadline_time) and is_worktime():
                 msgs = deadline_msg_settings.get_messages()
                 logger.info(msgs)
                 if len(msgs) == 0:

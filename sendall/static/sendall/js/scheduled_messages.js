@@ -16,65 +16,9 @@ var vue_dialogs = new Vue({
     time: 0,
   },
   methods: {
-    // getDialogs: function() {
-    //     if (all_dialogs.length != 0)
-    //         return;
-    //     this.loading = true;
-    //     if (get_dialogs_request_sent) {
-    //         axios.post('dialogs/', {
-    //                 uuidkey: uuidkey
-    //             }).then(response => {
-    //                 console.log(response);
-    //                 if (response.data.state == 'not_logged') {
-    //                     $('#not-logged-modal').modal('show');
-    //                     this.loading = false;
-    //                     return;
-    //                 } else if (response.data.uuidkey) {
-    //                     return;
-    //                 }
-    //                 for (i = 0; i < response.data.dialogs.length; i++) {
-    //                     all_dialogs.push(response.data.dialogs[i]);
-    //                     this.current_dialogs.push(response.data.dialogs[i]);
-    //                 }
-    //                 this.loading = false;
-    //             });
-    //     } else {
-    //         axios.get('dialogs/')
-    //             .then(response => {
-    //                 uuidkey = response.data.uuidkey;
-    //             });
-    //         get_dialogs_request_sent = true;
-    //     }
-    // },
-    // select_contact: function(dialog) {
-    //     index = this.selected_contacts_ids.indexOf(dialog.id)
-    //     if (index + 1) {
-    //         console.log('unselecting dialog');
-    //         this.selected_contacts_ids.splice(index, 1);
-    //         for (i = 0; i < selected_contacts_for_list.length; i++) {
-    //             if (dialog.id == selected_contacts_for_list[i].id) {
-    //                 selected_contacts_for_list.splice(i, 1);
-    //             }
-    //         }
-    //     } else {
-    //         console.log('selecting dialog');
-    //         this.selected_contacts_ids.push(dialog.id);
-    //         selected_contacts_for_list.push(dialog);
-    //     }
-    // },
-    // searchText: function(searchText) {
-    //     for (i = 0; i < all_dialogs.length; i++) {
-    //         if (all_dialogs[i].name.toLowerCase().includes(searchText.toLowerCase())) {
-    //             this.current_dialogs.push(all_dialogs[i]);
-    //         }
-    //     }
-    // },
-    // changeContactsIds: function(new_id){
-    //     this.selected_contacts_ids = new_id
-    // },
     saveText(){
       if (this.items.includes(this.message) || this.message == ""){
-        this.errorMessage = "This text alredy exist or empty"
+        this.errorMessage = "This text already exist or empty"
         setTimeout(() => { this.errorMessage = "" }, 3000)
         return 
       }
@@ -140,19 +84,6 @@ var vue_dialogs = new Vue({
 
 
   },
-    // watch: {
-    // search_dialogs: function(newSearchText, oldSearchText) {
-    //     this.current_dialogs.splice(0, this.current_dialogs.length);
-    //     this.searchText(newSearchText);
-        // if (this.history[newSearchText]) {
-        //     this.current_dialogs = this.history[newSearchText];
-        // } else {
-        //     this.searchText(newSearchText);
-        //     this.history[newSearchText] = this.current_dialogs;
-        // }
-  //   }
-    
-  // },
   mounted() {
     axios.get('deadline_message_settings/')
       .then((response) => {
@@ -169,7 +100,7 @@ var vue_dialogs = new Vue({
   },
 
 template: `
-<div style='position: relative;'>
+<div style='position: relative;' class="d-none" id="blanks">
   <transition name="show">
     <div class='loading-card' v-if="notification != ''">
         <h5>
@@ -177,8 +108,8 @@ template: `
         </h5>
     </div>
   </transition>
-  <div class="contariner fixed-card card-shadow " style="height: 100%; " >
-    <div class="wrapper col d-sm-none d-md-block">
+  <div class="contariner fixed-card card-shadow " style="height: 85h" >
+    <div class="wrapper col d-sm-none d-md-block p-0">
       <div class="blanlk-btn" style=""> 
         <button class="btn btn-lg btn-outline-primary btn-block" target="#chats-contacts" id="collapsing_button">
           Blanks
@@ -237,7 +168,7 @@ template: `
         </div>
       </div>
       <div class="text mt-3 ml-3">
-        Add deadline hours:
+        Set deadline hours:
       </div>
       <div class="col-lg-5 col-sm-0 h-25">
       </div>
