@@ -1,5 +1,5 @@
-const { getSRPParams } = require('@mtproto/core');
-const { MTProto } = require('@mtproto/core');
+const { getSRPParams } = require('@mtproto/core/envs/browser');
+const { MTProto } = require('@mtproto/core/envs/browser');
 const { tempLocalStorage } = require('@mtproto/core/src/storage/temp');
 const delay = require('delay')
 const { sleep } = require('@mtproto/core/src/utils/common');
