@@ -39,12 +39,15 @@ def send_message(self, session, contacts, message, markdown, delay=5):
 
 @celery_app.task
 def check_new_messages():
+    logger.debug(f"All sessions: {Session.objects.all()}")
     for session in Session.objects.all():
+        logger.debug(f"Bot settings: {session.get_bot_settings()}")
         if not session.get_bot_settings()['active']:
             return
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
         dialogs = get_dialogs(session.session)
         for dialog in dialogs:
+            logger.debug(f"Got dialogs: {dialogs}")
             if 'not_logged' in dialog:
                 break
             # Check for blacklist
@@ -65,6 +68,7 @@ def check_new_messages():
             # Set new reply task if current user sent some trigger_substring
             has_price, price_msg = check_substring(messages['my'], deadline_msg_settings.trigger_substring)
             if has_price:
+                logger.debug("HAS PRICE MESSAGE!")
                 if len(messages['not-my']) == 0:
                     t = ReplyMessageTask.objects.filter(dialog_id=dialog['id'], session=session)
                     if len(t) == 0:

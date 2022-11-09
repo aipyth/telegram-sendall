@@ -131,7 +131,7 @@ async def message(event):
         logger.info(messages)
         d.set_messages(messages)
         d.save()
-        text = f"Successfully added new reply message: __{splitted_text[1]}__"
+        text = f"Successfully added new reply message: __{splitted_text[1:]}__"
     except ObjectDoesNotExist:
         text = "This session isn't yet logged in Telegram Sendall!"
     await bot.send_message(sender, text)
