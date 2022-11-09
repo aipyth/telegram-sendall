@@ -12,6 +12,11 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 bot = TelegramClient(None, settings.API_ID, settings.API_HASH).start(bot_token=settings.BOT_TOKEN)
 
+def str_no_none(obj):
+    if obj == None:
+        return ''
+    return str(obj)
+
 async def _get_user(session):
     client = TelegramClient(StringSession(session.session), settings.API_ID, settings.API_HASH)
     await client.connect()
@@ -55,7 +60,7 @@ def notify_user(session, msg, dialog_id=0):
 async def start(event):
     sender = await event.get_sender()
     try:
-        s = Session.objects.get(name=sender.first_name + ' ' + sender.last_name)
+        s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         s.set_bot_settings({'active': True, 'silent': False})
         text = """
 Message replying service has been started. You'll get notifications, when the bot will start task
@@ -75,7 +80,7 @@ Bot commands:
 async def stop(event):
     sender = await event.get_sender()
     try:
-        s = Session.objects.get(name=sender.first_name + ' ' + sender.last_name)
+        s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         s.set_bot_settings({'active': False, 'silent': False})
         text = "Message replying service stopped"
     except ObjectDoesNotExist:
@@ -87,7 +92,7 @@ async def stop(event):
 async def silent(event):
     sender = await event.get_sender()
     try:
-        s = Session.objects.get(name=sender.first_name + ' ' + sender.last_name)
+        s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         s.set_bot_settings({'active': True, 'silent': True})
         text = "Now bot won't notify you about new tasks"
     except ObjectDoesNotExist:
@@ -99,7 +104,7 @@ async def silent(event):
 async def messages(event):
     sender = await event.get_sender()
     try:
-        s = Session.objects.get(name=sender.first_name + ' ' + sender.last_name)
+        s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         d = DeadlineMessageSettings.objects.get(session=s)
         messages = d.get_messages()
         logger.info(f'messages {messages}')
@@ -118,7 +123,7 @@ async def message(event):
         await bot.send_message(sender, text)
         return
     try:
-        s = Session.objects.get(name=sender.first_name + ' ' + sender.last_name)
+        s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         d = DeadlineMessageSettings.objects.get(session=s)
         messages = d.get_messages()
         messages.append(' '.join(splitted_text[1:]))
@@ -147,7 +152,7 @@ async def deadline(event):
         await bot.send_message(sender, text)
         return
     try:
-        s = Session.objects.get(name=sender.first_name + ' ' + sender.last_name)
+        s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         d = DeadlineMessageSettings.objects.get(session=s)
         d.deadline_time = time
         d.save()
@@ -161,7 +166,7 @@ async def cancel(event):
     sender = await event.get_sender()
     dialog_id = int(event.data.decode('utf-8').split('-')[1])
     try:
-        s = Session.objects.get(name=sender.first_name + ' ' + sender.last_name)
+        s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         try:
             d = ReplyMessageTask.objects.get(session=s, dialog_id=dialog_id)
             d.delete()
