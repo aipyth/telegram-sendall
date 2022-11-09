@@ -59,6 +59,7 @@ def notify_user(session, msg, dialog_id=0):
 @bot.on(events.NewMessage(pattern="/start"))
 async def start(event):
     sender = await event.get_sender()
+    logger.debug("Got new update on start")
     try:
         s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         s.set_bot_settings({'active': True, 'silent': False})
