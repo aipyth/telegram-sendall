@@ -1,12 +1,6 @@
 var vue_dialogs = new Vue({
   el: '#scheduled', 
   data: {
-    selected_contacts_ids: selected_contacts_ids,
-    all_dialogs: all_dialogs,
-    current_dialogs: [],
-    search_dialogs: '',
-    history: {},
-    loading: false,
     message: "" ,
     items: [],
     selected: '',
@@ -22,7 +16,6 @@ var vue_dialogs = new Vue({
         setTimeout(() => { this.errorMessage = "" }, 3000)
         return 
       }
-      console.log(message)
       this.items.push(this.message);
       axios.put('add_deadline_message_text/', { messages: this.items })
         .then((response) => {
@@ -108,7 +101,7 @@ template: `
         </h5>
     </div>
   </transition>
-  <div class="contariner fixed-card card-shadow " style="height: 85h" >
+  <div class="contariner fixed-card card-shadow"  style="height: 84h">
     <div class="wrapper col d-sm-none d-md-block p-0">
       <div class="blanlk-btn" style=""> 
         <button class="btn btn-lg btn-outline-primary btn-block" target="#chats-contacts" id="collapsing_button">

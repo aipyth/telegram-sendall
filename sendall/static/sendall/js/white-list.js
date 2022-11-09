@@ -1,7 +1,7 @@
-var selected_contacts_ids = []; // list for sending message
-var all_dialogs = []; // list where all dialogs are donwloaded
-var uuidkey = '';
-var get_dialogs_request_sent = false;
+// var selected_contacts_ids = []; // list for sending message
+// var all_dialogs = []; // list where all dialogs are donwloaded
+// var uuidkey = '';
+// var get_dialogs_request_sent = false;
 var opened = false;
 
 var vue_dialogs = new Vue({
@@ -27,7 +27,6 @@ var vue_dialogs = new Vue({
       select_contact: function(dialog) {
           index = this.selected_contacts_ids.indexOf(dialog.id)
           if (index + 1) {
-              console.log('unselecting dialog');
               this.selected_contacts_ids.splice(index, 1);
               for (i = 0; i < this.selected_contacts_for_list.length; i++) {
                   if (dialog.id == this.selected_contacts_for_list[i].id) {
@@ -35,7 +34,6 @@ var vue_dialogs = new Vue({
                   }
               }
           } else {
-              console.log('selecting dialog');
               this.selected_contacts_ids.push(dialog.id);
               this.selected_contacts_for_list.push(dialog);
           }
@@ -207,10 +205,10 @@ var vue_dialogs = new Vue({
   
 
   template: `
-  <div class="d-none mt-2" id="whlist">
+  <div class="d-none" id="whlist">
     <div class="row justify-content-center">
       <div class="col-sm-12 col-12">
-        <div class="fixed-card card-shadow" style="height: 85vh; margin-top: 0px">
+        <div class="fixed-card card-shadow">
           <button class="btn btn-lg btn-outline-primary btn-block" target="#chats-contacts" id="collapsing_button">White contacts list</button>
           <div id="chats-contacts">
             <button class="btn btn-light btn-block" @click="changeHideShow" id="chatHideshow">Show/hide dialogs</button>
@@ -272,6 +270,7 @@ var vue_dialogs = new Vue({
       </div>
     </div>
   </div>
+</div>
 `
 });
 
