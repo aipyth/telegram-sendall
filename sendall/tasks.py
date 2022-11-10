@@ -81,6 +81,8 @@ async def _check_new_messages():
                 reply_task.delete()
             # Set new reply task if current user sent some trigger_substring
             has_price, price_msg = check_substring(messages['my'], deadline_msg_settings.trigger_substring)
+            if len(price_msg):
+                has_price = False
             if has_price:
                 logger.debug("HAS PRICE MESSAGE!")
                 if len(messages['not-my']) == 0:

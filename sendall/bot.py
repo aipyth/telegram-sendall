@@ -52,7 +52,6 @@ async def notify_user(session, msg, dialog_id=0):
 @bot.on(events.NewMessage(pattern="/start"))
 async def start(event):
     sender = await event.get_sender()
-    logger.debug("Got new update on start")
     try:
         s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         s.set_bot_settings({'active': True, 'silent': False})
@@ -154,6 +153,31 @@ async def deadline(event):
     except ObjectDoesNotExist:
         text = "This session isn't yet logged in Telegram Sendall!"
     await bot.send_message(sender, text)
+
+
+@bot.on(events.NewMessage)
+async def handleMsg(event):
+    logger.info(event.fwd_from.from_id)
+    sender = await event.get_sender()
+    dialog_id = event.fwd_from.from_id.user_id
+    logger.info(dialog_id)
+    try:
+        s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
+        t = ReplyMessageTask.objects.filter(dialog_id=dialog_id, session=s)
+        if len(t) == 0:
+            ReplyMessageTask.objects.create(
+                dialog_id=dialog_id,
+                session=s,
+                start_time=event.date,
+            )
+        else:
+            t[0].start_time = event.date
+            t[0].save()
+        await notify_user(s, "Successfully created new reply task", dialog_id)
+    except ObjectDoesNotExist:
+        text = "This session isn't yet logged in Telegram Sendall!"
+        await bot.send_message(sender, text)
+
 
 @bot.on(events.CallbackQuery(pattern="cancel"))
 async def cancel(event):
