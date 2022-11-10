@@ -152,7 +152,7 @@ async def _get_dialogs(session):
         client.session.set_dc(2, '149.154.167.40', 443)
     await client.connect()
     if not await client.is_user_authorized():
-        return [{'not_logged': True}]
+        return [{'not_logged': True}], client
 
     chats = []
     async for dialog in client.iter_dialogs(limit=None, ignore_pinned=False):
