@@ -60,9 +60,10 @@ async def _check_new_messages():
             continue
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
         dialogs, client = await _get_dialogs(session.session)
+        if type(dialogs[0]) is dict:
+            if 'not_logged' in dialogs[0]:
+                continue
         for dialog in serialize_dialogs(dialogs):
-            if 'not_logged' in dialog:
-                break
             # Check for blacklist
             blacklist = session.get_blacklist()
             if len(blacklist) > 0:
