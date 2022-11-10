@@ -161,22 +161,22 @@ async def _get_dialogs(session):
         if not dialog.is_channel:
             chats.append(dialog)
 
-    return chats
+    return chats, client
 
 
 def get_dialogs(session):
     try:
-        dialogs = asyncio.run(_get_dialogs(session))
+        dialogs, client = asyncio.run(_get_dialogs(session))
     except AttributeError:
         loop = asyncio.new_event_loop()
-        dialogs = loop.run_until_complete(_get_dialogs(session))
+        dialogs, client = loop.run_until_complete(_get_dialogs(session))
         loop.close()
 
     if isinstance(dialogs[0], dict):
         return dialogs
 
     serialized_dialogs = serialize_dialogs(dialogs)
-    return serialized_dialogs
+    return serialized_dialogs, client
 
 
 async def _end_session(session):
@@ -297,19 +297,13 @@ def gen_string_session(server_address: str, dc_id: int, port: int, key: bytes) -
     ))
 
 
-async def _read_last_messages(session, dialog, lastcheck):
-    client = TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)
-    if os.environ.get('USE_TEST_SERVERS') == 'True':
-        client.session.set_dc(2, '149.154.167.40', 443)
-    await client.connect()
-    # async with client.takeout() as takeout:
+async def _read_last_messages(client, entity, lastcheck):
     list_messages = {'my': [], 'not-my': []}
-    await client.get_dialogs()
-    chat = await client.get_entity(dialog['id'])
-    async for msg in client.iter_messages(chat):
+    async for msg in client.iter_messages(entity):
         if msg.date < (timezone.now() - lastcheck):
             break
         if msg.message != '':
+            logger.info(msg)
             if msg.from_id != None:
                 list_messages['my'].append({'text': msg.message, 'date': msg.date})
             else:
@@ -317,12 +311,12 @@ async def _read_last_messages(session, dialog, lastcheck):
     return list_messages
 
 
-def read_last_messages(session, dialog, lastcheck):
+def read_last_messages(client, dialog, lastcheck):
     try:
-        list_messages = asyncio.run(_read_last_messages(session, dialog, lastcheck))
+        list_messages = asyncio.run(_read_last_messages(client, dialog, lastcheck))
     except AttributeError:
         loop = asyncio.new_event_loop()
-        list_messages = loop.run_until_complete(_read_last_messages(session, dialog, lastcheck))
+        list_messages = loop.run_until_complete(_read_last_messages(client, dialog, lastcheck))
         loop.close()
     return list_messages
 
@@ -334,3 +328,6 @@ def check_substring(messages, substr):
         if re.search(substr, msg['text']):
             return True, msg
     return False, {}
+
+def get_client(session):
+    return TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)

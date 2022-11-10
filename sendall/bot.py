@@ -24,15 +24,8 @@ async def _get_user(session):
     return user.id
 
 
-def notify_user(session, msg, dialog_id=0):
-    try:
-        chat_id = asyncio.run(_get_user(session))
-    except AttributeError:
-        loop = asyncio.new_event_loop()
-        chat_id = loop.run_until_complete(_get_user(session))
-        loop.close()
-    except:
-        pass
+async def notify_user(session, msg, dialog_id=0):
+    chat_id = await _get_user(session)
     METHOD = 'sendMessage'
     url = "https://api.telegram.org/bot{}/{}".format(settings.BOT_TOKEN, METHOD)
     body = ''
