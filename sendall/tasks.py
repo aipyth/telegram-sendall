@@ -11,7 +11,7 @@ from .bot import bot, notify_user
 import logging
 logger = logging.getLogger(__name__)
 
-check_period = timedelta(seconds=20)
+check_period = timedelta(seconds=120)
 
 celery_app.conf.beat_schedule = {
     'add-every-30-seconds': {
@@ -107,7 +107,7 @@ def check_new_messages():
             return timezone.now().hour >= 8 - 2 and timezone.now().hour <= 20 - 2
 
         for task in ReplyMessageTask.objects.filter(session=session):
-            if (timezone.now() - task.start_time) >= timedelta(hours=deadline_msg_settings.deadline_time) and is_worktime():
+            if (timezone.now() - task.start_time) >= timedelta(minutes=deadline_msg_settings.deadline_time) and is_worktime():
                 msgs = deadline_msg_settings.get_messages()
                 logger.info(msgs)
                 if len(msgs) == 0:
