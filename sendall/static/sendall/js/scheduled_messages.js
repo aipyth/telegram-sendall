@@ -161,7 +161,7 @@ template: `
         </div>
       </div>
       <div class="text mt-3 ml-3">
-        Set deadline hours:
+        Set deadline minutes:
       </div>
       <div class="col-lg-5 col-sm-0 h-25">
       </div>
