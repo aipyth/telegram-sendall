@@ -14,7 +14,7 @@ from .bot import notify_user
 import logging
 logger = logging.getLogger(__name__)
 
-check_period = timedelta(seconds=200)
+check_period = timedelta(seconds=15)
 LOCK_EXPIRE = 60 * 10
 
 celery_app.conf.beat_schedule = {
@@ -82,7 +82,7 @@ async def _check_new_messages():
                 reply_task.delete()
             # Set new reply task if current user sent some trigger_substring
             has_price, price_msg = check_substring(messages['my'], deadline_msg_settings.trigger_substring)
-            if len(price_msg):
+            if len(price_msg) > 100:
                 has_price = False
             if has_price:
                 logger.debug("HAS PRICE MESSAGE!")
