@@ -63,7 +63,8 @@ async def _check_new_messages():
         if type(dialogs[0]) is dict:
             if 'not_logged' in dialogs[0]:
                 continue
-        for dialog in serialize_dialogs(dialogs):
+        dialogs = serialize_dialogs(dialogs)
+        for dialog in dialogs:
             # Check for blacklist
             blacklist = session.get_blacklist()
             if len(blacklist) > 0:
