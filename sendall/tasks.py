@@ -7,7 +7,7 @@ import asyncio
 import time
 from contextlib import contextmanager
 from django.core.cache import cache
-from .utils import _send_message, _get_dialogs, _read_last_messages, check_substring, get_client, serialize_dialogs
+from .utils import _send_message, _get_dialogs, _read_last_messages, check_substring, get_client, serialize_dialogs, get_dialogs
 from telegram_sendall.celery import app as celery_app
 from .models import SendMessageTask, DeadlineMessageSettings, Session, ReplyMessageTask
 from .bot import notify_user
