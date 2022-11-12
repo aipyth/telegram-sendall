@@ -29,6 +29,7 @@ async def notify_user(session, msg, dialog_id=0):
     METHOD = 'sendMessage'
     url = "https://api.telegram.org/bot{}/{}".format(settings.BOT_TOKEN, METHOD)
     body = ''
+    logger.info("sending")
     if dialog_id != 0:
         body = {
             'chat_id': chat_id,
