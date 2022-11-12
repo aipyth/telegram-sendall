@@ -14,7 +14,7 @@ from .bot import notify_user
 import logging
 logger = logging.getLogger(__name__)
 
-check_period = timedelta(seconds=15)
+check_period = timedelta(seconds=200)
 LOCK_EXPIRE = 60 * 10
 
 celery_app.conf.beat_schedule = {
