@@ -297,7 +297,7 @@ def gen_string_session(server_address: str, dc_id: int, port: int, key: bytes) -
     ))
 
 
-async def _read_last_messages(client, entity, lastcheck):
+async def read_last_messages(client, entity, lastcheck):
     list_messages = {'my': [], 'not-my': []}
     async for msg in client.iter_messages(entity):
         if msg.date < (timezone.now() - lastcheck):
@@ -311,14 +311,13 @@ async def _read_last_messages(client, entity, lastcheck):
     return list_messages
 
 
-def read_last_messages(client, dialog, lastcheck):
-    try:
-        list_messages = asyncio.run(_read_last_messages(client, dialog, lastcheck))
-    except AttributeError:
-        loop = asyncio.new_event_loop()
-        list_messages = loop.run_until_complete(_read_last_messages(client, dialog, lastcheck))
-        loop.close()
-    return list_messages
+async def get_dialogs_and_user(session):
+    dialogs, client = await _get_dialogs(session.session)
+    if type(dialogs[0]) is dict:
+        if 'not_logged' in dialogs[0]:
+            return [], client
+    dialogs = serialize_dialogs(dialogs)
+    return dialogs, client
 
 
 def check_substring(messages, substr):
