@@ -53,9 +53,7 @@ def send_message(self, session, contacts, message, markdown, delay=5):
         pass
 
 async def _check_new_messages():
-    logger.debug(f"All sessions: {Session.objects.all()}")
     for session in Session.objects.all():
-        logger.debug(f"Bot settings: {session.get_bot_settings()} for session {session}")
         if not session.get_bot_settings()['active']:
             continue
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
@@ -67,11 +65,13 @@ async def _check_new_messages():
         for dialog in dialogs:
             # Check for blacklist
             blacklist = session.get_blacklist()
+            logger.info(f"blacklist len {len(blacklist)}")
             if len(blacklist) > 0:
                 if dialog['id'] in list(map(lambda x: x['id'], blacklist)):
                     continue
             entity = await client.get_entity(dialog['id'])
             messages = await _read_last_messages(client, entity, check_period)
+            logger.info(f"{len(messages['my'])} {len(messages['not-my'])}")
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
                 break
             # Delete reply task if another user sent some msg
@@ -84,8 +84,8 @@ async def _check_new_messages():
             has_price, price_msg = check_substring(messages['my'], deadline_msg_settings.trigger_substring)
             if len(price_msg) > 100:
                 has_price = False
+            logger.info(f"PRICE MSG: {has_price} {price_msg}")
             if has_price:
-                logger.debug("HAS PRICE MESSAGE!")
                 if len(messages['not-my']) == 0:
                     t = ReplyMessageTask.objects.filter(dialog_id=dialog['id'], session=session)
                     if len(t) == 0:
@@ -117,7 +117,7 @@ async def _check_new_messages():
                         break
 
         # Execute all reply message tasks if time is up
-        logger.info(ReplyMessageTask.objects.filter(session=session))
+        logger.info(f"Current tasks: {list(ReplyMessageTask.objects.filter(session=session))}")
         logger.info(f"Current hours: {timezone.now().hour + 2}")
 
         def is_worktime():
@@ -126,7 +126,6 @@ async def _check_new_messages():
         for task in ReplyMessageTask.objects.filter(session=session):
             if (timezone.now() - task.start_time) >= timedelta(minutes=deadline_msg_settings.deadline_time) and is_worktime():
                 msgs = deadline_msg_settings.get_messages()
-                logger.info(msgs)
                 if len(msgs) == 0:
                     break
                 message = random.choice(deadline_msg_settings.get_messages())

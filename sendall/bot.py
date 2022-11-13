@@ -121,7 +121,6 @@ async def message(event):
         d = DeadlineMessageSettings.objects.get(session=s)
         messages = d.get_messages()
         messages.append(' '.join(splitted_text[1:]))
-        logger.info(messages)
         d.set_messages(messages)
         d.save()
         text = f"Successfully added new reply message: __{' '.join(splitted_text[1:])}__"

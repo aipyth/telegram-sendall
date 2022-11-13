@@ -95,7 +95,7 @@ class DeadlineMessageSettings(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     messages = models.TextField(default='[]')
     deadline_time = models.IntegerField(default=15)
-    trigger_substring = models.TextField(default="\\d\\d\\d\\d+")
+    trigger_substring = models.TextField(default="\\d\\d\\d+")
 
     objects = DefaultManager
 
