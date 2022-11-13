@@ -299,10 +299,7 @@ def gen_string_session(server_address: str, dc_id: int, port: int, key: bytes) -
 
 async def _read_last_messages(client, entity, lastcheck):
     list_messages = {'my': [], 'not-my': []}
-    logger.info(entity)
     async for msg in client.iter_messages(entity):
-        logger.info("Here in loop")
-        logger.info(msg.date)
         if msg.date < (timezone.now() - lastcheck):
             break
         if msg.message != '':
@@ -311,7 +308,6 @@ async def _read_last_messages(client, entity, lastcheck):
                 list_messages['my'].append({'text': msg.message, 'date': msg.date})
             else:
                 list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
-    logger.info("Skipped loop?")
     return list_messages
 
 

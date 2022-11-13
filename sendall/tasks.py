@@ -65,13 +65,11 @@ async def _check_new_messages():
         for dialog in dialogs:
             # Check for blacklist
             blacklist = session.get_blacklist()
-            logger.info(f"blacklist len {len(blacklist)}")
             if len(blacklist) > 0:
                 if dialog['id'] in list(map(lambda x: x['id'], blacklist)):
                     continue
             entity = await client.get_entity(dialog['id'])
             messages = await _read_last_messages(client, entity, check_period)
-            logger.info(f"{len(messages['my'])} {len(messages['not-my'])}")
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
                 break
             # Delete reply task if another user sent some msg
@@ -84,7 +82,6 @@ async def _check_new_messages():
             has_price, price_msg = check_substring(messages['my'], deadline_msg_settings.trigger_substring)
             if len(price_msg) > 100:
                 has_price = False
-            logger.info(f"PRICE MSG: {has_price} {price_msg}")
             if has_price:
                 if len(messages['not-my']) == 0:
                     t = ReplyMessageTask.objects.filter(dialog_id=dialog['id'], session=session)
