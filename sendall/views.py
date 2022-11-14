@@ -17,7 +17,7 @@ from . import utils
 from .forms import SessionAddForm, SignUpForm, ChangePasswordForm
 from .models import Session, TelegramUser, ContactsList, SendMessageTask, DeadlineMessageSettings
 # from uuid import uuid4
-from .tasks import (get_dialogs_task, send_message as send_message_task)
+from . import tasks
 from celery.result import AsyncResult
 
 from telegram_sendall.celery import app as celery_app
@@ -209,7 +209,7 @@ def dialogs(request, pk, *args, **kwargs):
     session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
     if request.method == 'GET':
         logger.debug("Get_dialogs request from {} | {}".format(session, request.user))
-        task = get_dialogs_task.delay(session.session)
+        task = tasks.get_dialogs_task.delay(session.session)
         task_id = task.task_id
         return JsonResponse({'uuidkey': task_id})
     elif request.method == 'POST':
@@ -244,11 +244,11 @@ def send_message(request, pk, *args, **kwargs):
                 exec_time = datetime.datetime.strptime(data.get('datetime'), "%Y-%m-%dT%H:%M:%S.%f%z")
             except ValueError:
                 return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
-            response = send_message_task.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
+            response = tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
             # logger.debug(f"response = {response}. {response.id}")
             SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
         else:
-            response = send_message_task.delay(session.session, contacts, data.get('message'), data.get('markdown'))
+            response = tasks.send_message.delay(session.session, contacts, data.get('message'), data.get('markdown'))
             # logger.debug(f"response = {response}. {response.id}")
             SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=None, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
         # return utils.send_message(session, contacts, data.get('message'), data.get('markdown'))
@@ -416,7 +416,7 @@ def get_tasks(request, pk, *args, **kwargs):
             exec_time = datetime.datetime.strptime(data.get('eta'), "%Y-%m-%dT%H:%M:%S.%f%z")
         except ValueError:
             return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
-        response = send_message_task.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
+        response = tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
         task = SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
         SendMessageTask.objects.filter(uuid=uuid).delete()
         return JsonResponse({'task': utils.pre_serialize_tasks([task])})
