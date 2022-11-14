@@ -1,6 +1,8 @@
 import asyncio
+from datetime import date, datetime
 import logging
 import time
+import pytz
 import struct
 import ipaddress
 import os
@@ -18,6 +20,8 @@ from telethon.errors import (FloodWaitError, PasswordHashInvalidError,
 from telethon.sessions import StringSession
 from telethon.tl.types import PeerUser
 from telethon.sessions import string as str_session
+
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -297,17 +301,35 @@ def gen_string_session(server_address: str, dc_id: int, port: int, key: bytes) -
     ))
 
 
-async def read_last_messages(client, entity, lastcheck):
+async def read_last_messages(client, entity):
     list_messages = {'my': [], 'not-my': []}
+    key = f'{(await client.get_me()).id}-{entity.id}'
+    logger.info(key)
+    lastcheck = cache.get(key)
+    if lastcheck is not None:
+        lastcheck = datetime.fromisoformat(lastcheck)
+
+    def set_lastcheck(d):
+        logger.info(f"setting to {d.isoformat()}")
+        cache.set(key, d.isoformat(), timeout=None)
+
+    last_checked_date = datetime.now()
     async for msg in client.iter_messages(entity):
-        if msg.date < (timezone.now() - lastcheck):
+        logger.info(lastcheck)
+        # logger.info(msg.date < lastcheck)
+        if lastcheck and msg.date <= lastcheck.replace(tzinfo=pytz.UTC):
             break
         if msg.message != '':
             logger.info(msg)
-            if msg.from_id != None:
+            if msg.from_id is not None:
+                last_checked_date = msg.date
                 list_messages['my'].append({'text': msg.message, 'date': msg.date})
             else:
+                last_checked_date = msg.date
                 list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
+                break
+
+    set_lastcheck(last_checked_date)
     return list_messages
 
 
