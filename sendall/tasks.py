@@ -153,6 +153,7 @@ async def _check_new_messages():
         # logger.info(dialogs)
         for dialog in dialogs:
             if in_blacklist(session, dialog):
+                logger.info(f'skipping as in blacklist {dialog["id"]}')
                 continue
             entity = await client.get_entity(dialog['id'])
             messages = await read_last_messages(client, entity, check_period)
