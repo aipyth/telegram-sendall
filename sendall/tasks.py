@@ -153,7 +153,7 @@ async def _check_new_messages():
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
                 break
             reply_task = ReplyMessageTask.objects.filter(dialog_id=dialog["id"])
-            if len(messages['not-my']) > 0 and len(messages['my']) == 0 and len(reply_task) > 0:
+            if len(messages['not-my']) > 0 and len(reply_task) > 0:
                 reply_task.delete()
                 logger.info(f"Session={session}: Denied reply message task to {dialog['name']}")
                 await notify_user(session, f"Denied reply message task to {dialog['name']}")
