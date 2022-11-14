@@ -82,11 +82,6 @@ def create_or_update_task(session, dialog, start):
         t[0].start_time = start
         t[0].save()
 
-def delete_task(session, dialog):
-    reply_task = ReplyMessageTask.objects.filter(dialog_id=dialog["id"])
-    if len(reply_task) > 0:
-        reply_task.delete()
-
 def in_blacklist(session, dialog):
     blacklist = session.get_blacklist()
     if len(blacklist) > 0:
@@ -128,12 +123,12 @@ async def _check_new_messages():
             messages = await read_last_messages(client, entity, check_period)
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
                 break
-            if len(messages['not-my']) > 0 and len(messages['my']) == 0:
-                delete_task(session, dialog)
+            reply_task = ReplyMessageTask.objects.filter(dialog_id=dialog["id"])
+            if len(messages['not-my']) > 0 and len(messages['my']) == 0 and len(reply_task) > 0:
+                reply_task.delete()
                 logger.info(f"Session={session}: Denied reply message task to {dialog['name']}")
                 await notify_user(session, f"Denied reply message task to {dialog['name']}")
                 break
-            logger.info("yo, here")
             has_price, price_msg = check_substring(messages['my'], deadline_msg_settings.trigger_substring)
             if has_price and len(price_msg) < 100:
                 if len(messages['not-my']) == 0:
