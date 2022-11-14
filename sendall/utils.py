@@ -242,21 +242,21 @@ def cut_message(msg, block_size=4096):
 
 
 def pre_serialize_tasks(tasks):
-        pre_serialize_task = lambda task: {
-            'uuid': task.uuid,
-            'session': {
-                'id': task.session.id,
-                'username': task.session.username,
-                'name': task.session.name,
-                'phone': task.session.phone,
-            },
-            'eta': task.eta,
-            'contacts': eval(task.contacts),
-            'message': task.message,
-            'markdown': task.markdown,
-            'done': task.done,
-        }
-        return list(map(pre_serialize_task, tasks))
+    pre_serialize_task = lambda task: {
+        'uuid': task.uuid,
+        'session': {
+            'id': task.session.id,
+            'username': task.session.username,
+            'name': task.session.name,
+            'phone': task.session.phone,
+        },
+        'eta': task.eta,
+        'contacts': eval(task.contacts),
+        'message': task.message,
+        'markdown': task.markdown,
+        'done': task.done,
+    }
+    return list(map(pre_serialize_task, tasks))
 
 
 async def _send_message(session, contacts, message, markdown, delay=5):
@@ -327,6 +327,7 @@ def check_substring(messages, substr):
         if re.search(substr, msg['text']):
             return True, msg
     return False, {}
+
 
 def get_client(session):
     return TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)

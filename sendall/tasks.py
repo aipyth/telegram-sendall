@@ -7,15 +7,16 @@ import asyncio
 import time
 from contextlib import contextmanager
 from django.core.cache import cache
-from .utils import _send_message, read_last_messages, check_substring, get_dialogs_and_user, get_dialogs
+from .utils import (_send_message, read_last_messages,
+                    check_substring, get_dialogs_and_user, get_dialogs)
 from telegram_sendall.celery import app as celery_app
-from .models import SendMessageTask, DeadlineMessageSettings, Session, ReplyMessageTask
+from .models import (SendMessageTask, DeadlineMessageSettings,
+                     Session, ReplyMessageTask)
 from .bot import notify_user
 import logging
 logger = logging.getLogger(__name__)
 
-check_period = timedelta(seconds=200)
-LOCK_EXPIRE = 60 * 10
+check_period = timedelta(seconds=5)
 
 celery_app.conf.beat_schedule = {
     'add-every-30-seconds': {
@@ -24,15 +25,24 @@ celery_app.conf.beat_schedule = {
     },
 }
 
+LOCK_EXPIRE = 60 * 10
+
 
 @contextmanager
 def memcache_lock(lock_id, oid):
     timeout_at = time.monotonic() + LOCK_EXPIRE - 3
-    status = cache.add(lock_id, oid, LOCK_EXPIRE)
+    # logger.info(f"{lock_id=} {oid=}")
+    # status = cache.add(lock_id, oid, LOCK_EXPIRE)
+    # logger.info(f"status {status}")
+    status = cache.get(lock_id)
+    if status is None:
+        cache.set(lock_id, oid)
+    available = status is None
+    logger.info(f"{available=}")
     try:
-        yield status
+        yield available
     finally:
-        if time.monotonic() < timeout_at and status:
+        if time.monotonic() < timeout_at and available:
             cache.delete(lock_id)
 
 
@@ -53,16 +63,26 @@ def send_message(self, session, contacts, message, markdown, delay=5):
     except ObjectDoesNotExist:
         pass
 
+
 @celery_app.task
 def check_new_messages():
-    try:
-        asyncio.run(_check_new_messages())
-    except AttributeError:
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(
-            _check_new_messages()
-        )
-        loop.close()
+    def run_task():
+        try:
+            asyncio.run(_check_new_messages())
+        except AttributeError:
+            loop = asyncio.new_event_loop()
+            loop.run_until_complete(
+                _check_new_messages()
+            )
+            loop.close()
+
+    lock_id = '{0}-lock'.format('check_new_messages')
+    with memcache_lock(lock_id, '1') as acquired:
+        if acquired:
+            logger.info('Acquired lock on check_new_messages')
+            return run_task()
+    logger.info('Task check_new_messages is already being executed')
+
 
 @celery_app.task
 def get_dialogs_task(session):
@@ -71,7 +91,8 @@ def get_dialogs_task(session):
 
 
 def create_or_update_task(session, dialog, start):
-    t = ReplyMessageTask.objects.filter(dialog_id=dialog['id'], session=session)
+    t = ReplyMessageTask.objects.filter(
+            dialog_id=dialog['id'], session=session)
     if len(t) == 0:
         ReplyMessageTask.objects.create(
             dialog_id=dialog['id'],
@@ -82,14 +103,18 @@ def create_or_update_task(session, dialog, start):
         t[0].start_time = start
         t[0].save()
 
+
 def in_blacklist(session, dialog):
     blacklist = session.get_blacklist()
     if len(blacklist) > 0:
         return dialog['id'] in list(map(lambda x: x['id'], blacklist))
     return False
 
+
 def is_worktime():
+    return True
     return timezone.now().hour >= 8 - 2 and timezone.now().hour <= 20 - 2
+
 
 def check_for_execution(session, dialogs, deadline_msg_settings):
     reply_notifications = []
@@ -102,15 +127,19 @@ def check_for_execution(session, dialogs, deadline_msg_settings):
             try:
                 dialog = next(dialog for dialog in dialogs if task.dialog_id == dialog['id'])
             except StopIteration:
-                return
-            send_message.delay(session.session, [dialog['id']], message, markdown=True)
-            logger.info(f"Session={session}: Sent reply message to {dialog['name']}, text {message}")
+                continue
+            send_message.delay(
+                    session.session, [dialog['id']], message, markdown=True)
+            logger.info(
+                    f"Session={session}: Sent reply message to {dialog['name']}, text {message}")
             task.delete()
             reply_notifications.append(f"Sent reply message to {dialog['name']}, text:\n{message}")
     return reply_notifications
 
 
 async def _check_new_messages():
+    MAX_TRIGGER_MESSAGE_LENGTH = 100
+
     for session in Session.objects.all():
         if not session.get_bot_settings()['active']:
             continue
@@ -129,18 +158,26 @@ async def _check_new_messages():
                 logger.info(f"Session={session}: Denied reply message task to {dialog['name']}")
                 await notify_user(session, f"Denied reply message task to {dialog['name']}")
                 break
-            has_price, price_msg = check_substring(messages['my'], deadline_msg_settings.trigger_substring)
-            if has_price and len(price_msg) < 100:
-                if len(messages['not-my']) == 0:
+
+            has_price, price_msg = check_substring(
+                    messages['my'], deadline_msg_settings.trigger_substring)
+
+            if not has_price or len(price_msg) > MAX_TRIGGER_MESSAGE_LENGTH:
+                break
+
+            if len(messages['not-my']) == 0:
+                create_or_update_task(session, dialog, price_msg['date'])
+                logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
+                await notify_user(
+                        session, f"Added reply message task to {dialog['name']}", dialog['id'])
+
+            for msg in messages['not-my']:
+                if msg['date'] < price_msg['date']:
                     create_or_update_task(session, dialog, price_msg['date'])
                     logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
-                    await notify_user(session, f"Added reply message task to {dialog['name']}", dialog['id'])
-                for msg in messages['not-my']:
-                    if msg['date'] < price_msg['date']:
-                        create_or_update_task(session, dialog, price_msg['date'])
-                        logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
-                        await notify_user(session, f"Added reply message task to {dialog['name']}", dialog['id'])
-                        break
+                    await notify_user(
+                            session, f"Added reply message task to {dialog['name']}", dialog['id'])
+                    break
         logger.info(f"Current tasks: {list(ReplyMessageTask.objects.filter(session=session))}")
         logger.info(f"Current hours: {timezone.now().hour + 2}")
         reply_notifications = check_for_execution(session, dialogs, deadline_msg_settings)

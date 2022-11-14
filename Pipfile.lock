@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9545c71480f48bbc6a48b0f390a50cbc7957a8789dbcaba4d2ac3549a09293e2"
+            "sha256": "d8d18345934f0eadf0bf57b154f844cca978443c5f45b862e4e2df965576bf62"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -52,7 +52,7 @@
                 "sha256:5a3d016c7c547f69d6f81fb0db9449ce888b418b5b9952cc5e6e66843e9dd845",
                 "sha256:83e9a75d1911279afd89352c68b45348559d1fc0506b054b346651b5e7fee29f"
             ],
-            "markers": "python_full_version >= '3.6.0'",
+            "markers": "python_version >= '3.6'",
             "version": "==2.1.1"
         },
         "dj-database-url": {
@@ -94,6 +94,21 @@
             ],
             "index": "pypi",
             "version": "==0.3.1"
+        },
+        "django-redis": {
+            "hashes": [
+                "sha256:1d037dc02b11ad7aa11f655d26dac3fb1af32630f61ef4428860a2e29ff92026",
+                "sha256:8a99e5582c79f894168f5865c52bd921213253b7fd64d16733ae4591564465de"
+            ],
+            "index": "pypi",
+            "version": "==5.2.0"
+        },
+        "django-redis-cache": {
+            "hashes": [
+                "sha256:a7fbef101a053d2e430bd3befe6a87e6e730f98e335b516f25f30b17d9fe66e3"
+            ],
+            "index": "pypi",
+            "version": "==3.0.1"
         },
         "django-widget-tweaks": {
             "hashes": [
@@ -386,7 +401,6 @@
                 "sha256:ea4947cc56d1fd6f2095c8d543ee25dad966f78692528e68b4fada11ba3f98af"
             ],
             "index": "pypi",
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.3.0"
         },
         "whitenoise": {

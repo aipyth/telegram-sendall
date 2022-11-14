@@ -69,7 +69,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'whitenoise.runserver_nostatic',
     'widget_tweaks',
-    'compressor',
+    # 'compressor',
     'sendall',
 ]
 
@@ -133,6 +133,19 @@ else:
         }
     }
 
+CACHES = {
+    'default': {
+        # 'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.environ.get('REDIS_URL'),
+        # 'OPTIONS': {
+        #     'db': '1',
+        #     'parser_class': 'redis.connection.PythonParser',
+        #     'pool_class': 'redis.BlockingConnectionPool',
+        # }
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -177,7 +190,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # other finders..
-    'compressor.finders.CompressorFinder',
+    # 'compressor.finders.CompressorFinder',
 )
 
 COMPRESS_ENABLED = True

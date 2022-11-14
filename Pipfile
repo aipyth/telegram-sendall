@@ -30,6 +30,8 @@ psycopg2-binary = "*"
 django-compressor = "*"
 requests = "*"
 celery = "*"
+django-redis = "*"
+django-redis-cache = "*"
 
 [requires]
 python_version = "3.10"

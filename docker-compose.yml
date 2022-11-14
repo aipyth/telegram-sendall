@@ -60,6 +60,7 @@ services:
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    env_file: .env
     command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:3005"
     # command: bash -c "python manage.py migrate && gunicorn telegram_sendall.wsgi --bind 0.0.0.0:8000"
 
@@ -107,6 +108,7 @@ services:
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    env_file: .env
     command: celery worker --app=telegram_sendall.celery.app --without-heartbeat --loglevel=INFO --concurrency=3
 
   beat:
@@ -130,6 +132,7 @@ services:
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    env_file: .env
     command: celery --app=telegram_sendall.celery.app beat
   
   bot:
@@ -147,12 +150,13 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: "postgres"
       POSTGRES_USER: postgres
-      DEBUG: 'True'
+      DEBUG: 'False'
       DISABLE_SSL: 'True'
 
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    env_file: .env
     command: bash -c "python manage.py bot"
   # nginx:
   #   build: ./nginx
