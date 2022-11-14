@@ -133,18 +133,18 @@ else:
         }
     }
 
-CACHES = {
-    'default': {
-        # 'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': os.environ.get('REDIS_URL'),
-        # 'OPTIONS': {
-        #     'db': '1',
-        #     'parser_class': 'redis.connection.PythonParser',
-        #     'pool_class': 'redis.BlockingConnectionPool',
-        # }
-    }
-}
+# CACHES = {
+#     'default': {
+#         # 'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': os.environ.get('REDIS_URL'),
+#         # 'OPTIONS': {
+#         #     'db': '1',
+#         #     'parser_class': 'redis.connection.PythonParser',
+#         #     'pool_class': 'redis.BlockingConnectionPool',
+#         # }
+#     }
+# }
 
 
 # Password validation
