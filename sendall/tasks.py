@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 import random
 import asyncio
 import time
+import os
 from contextlib import contextmanager
 from django.core.cache import cache
 from .utils import (_send_message, read_last_messages,
@@ -17,6 +18,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 check_period = timedelta(minutes=3, seconds=30)
+if os.environ.get('DEBUG') == 'True':
+    check_period = timedelta(seconds=45)
 
 celery_app.conf.beat_schedule = {
     'add-every-30-seconds': {
@@ -138,8 +141,9 @@ def check_for_execution(session, dialogs, deadline_msg_settings):
 
 async def _check_new_messages():
     MAX_TRIGGER_MESSAGE_LENGTH = 100
-    TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d+'
+    TRIGGER_MESSAGE_CONTAINS = ' \\d\\d\\d+'
 
+    # logger.info(Session.objects.all())
     for session in Session.objects.all():
         if not session.get_bot_settings()['active']:
             continue
@@ -171,7 +175,9 @@ async def _check_new_messages():
                 await notify_user(
                         session, f"Added reply message task to {dialog['name']}", dialog['id'])
 
+            # logger.info(messages)
             for msg in messages['not-my']:
+                # logger.info(msg['date'] < price_msg['date'])
                 if msg['date'] < price_msg['date']:
                     create_or_update_task(session, dialog, price_msg['date'])
                     logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
