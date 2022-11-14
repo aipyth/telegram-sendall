@@ -11,7 +11,6 @@
     <title>Sendall</title>
     {% endif %}
 
-    {% load compress %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
 
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,700&display=swap&subset=cyrillic-ext" rel="stylesheet">
@@ -22,11 +21,9 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.0-alpha14/css/tempusdominus-bootstrap-4.min.css" />
     
-    {% compress css file base %}
     <link href="{% static 'sendall/css/fa.css' %}" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'sendall/css/style.css' %}">
-    {% endcompress %}
 </head>
 <body>
     {% block nav %}

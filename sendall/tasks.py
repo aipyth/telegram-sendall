@@ -16,7 +16,7 @@ from .bot import notify_user
 import logging
 logger = logging.getLogger(__name__)
 
-check_period = timedelta(seconds=5)
+check_period = timedelta(minutes=3, seconds=30)
 
 celery_app.conf.beat_schedule = {
     'add-every-30-seconds': {
@@ -112,7 +112,6 @@ def in_blacklist(session, dialog):
 
 
 def is_worktime():
-    return True
     return timezone.now().hour >= 8 - 2 and timezone.now().hour <= 20 - 2
 
 
@@ -139,6 +138,7 @@ def check_for_execution(session, dialogs, deadline_msg_settings):
 
 async def _check_new_messages():
     MAX_TRIGGER_MESSAGE_LENGTH = 100
+    TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d+'
 
     for session in Session.objects.all():
         if not session.get_bot_settings()['active']:
@@ -160,7 +160,7 @@ async def _check_new_messages():
                 break
 
             has_price, price_msg = check_substring(
-                    messages['my'], deadline_msg_settings.trigger_substring)
+                    messages['my'], TRIGGER_MESSAGE_CONTAINS)
 
             if not has_price or len(price_msg) > MAX_TRIGGER_MESSAGE_LENGTH:
                 break
