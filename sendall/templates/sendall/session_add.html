@@ -55,10 +55,7 @@
 {% endblock %}
 
 {% block js %}
-{% load compress %}
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-{% compress js file base %}
 <script src="{% static 'sendall/js/axios.min.js' %}"></script>
 <script src="{% static 'sendall/js/session_add_compiled.js' %}"></script>
-{% endcompress %}
 {% endblock %}
