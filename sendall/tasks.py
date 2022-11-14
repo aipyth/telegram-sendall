@@ -38,7 +38,7 @@ def memcache_lock(lock_id, oid):
     if status is None:
         cache.set(lock_id, oid)
     available = status is None
-    logger.info(f"{available=}")
+    # logger.info(f"{available=}")
     try:
         yield available
     finally:
