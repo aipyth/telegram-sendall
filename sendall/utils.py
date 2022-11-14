@@ -303,6 +303,7 @@ def gen_string_session(server_address: str, dc_id: int, port: int, key: bytes) -
 
 async def read_last_messages(client, entity):
     list_messages = {'my': [], 'not-my': []}
+    client_id = (await client.get_me()).id
     key = f'{(await client.get_me()).id}-{entity.id}'
     logger.info(key)
     lastcheck = cache.get(key)
@@ -315,13 +316,13 @@ async def read_last_messages(client, entity):
 
     last_checked_date = datetime.now()
     async for msg in client.iter_messages(entity):
-        logger.info(lastcheck)
+        # logger.info(lastcheck)
         # logger.info(msg.date < lastcheck)
         if lastcheck and msg.date <= lastcheck.replace(tzinfo=pytz.UTC):
             break
         if msg.message != '':
             logger.info(msg)
-            if msg.from_id is not None:
+            if msg.from_id is not None and msg.from_id.user_id == client_id:
                 last_checked_date = msg.date
                 list_messages['my'].append({'text': msg.message, 'date': msg.date})
             else:
