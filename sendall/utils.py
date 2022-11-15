@@ -316,8 +316,6 @@ async def read_last_messages(client, entity):
 
     last_checked_date = datetime.now()
     async for msg in client.iter_messages(entity):
-        # logger.info(lastcheck)
-        # logger.info(msg.date < lastcheck)
         if lastcheck and msg.date <= lastcheck.replace(tzinfo=pytz.UTC):
             break
         if msg.message != '':
@@ -328,7 +326,7 @@ async def read_last_messages(client, entity):
             else:
                 last_checked_date = msg.date
                 list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
-                break
+                # break
 
     set_lastcheck(last_checked_date)
     return list_messages
