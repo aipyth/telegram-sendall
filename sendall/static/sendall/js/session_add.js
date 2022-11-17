@@ -1,5 +1,5 @@
-const { getSRPParams } = require('@mtproto/core/envs/browser');
-const { MTProto } = require('@mtproto/core/envs/browser');
+const { getSRPParams } = require('@mtproto/core');
+const { MTProto } = require('@mtproto/core');
 const { tempLocalStorage } = require('@mtproto/core/src/storage/temp');
 const delay = require('delay')
 const { sleep } = require('@mtproto/core/src/utils/common');
@@ -11,11 +11,11 @@ axios.defaults.headers.common['is_ajax'] = true;
 var api;
 var MTproto;
 
-// (async () => {
-//
-// })
+(async () => {
 
-  function MtprotoInit() {
+})
+
+ function MtprotoInit() {
     axios.get('/get_app_id_and_hash/')
     .then(response => {
         const api_id = response.data.id
