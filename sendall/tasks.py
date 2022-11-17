@@ -143,20 +143,17 @@ async def _check_new_messages():
     MAX_TRIGGER_MESSAGE_LENGTH = 100
     TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d+'
 
-    logger.info(Session.objects.all())
     for session in Session.objects.all():
         logger.info(f"session={session}; {session.get_bot_settings()}")
         if not session.get_bot_settings()['active']:
             continue
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
         dialogs, client = await get_dialogs_and_user(session)
-        logger.info(dialogs)
         for dialog in dialogs:
             if in_blacklist(session, dialog):
                 logger.info(f'skipping as in blacklist {dialog}')
                 continue
             entity = await client.get_entity(dialog['id'])
-            logger.info("I am here")
             messages = await read_last_messages(client, entity)
             logger.info(f'{dialog["id"]} {messages}')
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:

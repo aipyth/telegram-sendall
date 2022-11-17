@@ -1,5 +1,5 @@
 import asyncio
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import logging
 import time
 import pytz
@@ -309,26 +309,29 @@ async def read_last_messages(client, entity):
     lastcheck = cache.get(key)
     if lastcheck is not None:
         lastcheck = datetime.fromisoformat(lastcheck)
+    else:
+        lastcheck = datetime.now() - timedelta(minutes=3)
+
+    logger.info(f"Current lastcheck for dialog {entity.name} is {lastcheck}")
 
     def set_lastcheck(d):
         logger.info(f"setting to {d.isoformat()}")
         cache.set(key, d.isoformat(), timeout=None)
 
-    last_checked_date = datetime.now()
+    # last_checked_date = datetime.now()
     async for msg in client.iter_messages(entity):
-        if lastcheck and msg.date <= lastcheck.replace(tzinfo=pytz.UTC):
+        if msg.date <= lastcheck.replace(tzinfo=pytz.UTC):
             break
         if msg.message != '':
-            logger.info(msg)
             if msg.from_id is not None and msg.from_id.user_id == client_id:
-                last_checked_date = msg.date
+                # last_checked_date = msg.date
                 list_messages['my'].append({'text': msg.message, 'date': msg.date})
             else:
-                last_checked_date = msg.date
+                # last_checked_date = msg.date
                 list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
                 # break
 
-    set_lastcheck(last_checked_date)
+    set_lastcheck(datetime.now())
     return list_messages
 
 
