@@ -312,7 +312,7 @@ async def read_last_messages(client, entity):
     else:
         lastcheck = datetime.now() - timedelta(minutes=3)
 
-    logger.info(f"Current lastcheck for dialog {entity.name} is {lastcheck}")
+    logger.info(f"Current lastcheck for dialog {entity.first_name} is {lastcheck}")
 
     def set_lastcheck(d):
         logger.info(f"setting to {d.isoformat()}")
