@@ -95,7 +95,7 @@ def get_dialogs_task(session):
 
 def create_or_update_task(session, dialog, start):
     t = ReplyMessageTask.objects.filter(
-            dialog_id=dialog['id'], session=session)
+        dialog_id=dialog['id'], session=session)
     if len(t) == 0:
         ReplyMessageTask.objects.create(
             dialog_id=dialog['id'],
@@ -131,9 +131,9 @@ def check_for_execution(session, dialogs, deadline_msg_settings):
             except StopIteration:
                 continue
             send_message.delay(
-                    session.session, [dialog['id']], message, markdown=True)
+                session.session, [dialog['id']], message, markdown=True)
             logger.info(
-                    f"Session={session}: Sent reply message to {dialog['name']}, text {message}")
+                f"Session={session}: Sent reply message to {dialog['name']}, text {message}")
             task.delete()
             reply_notifications.append(f"Sent reply message to {dialog['name']}, text:\n{message}")
     return reply_notifications
@@ -145,7 +145,7 @@ async def _check_new_messages():
 
     logger.info(Session.objects.all())
     for session in Session.objects.all():
-        logger.info(session.get_bot_settings())
+        logger.info(f"session={session}; {session.get_bot_settings()}")
         if not session.get_bot_settings()['active']:
             continue
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
@@ -156,6 +156,7 @@ async def _check_new_messages():
                 logger.info(f'skipping as in blacklist {dialog}')
                 continue
             entity = await client.get_entity(dialog['id'])
+            logger.info("I am here")
             messages = await read_last_messages(client, entity)
             logger.info(f'{dialog["id"]} {messages}')
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
@@ -168,7 +169,7 @@ async def _check_new_messages():
                 break
 
             has_price, price_msg = check_substring(
-                    messages['my'], TRIGGER_MESSAGE_CONTAINS)
+                messages['my'], TRIGGER_MESSAGE_CONTAINS)
             logger.info(f'{has_price} {price_msg}')
 
             if not has_price or len(price_msg) > MAX_TRIGGER_MESSAGE_LENGTH:
@@ -178,7 +179,7 @@ async def _check_new_messages():
                 create_or_update_task(session, dialog, price_msg['date'])
                 logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
                 await notify_user(
-                        session, f"Added reply message task to {dialog['name']}", dialog['id'])
+                    session, f"Added reply message task to {dialog['name']}", dialog['id'])
 
             # logger.info(messages)
             for msg in messages['not-my']:
@@ -187,7 +188,7 @@ async def _check_new_messages():
                     create_or_update_task(session, dialog, price_msg['date'])
                     logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
                     await notify_user(
-                            session, f"Added reply message task to {dialog['name']}", dialog['id'])
+                        session, f"Added reply message task to {dialog['name']}", dialog['id'])
                     break
         logger.info(f"Current tasks: {list(ReplyMessageTask.objects.filter(session=session))}")
         logger.info(f"Current hours: {timezone.now().hour + 2}")
