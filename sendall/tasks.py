@@ -121,7 +121,7 @@ def is_worktime():
 def check_for_execution(session, dialogs, deadline_msg_settings):
     reply_notifications = []
     for task in ReplyMessageTask.objects.filter(session=session):
-        if (timezone.now() - task.start_time) >= timedelta(minutes=deadline_msg_settings.deadline_time) and is_worktime():
+        if (timezone.now() - task.start_time) >= timedelta(minutes=deadline_msg_settings.deadline_time):
             msgs = deadline_msg_settings.get_messages()
             if len(msgs) == 0:
                 break
@@ -167,10 +167,11 @@ async def _check_new_messages():
 
             has_price, price_msg = check_substring(
                 messages['my'], TRIGGER_MESSAGE_CONTAINS)
-            logger.info(f'{has_price} {price_msg}')
 
             if not has_price or len(price_msg) > MAX_TRIGGER_MESSAGE_LENGTH:
                 break
+
+            logger.info("Gor price message")
 
             if len(messages['not-my']) == 0:
                 create_or_update_task(session, dialog, price_msg['date'])
@@ -188,7 +189,8 @@ async def _check_new_messages():
                         session, f"Added reply message task to {dialog['name']}", dialog['id'])
                     break
         logger.info(f"Current tasks: {list(ReplyMessageTask.objects.filter(session=session))}")
-        logger.info(f"Current hours: {timezone.now().hour + 2}")
+        logger.info(f"Current hours: {(timezone.now().hour + 2) % 24}")
         reply_notifications = check_for_execution(session, dialogs, deadline_msg_settings)
+        logger.info(reply_notifications)
         if len(reply_notifications) > 0:
             await notify_user(session, '\n'.join(reply_notifications))
