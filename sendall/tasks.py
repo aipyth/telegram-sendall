@@ -150,7 +150,7 @@ async def _check_new_messages():
             continue
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
         dialogs, client = await get_dialogs_and_user(session)
-        # logger.info(dialogs)
+        logger.info(dialogs)
         for dialog in dialogs:
             if in_blacklist(session, dialog):
                 logger.info(f'skipping as in blacklist {dialog}')

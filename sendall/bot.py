@@ -56,6 +56,7 @@ async def start(event):
     try:
         s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         s.set_bot_settings({'active': True, 'silent': False})
+        logger.info("New bot settings")
         text = """
 Message replying service has been started. You'll get notifications, when the bot will start task
 Bot commands:
