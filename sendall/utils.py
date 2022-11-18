@@ -326,7 +326,7 @@ async def read_last_messages(client, entity):
         else:
             return
         logger.info(f"setting to {last_msg['date']}")
-        cache.set(key, last_msg['date'], timeout=None)
+        cache.set(key, last_msg['date'].isoformat(), timeout=None)
 
     # last_checked_date = datetime.now()
     async for msg in client.iter_messages(entity):
