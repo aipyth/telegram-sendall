@@ -193,4 +193,4 @@ async def _check_new_messages():
         if len(reply_notifications) > 0:
             logger.info(f"Session={session}: {reply_notifications}")
             # await notify_user(session, '\n'.join(reply_notifications))
-        asyncio.sleep(10)
+        await asyncio.sleep(10)
