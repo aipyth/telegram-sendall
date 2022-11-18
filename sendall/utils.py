@@ -311,8 +311,10 @@ async def read_last_messages(client, entity):
         lastcheck = datetime.fromisoformat(lastcheck)
     else:
         lastcheck = datetime.now() - timedelta(minutes=3)
-
-    logger.info(f"Current lastcheck for dialog {entity.first_name} is {lastcheck}")
+    try:
+        logger.info(f"Current lastcheck for dialog {entity.first_name} is {lastcheck}")
+    except AttributeError:
+        pass
 
     def set_lastcheck(d):
         logger.info(f"setting to {d.isoformat()}")
