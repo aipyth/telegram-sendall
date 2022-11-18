@@ -130,10 +130,8 @@ def check_for_execution(session, dialogs, deadline_msg_settings):
                 dialog = next(dialog for dialog in dialogs if task.dialog_id == dialog['id'])
             except StopIteration:
                 continue
-            send_message.delay(
-                session.session, [dialog['id']], message, markdown=True)
-            logger.info(
-                f"Session={session}: Sent reply message to {dialog['name']}, text {message}")
+            # send_message.delay(
+            #     session.session, [dialog['id']], message, markdown=True)
             task.delete()
             reply_notifications.append(f"Sent reply message to {dialog['name']}, text:\n{message}")
     return reply_notifications
@@ -162,7 +160,7 @@ async def _check_new_messages():
             if len(messages['not-my']) > 0 and len(reply_task) > 0:
                 reply_task.delete()
                 logger.info(f"Session={session}: Denied reply message task to {dialog['name']}")
-                await notify_user(session, f"Denied reply message task to {dialog['name']}")
+                # await notify_user(session, f"Denied reply message task to {dialog['name']}")
                 break
 
             has_price, price_msg = check_substring(
@@ -176,8 +174,8 @@ async def _check_new_messages():
             if len(messages['not-my']) == 0:
                 create_or_update_task(session, dialog, price_msg['date'])
                 logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
-                await notify_user(
-                    session, f"Added reply message task to {dialog['name']}", dialog['id'])
+                # await notify_user(
+                #     session, f"Added reply message task to {dialog['name']}", dialog['id'])
 
             # logger.info(messages)
             for msg in messages['not-my']:
@@ -185,12 +183,13 @@ async def _check_new_messages():
                 if msg['date'] < price_msg['date']:
                     create_or_update_task(session, dialog, price_msg['date'])
                     logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
-                    await notify_user(
-                        session, f"Added reply message task to {dialog['name']}", dialog['id'])
+                    # await notify_user(
+                    #     session, f"Added reply message task to {dialog['name']}", dialog['id'])
                     break
         logger.info(f"Current tasks: {list(ReplyMessageTask.objects.filter(session=session))}")
         logger.info(f"Current hours: {(timezone.now().hour + 2) % 24}")
         reply_notifications = check_for_execution(session, dialogs, deadline_msg_settings)
         logger.info(reply_notifications)
         if len(reply_notifications) > 0:
-            await notify_user(session, '\n'.join(reply_notifications))
+            logger.info(f"Session={session}: {reply_notifications}")
+            # await notify_user(session, '\n'.join(reply_notifications))
