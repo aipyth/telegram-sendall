@@ -121,7 +121,7 @@ def is_worktime():
 def check_for_execution(session, dialogs, deadline_msg_settings):
     reply_notifications = []
     for task in ReplyMessageTask.objects.filter(session=session):
-        if (timezone.now() - task.start_time) >= timedelta(minutes=deadline_msg_settings.deadline_time):
+        if (timezone.now() - task.start_time) >= timedelta(minutes=deadline_msg_settings.deadline_time) and is_worktime():
             msgs = deadline_msg_settings.get_messages()
             if len(msgs) == 0:
                 break
