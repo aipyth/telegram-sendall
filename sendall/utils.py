@@ -306,11 +306,11 @@ async def read_last_messages(client, entity):
     client_id = (await client.get_me()).id
     key = f'{(await client.get_me()).id}-{entity.id}'
     logger.info(key)
-    # lastcheck = cache.get(key)
-    # if lastcheck is not None:
-    #     lastcheck = datetime.fromisoformat(lastcheck)
-    # else:
-    lastcheck = datetime.now() - timedelta(minutes=3)
+    lastcheck = cache.get(key)
+    if type(lastcheck) == str:
+        lastcheck = datetime.fromisoformat(lastcheck)
+    else:
+        lastcheck = datetime.now() - timedelta(minutes=3)
     try:
         logger.info(f"Current lastcheck for dialog {entity.first_name} is {lastcheck}")
     except AttributeError:
