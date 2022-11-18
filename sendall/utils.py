@@ -320,7 +320,7 @@ async def read_last_messages(client, entity):
         if len(messages['my']) > 0:
             last_msg = messages['my'][0]
             if len(messages['not-my']) > 0 and messages['my'][0]['date'] < messages['not-my'][0]['date']:
-                last_msg = messages['not-my'][0]['date']
+                last_msg = messages['not-my'][0]
         elif len(messages['not-my']) > 0:
             last_msg = messages['not-my'][0]
         else:
