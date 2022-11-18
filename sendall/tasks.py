@@ -186,8 +186,8 @@ async def _check_new_messages():
                     # await notify_user(
                     #     session, f"Added reply message task to {dialog['name']}", dialog['id'])
                     break
-        logger.info(f"Current tasks: {list(ReplyMessageTask.objects.filter(session=session))}")
-        logger.info(f"Current hours: {(timezone.now().hour + 2) % 24}")
+        logger.info(f"Current tasks for Session={session}: {list(ReplyMessageTask.objects.filter(session=session))}")
+        # logger.info(f"Current hours: {(timezone.now().hour + 2) % 24}")
         reply_notifications = check_for_execution(session, dialogs, deadline_msg_settings)
         logger.info(reply_notifications)
         if len(reply_notifications) > 0:
