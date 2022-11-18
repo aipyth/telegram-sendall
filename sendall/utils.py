@@ -304,17 +304,14 @@ def gen_string_session(server_address: str, dc_id: int, port: int, key: bytes) -
 async def read_last_messages(client, entity):
     list_messages = {'my': [], 'not-my': []}
     client_id = (await client.get_me()).id
-    key = f'{(await client.get_me()).id}-{entity.id}'
+    key = f'{client_id}'
     logger.info(key)
     lastcheck = cache.get(key)
     if type(lastcheck) == str:
         lastcheck = datetime.fromisoformat(lastcheck)
     else:
-        lastcheck = datetime.now() - timedelta(minutes=3)
-    try:
-        logger.info(f"Current lastcheck for dialog {entity.first_name} is {lastcheck}")
-    except AttributeError:
-        pass
+        lastcheck = datetime.now(pytz.UTC)
+    logger.info(f"Current lastcheck is {lastcheck}")
 
     def set_lastcheck(messages):
         if len(messages['my']) > 0:
@@ -325,21 +322,21 @@ async def read_last_messages(client, entity):
             last_msg = messages['not-my'][0]
         else:
             return
-        logger.info(f"setting to {last_msg['date']}")
-        cache.set(key, last_msg['date'].isoformat(), timeout=None)
+        logger.info(f"setting lastcheck to {last_msg['date']}")
+        cache.set(key, last_msg['date'].astimezone(pytz.UTC).isoformat(), timeout=None)
 
-    # last_checked_date = datetime.now()
+    # i = 0
     async for msg in client.iter_messages(entity):
-        if msg.date <= lastcheck.replace(tzinfo=pytz.UTC):
+        # if i == 0 and lastcheck is None:
+        #     lastcheck = msg.date - timedelta(minutes=3)
+        #     i += 1
+        if msg.date.astimezone(pytz.UTC) <= lastcheck.astimezone(pytz.UTC):
             break
         if msg.message != '':
             if msg.from_id is not None and msg.from_id.user_id == client_id:
-                # last_checked_date = msg.date
                 list_messages['my'].append({'text': msg.message, 'date': msg.date})
             else:
-                # last_checked_date = msg.date
                 list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
-                # break
 
     set_lastcheck(list_messages)
     return list_messages
