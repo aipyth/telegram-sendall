@@ -316,9 +316,17 @@ async def read_last_messages(client, entity):
     except AttributeError:
         pass
 
-    def set_lastcheck(d):
-        logger.info(f"setting to {d.isoformat()}")
-        cache.set(key, d.isoformat(), timeout=None)
+    def set_lastcheck(messages):
+        if len(messages['my']) > 0:
+            last_msg = messages['my'][0]
+            if len(messages['not-my']) > 0 and messages['my'][0] < messages['not-my'][0]:
+                last_msg = messages['not-my'][0]
+        elif len(messages['not-my']) > 0:
+            last_msg = messages['not-my'][0]
+        else:
+            return
+        logger.info(f"setting to {last_msg['date'].isoformat()}")
+        cache.set(key, last_msg['date'].isoformat(), timeout=None)
 
     # last_checked_date = datetime.now()
     async for msg in client.iter_messages(entity):
@@ -333,7 +341,7 @@ async def read_last_messages(client, entity):
                 list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
                 # break
 
-    set_lastcheck(datetime.now())
+    set_lastcheck(list_messages)
     return list_messages
 
 
