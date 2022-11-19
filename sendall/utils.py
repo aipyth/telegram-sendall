@@ -342,6 +342,15 @@ async def read_last_messages(client, entity):
             else:
                 list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
 
+    logger.info(f"messages in {entity.id}")
+    i = 0
+    async for msg in client.iter_messages(entity):
+        logger.info(msg.message)
+        logger.info(f"Date: {msg.date}")
+        i += 1
+        if i == 5:
+            break
+
     set_lastcheck(list_messages)
     return list_messages
 
