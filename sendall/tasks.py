@@ -143,6 +143,7 @@ async def _check_new_messages():
     TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d+'
 
     for session in Session.objects.all():
+        logger.info(session.get_bot_settings()['active'])
         if not session.get_bot_settings()['active']:
             continue
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
