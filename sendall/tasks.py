@@ -143,7 +143,8 @@ async def _check_new_messages():
     TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d+'
 
     for session in Session.objects.all():
-        logger.info(session.get_bot_settings()['active'])
+        logger.info(session.name)
+        logger.info(f"Session={session}; session.get_bot_settings()")
         if not session.get_bot_settings()['active']:
             continue
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
@@ -194,4 +195,3 @@ async def _check_new_messages():
         if len(reply_notifications) > 0:
             logger.info(f"Session={session}: {reply_notifications}")
             await notify_user(session, '\n'.join(reply_notifications))
-        await asyncio.sleep(10)
