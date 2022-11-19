@@ -150,6 +150,7 @@ async def _check_new_messages():
             continue
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
         dialogs, client = await get_dialogs_and_user(session)
+        i = 0
         for dialog in dialogs:
             if in_blacklist(session, dialog):
                 logger.info(f'skipping as in blacklist {dialog}')
@@ -158,7 +159,10 @@ async def _check_new_messages():
             messages = await read_last_messages(client, entity)
             logger.info(f'{dialog["id"]} {messages}')
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
-                break
+                if i <= 11:
+                    continue
+                else:
+                    break
             reply_task = ReplyMessageTask.objects.filter(dialog_id=dialog["id"])
             if len(messages['not-my']) > 0 and len(reply_task) > 0:
                 reply_task.delete()
