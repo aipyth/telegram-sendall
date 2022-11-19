@@ -160,6 +160,7 @@ async def _check_new_messages():
             logger.info(f'{dialog["id"]} {messages}')
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
                 if i <= 11:
+                    i += 1
                     continue
                 else:
                     break
