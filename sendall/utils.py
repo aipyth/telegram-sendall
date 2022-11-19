@@ -322,7 +322,7 @@ async def read_last_messages(client, entity):
             last_msg = messages['not-my'][0]
         else:
             return
-        logger.info(f"Setting lastcheck to {last_msg['date']}")
+        logger.info(f"Setting lastcheck to {last_msg['date'].astimezone(pytz.UTC)}")
         try:
             logger.info(entity.first_name)
         except AttributeError:
