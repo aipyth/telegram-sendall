@@ -143,7 +143,7 @@ async def _check_new_messages():
     TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d+'
 
     for session in Session.objects.all():
-        if session.name == "Виталий Дейнега":
+        if session.name == "Ivan ":
             session.set_bot_settings({'active': True, 'silent': False})
         logger.info(f"Session={session}; {session.get_bot_settings()}")
         if not session.get_bot_settings()['active']:
