@@ -342,7 +342,7 @@ async def read_last_messages(client, entity):
             else:
                 list_messages['not-my'].append({'text': msg.message, 'date': msg.date})
 
-    logger.info(f"messages in {entity.id}")
+    logger.info(f"messages in {entity.first_name}")
     i = 0
     async for msg in client.iter_messages(entity):
         logger.info(msg.message)
