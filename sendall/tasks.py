@@ -131,8 +131,8 @@ def check_for_execution(session, dialogs, deadline_msg_settings):
                 dialog = next(dialog for dialog in dialogs if task.dialog_id == dialog['id'])
             except StopIteration:
                 continue
-            send_message.delay(
-                session.session, [dialog['id']], message, markdown=True)
+            # send_message.delay(
+            #     session.session, [dialog['id']], message, markdown=True)
             task.delete()
             reply_notifications.append(f"Sent reply message to {dialog['name']}, text:\n{message}")
     return reply_notifications
@@ -143,7 +143,8 @@ async def _check_new_messages():
     TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d+'
 
     for session in Session.objects.all():
-        logger.info(session.name)
+        if session.name == "Виталий Дейнега":
+            session.set_bot_settings({'active': True, 'silent': False})
         logger.info(f"Session={session}; session.get_bot_settings()")
         if not session.get_bot_settings()['active']:
             continue
