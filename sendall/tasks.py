@@ -1,4 +1,5 @@
 from __future__ import absolute_import, unicode_literals
+import pytz
 from datetime import timedelta
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
@@ -121,7 +122,7 @@ def is_worktime():
 def check_for_execution(session, dialogs, deadline_msg_settings):
     reply_notifications = []
     for task in ReplyMessageTask.objects.filter(session=session):
-        if (timezone.now() - task.start_time) >= timedelta(minutes=deadline_msg_settings.deadline_time) and is_worktime():
+        if (timezone.now().astimezone(pytz.UTC) - task.start_time.astimezone(pytz.UTC)) >= timedelta(minutes=deadline_msg_settings.deadline_time) and is_worktime():
             msgs = deadline_msg_settings.get_messages()
             if len(msgs) == 0:
                 break
@@ -171,7 +172,7 @@ async def _check_new_messages():
             logger.info("Gor price message")
 
             if len(messages['not-my']) == 0:
-                create_or_update_task(session, dialog, price_msg['date'])
+                create_or_update_task(session, dialog, price_msg['date'].astimezone(pytz.UTC))
                 logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
                 await notify_user(
                     session, f"Added reply message task to {dialog['name']}", dialog['id'])
@@ -180,7 +181,7 @@ async def _check_new_messages():
             for msg in messages['not-my']:
                 # logger.info(msg['date'] < price_msg['date'])
                 if msg['date'] < price_msg['date']:
-                    create_or_update_task(session, dialog, price_msg['date'])
+                    create_or_update_task(session, dialog, price_msg['date'].astimezone(pytz.UTC))
                     logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
                     await notify_user(
                         session, f"Added reply message task to {dialog['name']}", dialog['id'])

@@ -358,7 +358,6 @@ async def get_dialogs_and_user(session):
 def check_substring(messages, substr):
     messages.reverse()
     for msg in messages:
-        logger.info(msg)
         if re.search(substr, msg['text']):
             return True, msg
     return False, {}
