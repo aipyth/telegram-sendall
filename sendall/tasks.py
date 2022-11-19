@@ -157,7 +157,7 @@ async def _check_new_messages():
                 continue
             entity = await client.get_entity(dialog['id'])
             messages = await read_last_messages(client, entity)
-            logger.info(f'{dialog["id"]} {messages}')
+            logger.info(f'Checked {entity.first_name if hasattr(entity, "first_name") else entity.title}')
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
                 if i <= 11:
                     i += 1
@@ -195,7 +195,6 @@ async def _check_new_messages():
                         session, f"Added reply message task to {dialog['name']}", dialog['id'])
                     break
         logger.info(f"Current tasks for Session={session}: {list(ReplyMessageTask.objects.filter(session=session))}")
-        # logger.info(f"Current hours: {(timezone.now().hour + 2) % 24}")
         reply_notifications = check_for_execution(session, dialogs, deadline_msg_settings)
         logger.info(reply_notifications)
         if len(reply_notifications) > 0:
