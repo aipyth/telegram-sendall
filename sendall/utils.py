@@ -331,11 +331,7 @@ async def read_last_messages(client, entity):
             pass
         cache.set(key, last_msg['date'].astimezone(pytz.UTC).isoformat(), timeout=None)
 
-    # i = 0
     async for msg in client.iter_messages(entity):
-        # if i == 0 and lastcheck is None:
-        #     lastcheck = msg.date - timedelta(minutes=3)
-        #     i += 1
         if msg.date.astimezone(pytz.UTC) <= lastcheck.astimezone(pytz.UTC):
             break
         if msg.message != '':

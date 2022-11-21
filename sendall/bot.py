@@ -1,8 +1,11 @@
 import asyncio
 import requests
+import pytz
+from datetime import datetime
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.cache import cache
 # from telethon.tl.types import PeerChat
 from .models import Session, ReplyMessageTask, DeadlineMessageSettings
 from django.conf import settings
@@ -56,7 +59,10 @@ async def start(event):
     try:
         s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         s.set_bot_settings({'active': True, 'silent': False})
-        logger.info("New bot settings")
+        keys = cache.keys(f"{sender.id}-*")
+        logger.info(keys)
+        for key in keys:
+            cache.set(key, datetime.now().astimezone(pytz.UTC), timeout=None)
         text = """
 Message replying service has been started. You'll get notifications, when the bot will start task
 Bot commands:
