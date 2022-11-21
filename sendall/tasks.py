@@ -18,7 +18,7 @@ from .bot import notify_user
 import logging
 logger = logging.getLogger(__name__)
 
-check_period = timedelta(minutes=3, seconds=30)
+check_period = timedelta(minutes=1, seconds=30)
 if os.environ.get('DEBUG') == 'True':
     check_period = timedelta(seconds=45)
 
@@ -143,8 +143,6 @@ async def _check_new_messages():
     TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d+'
 
     for session in Session.objects.all():
-        if session.name == "Виталий Дейнега":
-            session.set_bot_settings({'active': True, 'silent': False})
         logger.info(f"Session={session}; {session.get_bot_settings()}")
         if not session.get_bot_settings()['active']:
             continue
@@ -154,7 +152,6 @@ async def _check_new_messages():
         logger.info(names)
         i = 0
         for dialog in dialogs:
-            logger.info(i)
             if in_blacklist(session, dialog):
                 logger.info(f'skipping as in blacklist {dialog}')
                 continue

@@ -20,8 +20,7 @@ from telethon.errors import (FloodWaitError, PasswordHashInvalidError,
 from telethon.sessions import StringSession
 from telethon.tl.types import PeerUser
 from telethon.sessions import string as str_session
-
-from django.core.cache import cache
+from tasks import check_period
 
 logger = logging.getLogger(__name__)
 
@@ -305,15 +304,12 @@ async def read_last_messages(client, entity):
     list_messages = {'my': [], 'not-my': []}
     client_id = (await client.get_me()).id
     key = f'{client_id}-{entity.id}'
-    # logger.info(key)
     lastcheck = cache.get(key)
     logger.info(f"Last checked at {lastcheck}")
-    if type(lastcheck) == str:
+    if lastcheck is not None:
         lastcheck = datetime.fromisoformat(lastcheck)
-        if lastcheck > datetime.now(pytz.UTC) - timedelta(hours=1):
-            lastcheck = datetime.now(pytz.UTC) - timedelta(minutes=3, seconds=30)
     else:
-        lastcheck = datetime.now(pytz.UTC) - timedelta(minutes=3, seconds=30)
+        lastcheck = datetime.now(pytz.UTC) - check_period
 
     def set_lastcheck(messages):
         if len(messages['my']) > 0:
