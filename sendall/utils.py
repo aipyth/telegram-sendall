@@ -307,13 +307,11 @@ async def read_last_messages(client, entity):
     key = f'{client_id}-{entity.id}'
     # logger.info(key)
     lastcheck = cache.get(key)
-    if type(lastcheck) == str:
+    logger.info(f"Last checked at {lastcheck}")
+    if type(lastcheck) == str and lastcheck > datetime.now(pytz.UTC) - timedelta(hours=1):
         lastcheck = datetime.fromisoformat(lastcheck)
     else:
         lastcheck = datetime.now(pytz.UTC) - timedelta(minutes=3, seconds=30)
-    if lastcheck < datetime.now(pytz.UTC) - timedelta(hours=1):
-        lastcheck = datetime.now(pytz.UTC) - timedelta(minutes=3, seconds=30)
-    logger.info(f"Last checked at {lastcheck}")
 
     def set_lastcheck(messages):
         if len(messages['my']) > 0:
