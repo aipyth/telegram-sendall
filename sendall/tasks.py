@@ -150,6 +150,8 @@ async def _check_new_messages():
             continue
         deadline_msg_settings, _ = DeadlineMessageSettings.objects.get_or_create(session=session)
         dialogs, client = await get_dialogs_and_user(session)
+        names = list(map(lambda x: x['name'], dialogs))[:12]
+        logger.info(names)
         i = 0
         for dialog in dialogs:
             logger.info(i)
