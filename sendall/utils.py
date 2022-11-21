@@ -306,6 +306,7 @@ async def read_last_messages(client, entity):
     lastcheck = cache.get(key)
     check_period = cache.get('check_period')
     logger.info(f"Last checked at {lastcheck}")
+    logger.info(lastcheck)
     if lastcheck is not None:
         lastcheck = datetime.fromisoformat(lastcheck)
     else:
