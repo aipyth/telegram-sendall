@@ -1,4 +1,5 @@
 import asyncio
+import requests
 from datetime import date, datetime, timedelta
 import logging
 import time
@@ -359,3 +360,37 @@ def check_substring(messages, substr):
 
 def get_client(session):
     return TelegramClient(StringSession(session), settings.API_ID, settings.API_HASH)
+
+
+async def _get_user(session):
+    client = TelegramClient(StringSession(session.session), settings.API_ID, settings.API_HASH)
+    await client.connect()
+    user = await client.get_me()
+    return user.id
+
+
+async def notify_user(session, msg, dialog_id=0):
+    chat_id = await _get_user(session)
+    METHOD = 'sendMessage'
+    url = "https://api.telegram.org/bot{}/{}".format(settings.BOT_TOKEN, METHOD)
+    body = ''
+    logger.info("sending")
+    if dialog_id != 0:
+        body = {
+            'chat_id': chat_id,
+            'text': msg,
+            'reply_markup': {
+                'inline_keyboard': [[
+                    {
+                        'text': "Cancel message", 'callback_data': f"cancel-{dialog_id}"
+                    }
+                ]]
+            }
+        }
+    else:
+        body = {
+            'chat_id': chat_id,
+            'text': msg,
+        }
+
+    requests.post(url, json=body)

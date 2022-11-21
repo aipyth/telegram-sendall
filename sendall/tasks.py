@@ -9,12 +9,11 @@ import time
 import os
 from contextlib import contextmanager
 from django.core.cache import cache
-from .utils import (_send_message, read_last_messages,
+from .utils import (_send_message, read_last_messages, notify_user,
                     check_substring, get_dialogs_and_user, get_dialogs)
 from telegram_sendall.celery import app as celery_app
 from .models import (SendMessageTask, DeadlineMessageSettings,
                      Session, ReplyMessageTask)
-from .bot import notify_user
 import logging
 logger = logging.getLogger(__name__)
 

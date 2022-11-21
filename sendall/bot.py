@@ -1,9 +1,6 @@
-import asyncio
-import requests
 import pytz
 from datetime import datetime
 from telethon import TelegramClient, events
-from telethon.sessions import StringSession
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
 # from telethon.tl.types import PeerChat
@@ -11,47 +8,17 @@ from .models import Session, ReplyMessageTask, DeadlineMessageSettings
 from django.conf import settings
 import logging
 logger = logging.getLogger(__name__)
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
 bot = TelegramClient(None, settings.API_ID, settings.API_HASH).start(bot_token=settings.BOT_TOKEN)
+
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('telethon').setLevel(logging.CRITICAL)
+
 
 def str_no_none(obj):
     if obj == None:
         return ''
     return str(obj)
 
-async def _get_user(session):
-    client = TelegramClient(StringSession(session.session), settings.API_ID, settings.API_HASH)
-    await client.connect()
-    user = await client.get_me()
-    return user.id
-
-
-async def notify_user(session, msg, dialog_id=0):
-    chat_id = await _get_user(session)
-    METHOD = 'sendMessage'
-    url = "https://api.telegram.org/bot{}/{}".format(settings.BOT_TOKEN, METHOD)
-    body = ''
-    logger.info("sending")
-    if dialog_id != 0:
-        body = {
-            'chat_id': chat_id,
-            'text': msg,
-            'reply_markup': {
-                'inline_keyboard': [[
-                    {
-                        'text': "Cancel message", 'callback_data': f"cancel-{dialog_id}"
-                    }
-                ]]
-            }
-        }
-    else:
-        body = {
-            'chat_id': chat_id,
-            'text': msg,
-        }
-
-    requests.post(url, json=body)
 
 @bot.on(events.NewMessage(pattern="/start"))
 async def start(event):
@@ -60,6 +27,7 @@ async def start(event):
         s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         s.set_bot_settings({'active': True, 'silent': False})
         keys = cache.keys(f"{sender.id}-*")
+        logger.info(keys)
         for key in keys:
             cache.set(key, datetime.now().astimezone(pytz.UTC).isoformat(), timeout=None)
         text = """
