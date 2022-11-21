@@ -158,13 +158,12 @@ async def _check_new_messages():
             entity = await client.get_entity(dialog['id'])
             messages = await read_last_messages(client, entity)
             logger.info(f'Checked {entity.first_name if hasattr(entity, "first_name") else entity.title}')
+            if i <= 11:
+                logger.info(i)
+                i += 1
+                continue
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
-                if i <= 11:
-                    logger.info(i)
-                    i += 1
-                    continue
-                else:
-                    break
+                break
             reply_task = ReplyMessageTask.objects.filter(dialog_id=dialog["id"])
             if len(messages['not-my']) > 0 and len(reply_task) > 0:
                 reply_task.delete()
