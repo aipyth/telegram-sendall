@@ -20,7 +20,7 @@ from telethon.errors import (FloodWaitError, PasswordHashInvalidError,
 from telethon.sessions import StringSession
 from telethon.tl.types import PeerUser
 from telethon.sessions import string as str_session
-from tasks import check_period
+from .tasks import check_period
 
 logger = logging.getLogger(__name__)
 
