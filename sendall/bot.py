@@ -60,7 +60,6 @@ async def start(event):
         s = Session.objects.get(name=str_no_none(sender.first_name) + ' ' + str_no_none(sender.last_name))
         s.set_bot_settings({'active': True, 'silent': False})
         keys = cache.keys(f"{sender.id}-*")
-        logger.info(keys)
         for key in keys:
             cache.set(key, datetime.now().astimezone(pytz.UTC).isoformat(), timeout=None)
         text = """
