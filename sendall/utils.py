@@ -307,7 +307,7 @@ async def read_last_messages(client, entity):
     check_period = cache.get('check_period')
     logger.info(f"Last checked at {lastcheck}")
     logger.info(lastcheck)
-    if lastcheck is not None:
+    if type(lastcheck) == str:
         lastcheck = datetime.fromisoformat(lastcheck)
     else:
         lastcheck = datetime.now(pytz.UTC) - check_period
