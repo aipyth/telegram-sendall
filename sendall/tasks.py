@@ -152,30 +152,32 @@ async def _check_new_messages():
         dialogs, client = await get_dialogs_and_user(session)
         i = 0
         for dialog in dialogs:
+            logger.info(i)
             if in_blacklist(session, dialog):
                 logger.info(f'skipping as in blacklist {dialog}')
                 continue
             entity = await client.get_entity(dialog['id'])
             messages = await read_last_messages(client, entity)
             logger.info(f'Checked {entity.first_name if hasattr(entity, "first_name") else entity.title}')
-            if i <= 11:
-                logger.info(i)
-                i += 1
-                continue
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
-                break
+                if i <= 11:
+                    i += 1
+                    continue
+                else:
+                    break
+
             reply_task = ReplyMessageTask.objects.filter(dialog_id=dialog["id"])
             if len(messages['not-my']) > 0 and len(reply_task) > 0:
                 reply_task.delete()
                 logger.info(f"Session={session}: Denied reply message task to {dialog['name']}")
                 await notify_user(session, f"Denied reply message task to {dialog['name']}")
-                break
+                continue
 
             has_price, price_msg = check_substring(
                 messages['my'], TRIGGER_MESSAGE_CONTAINS)
 
             if not has_price or len(price_msg['text']) > MAX_TRIGGER_MESSAGE_LENGTH:
-                break
+                continue
 
             logger.info("Gor price message")
             logger.info(f"Dialog {dialog['name']}: {price_msg['text']}")
@@ -193,6 +195,7 @@ async def _check_new_messages():
                     await notify_user(
                         session, f"Added reply message task to {dialog['name']}", dialog['id'])
                     break
+
         logger.info(f"Current tasks for Session={session}: {list(ReplyMessageTask.objects.filter(session=session))}")
         reply_notifications = check_for_execution(session, dialogs, deadline_msg_settings)
         if len(reply_notifications) > 0:
