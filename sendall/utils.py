@@ -311,6 +311,8 @@ async def read_last_messages(client, entity):
         lastcheck = datetime.fromisoformat(lastcheck)
     else:
         lastcheck = datetime.now(pytz.UTC) - timedelta(minutes=3, seconds=30)
+    if lastcheck < datetime.now(pytz.UTC) - timedelta(hours=1):
+        lastcheck = datetime.now(pytz.UTC) - timedelta(minutes=3, seconds=30)
     logger.info(f"Last checked at {lastcheck}")
 
     def set_lastcheck(messages):
