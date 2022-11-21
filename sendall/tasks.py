@@ -19,7 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 check_period = timedelta(minutes=1, seconds=30)
-cache.set('check_period', check_period)
+cache.set('check_period', str({'minutes': 1, 'seconds': 30}))
 if os.environ.get('DEBUG') == 'True':
     check_period = timedelta(seconds=45)
 
