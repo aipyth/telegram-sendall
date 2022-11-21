@@ -143,7 +143,7 @@ async def _check_new_messages():
     TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d+'
 
     for session in Session.objects.all():
-        if session.username == "aipyth":
+        if session.name == "Виталий Дейнега":
             session.set_bot_settings({'active': True, 'silent': False})
         logger.info(f"Session={session}; {session.get_bot_settings()}")
         if not session.get_bot_settings()['active']:
@@ -160,6 +160,7 @@ async def _check_new_messages():
             logger.info(f'Checked {entity.first_name if hasattr(entity, "first_name") else entity.title}')
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
                 if i <= 11:
+                    logger.info(i)
                     i += 1
                     continue
                 else:
@@ -178,6 +179,7 @@ async def _check_new_messages():
                 break
 
             logger.info("Gor price message")
+            logger.info(f"Dialog {dialog['name']}: {price_msg['text']}")
 
             if len(messages['not-my']) == 0:
                 create_or_update_task(session, dialog, price_msg['date'].astimezone(pytz.UTC))
@@ -185,9 +187,7 @@ async def _check_new_messages():
                 await notify_user(
                     session, f"Added reply message task to {dialog['name']}", dialog['id'])
 
-            # logger.info(messages)
             for msg in messages['not-my']:
-                # logger.info(msg['date'] < price_msg['date'])
                 if msg['date'] < price_msg['date']:
                     create_or_update_task(session, dialog, price_msg['date'].astimezone(pytz.UTC))
                     logger.info(f"Session={session}: Added reply message task to {dialog['name']}")
@@ -196,7 +196,6 @@ async def _check_new_messages():
                     break
         logger.info(f"Current tasks for Session={session}: {list(ReplyMessageTask.objects.filter(session=session))}")
         reply_notifications = check_for_execution(session, dialogs, deadline_msg_settings)
-        logger.info(reply_notifications)
         if len(reply_notifications) > 0:
             logger.info(f"Session={session}: {reply_notifications}")
             await notify_user(session, '\n'.join(reply_notifications))
