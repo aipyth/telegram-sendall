@@ -131,8 +131,8 @@ def check_for_execution(session, dialogs, deadline_msg_settings):
                 dialog = next(dialog for dialog in dialogs if task.dialog_id == dialog['id'])
             except StopIteration:
                 continue
-            # send_message.delay(
-            #     session.session, [dialog['id']], message, markdown=True)
+            send_message.delay(
+                session.session, [dialog['id']], message, markdown=True)
             task.delete()
             reply_notifications.append(f"Sent reply message to {dialog['name']}, text:\n{message}")
     return reply_notifications
