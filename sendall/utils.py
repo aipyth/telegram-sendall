@@ -304,13 +304,13 @@ def gen_string_session(server_address: str, dc_id: int, port: int, key: bytes) -
 async def read_last_messages(client, entity):
     list_messages = {'my': [], 'not-my': []}
     client_id = (await client.get_me()).id
-    key = f'{client_id}'
+    key = f'{client_id}-{entity.id}'
     # logger.info(key)
     lastcheck = cache.get(key)
     if type(lastcheck) == str:
         lastcheck = datetime.fromisoformat(lastcheck)
     else:
-        lastcheck = datetime.now(pytz.UTC) - timedelta(minutes=3)
+        lastcheck = datetime.now(pytz.UTC) - timedelta(minutes=3, seconds=30)
     logger.info(f"Last checked at {lastcheck}")
 
     def set_lastcheck(messages):
