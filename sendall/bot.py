@@ -29,7 +29,8 @@ async def start(event):
         keys = cache.keys(f"{sender.id}-*")
         logger.info(keys)
         for key in keys:
-            cache.set(key, datetime.now().astimezone(pytz.UTC).isoformat(), timeout=None)
+            res = cache.set(key, datetime.now().astimezone(pytz.UTC).isoformat(), timeout=None)
+            logger.info(res)
         text = """
 Message replying service has been started. You'll get notifications, when the bot will start task
 Bot commands:
