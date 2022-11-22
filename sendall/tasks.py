@@ -140,7 +140,7 @@ def check_for_execution(session, dialogs, deadline_msg_settings):
 
 async def _check_new_messages():
     MAX_TRIGGER_MESSAGE_LENGTH = 100
-    TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d+'
+    TRIGGER_MESSAGE_CONTAINS = '\\d\\d\\d.*\\?\\?$'
 
     for session in Session.objects.all():
         logger.info(f"Session={session}; {session.get_bot_settings()}")
