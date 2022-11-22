@@ -175,7 +175,7 @@ async def _check_new_messages():
             has_price, price_msg = check_substring(
                 messages['my'], TRIGGER_MESSAGE_CONTAINS)
 
-            if not has_price or len(price_msg['text']) > MAX_TRIGGER_MESSAGE_LENGTH:
+            if not has_price:
                 continue
 
             logger.info("Gor price message")
