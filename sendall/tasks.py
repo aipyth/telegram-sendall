@@ -159,7 +159,7 @@ async def _check_new_messages():
             messages = await read_last_messages(client, entity)
             logger.info(f'Checked {entity.first_name if hasattr(entity, "first_name") else entity.title}')
             if len(messages['my']) == 0 and len(messages['not-my']) == 0:
-                if i <= 11:
+                if i <= 20:
                     i += 1
                     continue
                 else:
