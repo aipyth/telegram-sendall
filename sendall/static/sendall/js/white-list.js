@@ -183,11 +183,13 @@ var vue_dialogs = new Vue({
     
   },
     searchText: function(searchText) {
+      const showed = []
       for (i = 0; i < all_dialogs.length; i++) {
         if (all_dialogs[i].name.toLowerCase().includes(searchText.toLowerCase())) {
-            this.current_dialogs.push(all_dialogs[i]);
+            showed.push(all_dialogs[i]);
         }
       }
+      this.current_dialogs = showed
     },
 
   },
