@@ -182,6 +182,13 @@ var vue_dialogs = new Vue({
       });
     
   },
+    searchText: function(searchText) {
+      for (i = 0; i < all_dialogs.length; i++) {
+        if (all_dialogs[i].name.toLowerCase().includes(searchText.toLowerCase())) {
+            this.current_dialogs.push(all_dialogs[i]);
+        }
+      }
+    },
 
   },
   mounted() {
@@ -196,7 +203,7 @@ var vue_dialogs = new Vue({
   
   
   watch: {
-      search_dialogs: function(newSearchText, oldSearchText) {
+      search_dialogs: function(newSearchText) {
           this.current_dialogs.splice(0, this.current_dialogs.length);
           this.searchText(newSearchText);
       }

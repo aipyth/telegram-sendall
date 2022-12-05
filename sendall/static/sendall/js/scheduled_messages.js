@@ -74,7 +74,7 @@ var vue_dialogs = new Vue({
         .catch((error) => console.log(error))
       
     },
-
+  
 
   },
   mounted() {
