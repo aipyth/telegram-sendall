@@ -189,6 +189,7 @@ var vue_dialogs = new Vue({
             showed.push(all_dialogs[i]);
         }
       }
+      console.log("showed dialogs", showed)
       this.current_dialogs = showed
     },
 
