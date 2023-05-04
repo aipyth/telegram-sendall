@@ -10,7 +10,7 @@ var uuidkey = '';
 var get_dialogs_request_sent = false;
 var opened = false
 
-Vue.filter('cutTooLong', function (value) {
+Vue.filter('cutTooLong', function(value) {
     var low_limit = 50;
     var high_limit = 60;
     if (value == null) {
@@ -28,14 +28,14 @@ Vue.filter('cutTooLong', function (value) {
 var vue_dialogs = new Vue({
     el: '#vue-dialogs',
     data() {
-      return{
-        selected_contacts_ids: selected_contacts_ids,
-        all_dialogs: all_dialogs,
-        current_dialogs: [],
-        search_dialogs: '',
-        history: {},
-        loading: false,
-      }
+        return {
+            selected_contacts_ids: selected_contacts_ids,
+            all_dialogs: all_dialogs,
+            current_dialogs: [],
+            search_dialogs: '',
+            history: {},
+            loading: false,
+        }
     },
     methods: {
         getDialogs: function() {
@@ -44,24 +44,24 @@ var vue_dialogs = new Vue({
             this.loading = true;
             if (get_dialogs_request_sent) {
                 axios.post('dialogs/', {
-                        uuidkey: uuidkey
-                    }).then(response => {
-                      
-                        console.log(response);
-                        if (response.data.state == 'not_logged') {
-                            $('#not-logged-modal').modal('show');
-                            this.loading = false;
-                            return;
-                        } else if (response.data.uuidkey) {
-                          
-                            return;
-                        }
-                        for (i = 0; i < response.data.dialogs.length; i++) {
-                            all_dialogs.push(response.data.dialogs[i]);
-                            this.current_dialogs.push(response.data.dialogs[i]);
-                        }
+                    uuidkey: uuidkey
+                }).then(response => {
+
+                    console.log(response);
+                    if (response.data.state == 'not_logged') {
+                        $('#not-logged-modal').modal('show');
                         this.loading = false;
-                    });
+                        return;
+                    } else if (response.data.uuidkey) {
+
+                        return;
+                    }
+                    for (i = 0; i < response.data.dialogs.length; i++) {
+                        all_dialogs.push(response.data.dialogs[i]);
+                        this.current_dialogs.push(response.data.dialogs[i]);
+                    }
+                    this.loading = false;
+                });
             } else {
                 axios.get('dialogs/')
                     .then(response => {
@@ -93,7 +93,7 @@ var vue_dialogs = new Vue({
                 }
             }
         },
-        changeContactsIds: function(new_id){
+        changeContactsIds: function(new_id) {
             this.selected_contacts_ids = new_id
         }
     },
@@ -109,8 +109,8 @@ var vue_dialogs = new Vue({
             // }
         }
     },
-  
-    
+
+
     template: `
 <div class="chats-block">
     <form class="form" style="margin-bottom: 15px;">
@@ -148,6 +148,8 @@ var vue_contacts_lists = new Vue({
         entering_new_list_name: false,
         new_list_name: '',
         show_names: false,
+        show_delete_contact_list_modal: false,
+        contact_list_to_delete: null,
     },
     methods: {
         getLists: function() {
@@ -162,7 +164,7 @@ var vue_contacts_lists = new Vue({
                         idx = this.lists.push(response.data.lists[i]);
                     }
                     this.loading = false;
-            });
+                });
         },
         isSelected: function(item) {
             if (this.selected_list == null)
@@ -185,7 +187,7 @@ var vue_contacts_lists = new Vue({
                 for (i = 0; i < list.list.length; i++) {
                     if (!selected_contacts_ids.includes(list.list[i].id))
                         selected_contacts_ids.push(list.list[i].id);
-                        selected_contacts_for_list.push(list.list[i]);
+                    selected_contacts_for_list.push(list.list[i]);
                 }
             }
             // if this list is already selected - unselect
@@ -257,6 +259,19 @@ var vue_contacts_lists = new Vue({
                 }
             });
         },
+        showDeleteContactsListModal: function(list) {
+            this.contact_list_to_delete = list;
+            $('#confirm-delete-contact-list-modal').modal('show');
+        },
+        cancelDeleteContactsListModal: function() {
+            this.contact_list_to_delete = null;
+            $('#confirm-delete-contact-list-modal').modal('hide');
+        },
+        confirmDeleteContactsListModal: function() {
+            this.deleteContactsList(this.contact_list_to_delete);
+            this.contact_list_to_delete = null;
+            $('#confirm-delete-contact-list-modal').modal('hide');
+        },
     },
     template: `
     <div id='prepared-contacts-list' class="contacts-block">
@@ -268,39 +283,64 @@ var vue_contacts_lists = new Vue({
             </h3>
         </div>
         <button class='btn btn-light btn-block' v-on:click="enterNewListName" v-show="!entering_new_list_name" id="createlist">Create new list from selected contacts</button>
-          <div class="list-name input-group mb-3" v-show="entering_new_list_name">
-            <input type="text" class="form-control" placeholder="Contact List Name" aria-describedby="name-ok" v-model="new_list_name">
-            <div class="input-group-append">
-                <button class="btn btn-dark" type="button" id="name-ok" v-on:click="createContactsList">OK</button>
-            </div>
+        <div class="list-name input-group mb-3" v-show="entering_new_list_name">
+          <input type="text" class="form-control" placeholder="Contact List Name" aria-describedby="name-ok" v-model="new_list_name">
+          <div class="input-group-append">
+              <button class="btn btn-dark" type="button" id="name-ok" v-on:click="createContactsList">OK</button>
           </div>
+        </div>
 
-          <div class="contact" v-for="list in lists" v-on:click="selectList(list)" v-bind:class="{selected: isSelected(list)}">
-            <div class='row'>
-                <div class='col-8 col-md-6'>
-                    <h4>
-                        {{ list.name }}
-                    </h4>
-                </div>
-                <div class='col-4 col-md-6'>
-                  <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="deleteContactsList(list)" title='Delete this list'>
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                  <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="list.show_names = !list.show_names" title="Show list's dialogs">
-                    <span aria-hidden="true">...</span>
-                  </button>
-                  <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="editContactsList(list)" title='Add selected dialogs to this list'>
-                      <span aria-hidden="true">+</span>
-                  </button>
-                </div>
+        <div class="contact" v-for="list in lists" v-on:click="selectList(list)" v-bind:class="{selected: isSelected(list)}">
+          <div class='row'>
+              <div class='col-8 col-md-6'>
+                  <h4>
+                      {{ list.name }}
+                  </h4>
               </div>
-            <div class='row'>
-              <div class='col'>
-                <p class="message" v-show="list.show_names">{{ prepareNames(list.list) }}</p>
+              <div class='col-4 col-md-6'>
+                <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="showDeleteContactsListModal(list)" title='Delete this list'>
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="list.show_names = !list.show_names" title="Show list's dialogs">
+                  <span aria-hidden="true">...</span>
+                </button>
+                <button type="button" class="ml-2 mb-1 close"  v-on:click.capture.stop="editContactsList(list)" title='Add selected dialogs to this list'>
+                    <span aria-hidden="true">+</span>
+                </button>
               </div>
             </div>
+          <div class='row'>
+            <div class='col'>
+              <p class="message" v-show="list.show_names">{{ prepareNames(list.list) }}</p>
+            </div>
           </div>
-      </div>
+        </div>
+
+	    <div class="modal" id="confirm-delete-contact-list-modal"
+             tabindex="-1" role="dialog">
+		    <div class="modal-dialog" role="document">
+			    <div class="modal-content">
+				    <div class="modal-header">
+					    <h5 class="modal-title">Do you really want to delete this contact list?</h5>
+				    </div>
+				    <div class="modal-body">
+                        <p>{{ prepareNames(contact_list_to_delete ? contact_list_to_delete.list : []) }}</p>
+				    </div>
+				    <div class="modal-footer">
+					    <button type="button"
+                                class="btn btn-secondary"
+                                v-on:click.capture.stop="cancelDeleteContactsListModal()"
+                                data-dismiss="modal">Cancel</button>
+					    <button type="button"
+                                class="btn btn-primary"
+                                v-on:click.capture.stop="confirmDeleteContactsListModal()"
+                                data-dismiss="modal">Delete</button>
+				    </div>
+			    </div>
+		    </div>
+	    </div>
+
+    </div>
 `,
 });
 vue_contacts_lists.getLists();
@@ -317,13 +357,13 @@ var vue_messages = new Vue({
         errors: [],
         markdown_help: false,
         activeTasks: [
-          {
-            contacts: [], 
-            time: new Date(),
-            message: "txt",
-            markdown: false,
-            session: 5,
-            uuid: ""
+            {
+                contacts: [],
+                time: new Date(),
+                message: "txt",
+                markdown: false,
+                session: 5,
+                uuid: ""
             }
         ],
         completedTasks: [],
@@ -336,15 +376,15 @@ var vue_messages = new Vue({
         not_selected_chats: false,
     },
     watch: {
-        all_dialogs: function(oldd, newd){
+        all_dialogs: function(oldd, newd) {
             vue_messages.getActiveTasks()
         }
     },
-  
+
 
     methods: {
 
-        stopRequesting: function(){
+        stopRequesting: function() {
             setTimeout(() => {
                 this.request_result = ''
                 this.getActiveTasks()
@@ -354,7 +394,7 @@ var vue_messages = new Vue({
             }, 60000);
         },
 
-        stopRequesting_edit: function(){
+        stopRequesting_edit: function() {
             setTimeout(() => {
                 this.request_edit_result = ''
                 this.getActiveTasks()
@@ -367,7 +407,7 @@ var vue_messages = new Vue({
 
         sendMessage: function() {
             console.log("Selected contacts " + selected_contacts_ids);
-            if (selected_contacts_ids.length != 0){
+            if (selected_contacts_ids.length != 0) {
                 this.requesting = true;
                 this.request_result = '';
                 this.errors = [];
@@ -406,7 +446,7 @@ var vue_messages = new Vue({
                     }
                 });
             }
-            else{
+            else {
                 this.not_selected_chats = true
                 setTimeout(() => {
                     this.not_selected_chats = false
@@ -417,13 +457,13 @@ var vue_messages = new Vue({
 
         this_task_contact_names: function(contacts) {
             selected_contacts = []
-            for (dialog of all_dialogs){
-                if (contacts.includes(dialog.id)){
+            for (dialog of all_dialogs) {
+                if (contacts.includes(dialog.id)) {
                     selected_contacts.push(dialog.name)
                 }
             }
             names = ''
-            for (let i of selected_contacts){
+            for (let i of selected_contacts) {
                 names = names + i + ', '
             }
             return names.slice(0, -2)
@@ -432,14 +472,14 @@ var vue_messages = new Vue({
         GetFormattedDate: function(thisTime) {
             time = new Date(thisTime)
             var month = time.getMonth() + 1
-            if(month < 10){
+            if (month < 10) {
                 nul = '0'
             }
-            else {nul = ''}
+            else { nul = '' }
             var day = time.getDate()
             var year = time.getFullYear()
             var hours = time.getHours()
-            if (hours > 12){
+            if (hours > 12) {
                 hours = hours - 12
                 am_pm = 'PM'
             }
@@ -450,66 +490,66 @@ var vue_messages = new Vue({
             nuld = day < 10 ? '0' : ''
             nulh = hours < 10 ? '0' : ''
             nulm = minutes < 10 ? '0' : ''
-            return nul + month + "/" + nuld + day + "/" + year + ' ' + nulh+ hours + ':' + nulm + minutes + ' ' + am_pm;
-            },
-      
+            return nul + month + "/" + nuld + day + "/" + year + ' ' + nulh + hours + ':' + nulm + minutes + ' ' + am_pm;
+        },
+
         getActiveTasks: function() {
             // if (all_dialogs.length != 0){
-                axios.post('tasks/', {
-                    page: 1,
-                    done: false
-                }).then(response => {
-                    console.log(response)
-                    const tasks = response.data.tasks
+            axios.post('tasks/', {
+                page: 1,
+                done: false
+            }).then(response => {
+                console.log(response)
+                const tasks = response.data.tasks
 
-                    let displayed_tasks = []
-                    for (let item of tasks){
-                        taskich = {
-                            contacts: item.contacts, 
-                            time: this.GetFormattedDate(item.eta),
-                            message: item.message,
-                            markdown: item.markdown,
-                            session: item.session,
-                            uuid: item.uuid
-                            }
-                        displayed_tasks.push(taskich)
-                        }
-                    this.activeTasks = displayed_tasks
-                })
-            
+                let displayed_tasks = []
+                for (let item of tasks) {
+                    taskich = {
+                        contacts: item.contacts,
+                        time: this.GetFormattedDate(item.eta),
+                        message: item.message,
+                        markdown: item.markdown,
+                        session: item.session,
+                        uuid: item.uuid
+                    }
+                    displayed_tasks.push(taskich)
+                }
+                this.activeTasks = displayed_tasks
+            })
+
         },
 
 
         getCompletedTasks: function() {
             // if (all_dialogs.length != 0){
-                axios.post('tasks/', {
-                    uuidkey: uuidkey,
-                    page: this.completed_page,
-                    done: true
-                }).then(response => {
-                    console.log(response)
-                    const tasks = response.data.tasks
-                    let completed_tasks = []
-                    for (let item of tasks){
-                        taskich = {
-                            contacts: item.contacts, 
-                            time: this.GetFormattedDate(item.eta),
-                            message: item.message,
-                            markdown: item.markdown,
-                            session: item.session,
-                            uuid: item.uuid
-                            }
-                        completed_tasks.push(taskich)
-                        }
-                    this.completedTasks = completed_tasks
-                })
+            axios.post('tasks/', {
+                uuidkey: uuidkey,
+                page: this.completed_page,
+                done: true
+            }).then(response => {
+                console.log(response)
+                const tasks = response.data.tasks
+                let completed_tasks = []
+                for (let item of tasks) {
+                    taskich = {
+                        contacts: item.contacts,
+                        time: this.GetFormattedDate(item.eta),
+                        message: item.message,
+                        markdown: item.markdown,
+                        session: item.session,
+                        uuid: item.uuid
+                    }
+                    completed_tasks.push(taskich)
+                }
+                this.completedTasks = completed_tasks
+            })
             // }
             // else {
             //     console.log("Contacts isn't loaded yet")
             // }
         },
 
-        getNextTasks: function (isnext) {
+        getNextTasks: function(isnext) {
             this.right = isnext
             var has_next = false
             var pagesCount = 0
@@ -522,7 +562,7 @@ var vue_messages = new Vue({
                 console.log(response)
                 has_next = response.data.has_next_page
                 pagesCount = response.data.num_pages
-                if (isnext){
+                if (isnext) {
                     this.completed_page = has_next ? this.completed_page + 1 : 1
                 }
                 else {
@@ -530,38 +570,37 @@ var vue_messages = new Vue({
                 }
                 this.getCompletedTasks()
                 setTimeout(() => {
-                    document.getElementById('completes-modal-title').scrollIntoView({behavior: "smooth"})
+                    document.getElementById('completes-modal-title').scrollIntoView({ behavior: "smooth" })
                 }, 150);
             })
         },
 
         deleteTask: function(task) {
-          axios.delete('tasks/', {
-              data:{
-              uuid: task.uuid
-              } 
-          }).then(response => {
-            if(response.status == 200)
-            {
-              id = this.activeTasks.indexOf(task)
-              this.activeTasks.splice(id, 1)
-              this.stopRequesting_edit()
-            }
-          })
+            axios.delete('tasks/', {
+                data: {
+                    uuid: task.uuid
+                }
+            }).then(response => {
+                if (response.status == 200) {
+                    id = this.activeTasks.indexOf(task)
+                    this.activeTasks.splice(id, 1)
+                    this.stopRequesting_edit()
+                }
+            })
         },
 
-        editTask: function(task){
-            if (task != this.selected){
-            if(!opened){
-                open()
-            }
-            this.isEditing = true
-            this.selected = task
-            this.message = task.message
-            this.markdown = task.markdown
-            this.time_to_execute = task.time
-            selected_contacts_ids = task.contacts
-            vue_dialogs.changeContactsIds(task.contacts)
+        editTask: function(task) {
+            if (task != this.selected) {
+                if (!opened) {
+                    open()
+                }
+                this.isEditing = true
+                this.selected = task
+                this.message = task.message
+                this.markdown = task.markdown
+                this.time_to_execute = task.time
+                selected_contacts_ids = task.contacts
+                vue_dialogs.changeContactsIds(task.contacts)
             }
             else {
                 this.isEditing = false
@@ -572,7 +611,7 @@ var vue_messages = new Vue({
                 vue_dialogs.changeContactsIds([])
             }
         },
-        editMessage: function(){
+        editMessage: function() {
             this.requesting = true
             if (this.$refs.exec_datetime.value) {
                 exec_datetime = new Date(this.$refs.exec_datetime.value);
@@ -599,12 +638,12 @@ var vue_messages = new Vue({
     },
 
     computed: {
-        direction: function(){
-            if(this.right) return 'show_horiz_right'
-            else if(!this.right) return 'show_horiz_left'
+        direction: function() {
+            if (this.right) return 'show_horiz_right'
+            else if (!this.right) return 'show_horiz_left'
         }
     },
-    
+
 
     template: `
 <div id="msgs" style='position: relative;'>
@@ -805,50 +844,49 @@ function open() {
 }
 
 $("#chat-hideshow").on('click', open)
-$("#createlist").on('click', function () {
-    if (!opened) 
-    {
+$("#createlist").on('click', function() {
+    if (!opened) {
         open()
         $("#createlist").css("display", "none")
         $(".list-name").css("display", "flex")
     }
-    else{
+    else {
 
         $("#createlist").css("display", "none")
         $(".list-name").css("display", "flex")
     }
 })
 
-$(document).on("click", "#collapsing_button", function(ev){
+$(document).on("click", "#collapsing_button", function(ev) {
     elem = $(this).attr('target')
-        if($(elem).hasClass('hidden')){
-            $(elem).removeClass('hidden')
-        }
-        else{
-            $(elem).addClass('hidden')
-        }
+    if ($(elem).hasClass('hidden')) {
+        $(elem).removeClass('hidden')
+    }
+    else {
+        $(elem).addClass('hidden')
+    }
 })
 
 $("#pills-sched-tab").on("click", function() {
-  $("#pills-reply-tab").removeClass('active')
-  $("#pills-sched-tab").addClass('active')
-  $("#dials").removeClass('d-none')
-  $("#msgs").removeClass('d-none')
-  $("#whlist").addClass('d-none')
-  $("#blanks").addClass('d-none')
+    $("#pills-reply-tab").removeClass('active')
+    $("#pills-sched-tab").addClass('active')
+    $("#dials").removeClass('d-none')
+    $("#msgs").removeClass('d-none')
+    $("#whlist").addClass('d-none')
+    $("#blanks").addClass('d-none')
 })
 
 $("#pills-reply-tab").on("click", function() {
-  $("#pills-sched-tab").removeClass('active')
-  $("#pills-reply-tab").addClass('active')
-  $("#dials").addClass('d-none')
-  $("#msgs").addClass('d-none')
-  $("#whlist").removeClass('d-none')
-  $("#blanks").removeClass('d-none')
+    $("#pills-sched-tab").removeClass('active')
+    $("#pills-reply-tab").addClass('active')
+    $("#dials").addClass('d-none')
+    $("#msgs").addClass('d-none')
+    $("#whlist").removeClass('d-none')
+    $("#blanks").removeClass('d-none')
 })
 
 // Date and time picker initialize
-$(function () {
+$(function() {
     $('#exec-datetime').datetimepicker({
         icons: {
             time: 'far fa-clock',
@@ -862,5 +900,5 @@ $(function () {
             close: 'fas fa-times'
         }
     });
-        vue_messages.getActiveTasks()
-    });
+    vue_messages.getActiveTasks()
+});
