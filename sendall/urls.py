@@ -1,7 +1,11 @@
 from django.urls import path, re_path
 from django.contrib.auth import views as auth_views
 
-from .views import SessionList, SessionDetail, SessionAdd, ChangePasswordView, SignUpView, dialogs, send_message, get_contacts_list, add_contacts_list, edit_contacts_list, delete_contacts_list, get_tasks, get_app_id_hash, create_session, deadline_message_settings, deadline_message_text, deadline_message_time, user_blacklist
+from .views import (SessionList, SessionDetail, SessionAdd, ChangePasswordView,
+                    SignUpView, dialogs, send_message, get_contacts_list, add_contacts_list,
+                    edit_contacts_list, delete_contacts_list, get_tasks, get_app_id_hash,
+                    create_session, deadline_message_settings, deadline_message_text,
+                    deadline_message_time, user_blacklist, dump_contacts_lists, load_contacts_lists)
 
 
 urlpatterns = [
@@ -14,6 +18,8 @@ urlpatterns = [
     path('sessions/<int:pk>/add-contacts-list/', add_contacts_list),
     path('sessions/<int:pk>/edit-contacts-list/', edit_contacts_list),
     path('sessions/<int:pk>/delete-contacts-list/', delete_contacts_list),
+    path('sessions/<int:pk>/dump-contacts-lists/', dump_contacts_lists),
+    path('sessions/<int:pk>/load-contacts-lists/', load_contacts_lists),
     path('sessions/<int:pk>/deadline_message_settings/', deadline_message_settings),
     path('sessions/<int:pk>/add_deadline_message_text/', deadline_message_text),
     path('sessions/<int:pk>/add_deadline_message_time/', deadline_message_time),

@@ -150,6 +150,7 @@ var vue_contacts_lists = new Vue({
         show_names: false,
         show_delete_contact_list_modal: false,
         contact_list_to_delete: null,
+        csrfToken: csrfToken,
     },
     methods: {
         getLists: function() {
@@ -252,6 +253,7 @@ var vue_contacts_lists = new Vue({
         deleteContactsList: function(list) {
             axios.post('delete-contacts-list/', {
                 'strlist': list.strlist,
+                'id': list.id,
             }).then((response) => {
                 if (response.data.state == 'ok') {
                     this.lists.splice(0, this.lists.length);
@@ -272,6 +274,12 @@ var vue_contacts_lists = new Vue({
             this.contact_list_to_delete = null;
             $('#confirm-delete-contact-list-modal').modal('hide');
         },
+        showUploadContactsListsModal: function() {
+            $('#upload-contacts-lists-modal').modal('show');
+        },
+        hideUploadContactsListsModal: function() {
+            $('#upload-contacts-lists-modal').modal('hide');
+        },
     },
     template: `
     <div id='prepared-contacts-list' class="contacts-block">
@@ -282,7 +290,13 @@ var vue_contacts_lists = new Vue({
                 </div> 
             </h3>
         </div>
-        <button class='btn btn-light btn-block' v-on:click="enterNewListName" v-show="!entering_new_list_name" id="createlist">Create new list from selected contacts</button>
+
+        <div class="d-flex w-100 flex-row flex-fill justify-content-between align-content-between">
+            <button class='btn btn-outline-dark h-100 flex-fill m-2' v-on:click="enterNewListName" v-show="!entering_new_list_name" id="createlist">Create new list from selected contacts</button>
+            <a class='btn btn-outline-success h-100 m-2' v-show="!entering_new_list_name" href="dump-contacts-lists/" download>Download Lists</a>
+            <button class='btn btn-outline-warning h-100 m-2' v-on:click="showUploadContactsListsModal" v-show="!entering_new_list_name">Upload Lists</a>
+        </div>
+
         <div class="list-name input-group mb-3" v-show="entering_new_list_name">
           <input type="text" class="form-control" placeholder="Contact List Name" aria-describedby="name-ok" v-model="new_list_name">
           <div class="input-group-append">
@@ -335,6 +349,38 @@ var vue_contacts_lists = new Vue({
                                 class="btn btn-primary"
                                 v-on:click.capture.stop="confirmDeleteContactsListModal()"
                                 data-dismiss="modal">Delete</button>
+				    </div>
+			    </div>
+		    </div>
+	    </div>
+
+
+	    <div class="modal" id="upload-contacts-lists-modal"
+             tabindex="-1" role="dialog">
+		    <div class="modal-dialog" role="document">
+			    <div class="modal-content">
+				    <div class="modal-header">
+					    <h5 class="modal-title">Upload contacts lists from JSON file</h5>
+				    </div>
+				    <div class="modal-body">
+                        <form action="load-contacts-lists/" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                            <input type="hidden" name="csrfmiddlewaretoken" :value="csrfToken">
+                            <div class="form-group">
+                                <label for="file">Select File</label>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="file" name="file" required>
+                                    <label class="custom-file-label" for="my_file">Choose file</label>
+                                    <div class="invalid-feedback">Please choose a file.</div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Upload</button>
+                        </form>
+				    </div>
+				    <div class="modal-footer">
+					    <button type="button"
+                                class="btn btn-secondary btn-block"
+                                v-on:click.capture.stop="hideUploadContactsListsModal"
+                                data-dismiss="modal">Close</button>
 				    </div>
 			    </div>
 		    </div>

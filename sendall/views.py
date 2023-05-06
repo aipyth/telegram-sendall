@@ -1,3 +1,13 @@
+from telegram_sendall.celery import app as celery_app
+from celery.result import AsyncResult
+from . import tasks
+from .models import Session, TelegramUser, ContactsList, SendMessageTask, DeadlineMessageSettings
+from .forms import SessionAddForm, SignUpForm, ChangePasswordForm
+from . import utils
+from django.core import serializers
+from django.core.paginator import Paginator
+from django.views.generic import DetailView, ListView, View
+from django.shortcuts import get_object_or_404, redirect, render
 import json
 import logging
 import datetime
@@ -6,21 +16,12 @@ from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseForbidden, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.generic import DetailView, ListView, View
-from django.core.paginator import Paginator
+from django.http import (HttpResponseForbidden, JsonResponse, HttpResponse,
+                         FileResponse, HttpResponseRedirect)
 
 # import celery
 
-from . import utils
-from .forms import SessionAddForm, SignUpForm, ChangePasswordForm
-from .models import Session, TelegramUser, ContactsList, SendMessageTask, DeadlineMessageSettings
 # from uuid import uuid4
-from . import tasks
-from celery.result import AsyncResult
-
-from telegram_sendall.celery import app as celery_app
 
 
 if settings.DEBUG:
@@ -191,7 +192,8 @@ def create_session(request):
                 session=session,
                 user=request.user.telegramuser,
                 username=data.get('username'),
-                name=utils.str_no_none(data.get('firstname')) + ' ' + utils.str_no_none(data.get('lastname')),
+                name=utils.str_no_none(
+                    data.get('firstname')) + ' ' + utils.str_no_none(data.get('lastname')),
                 phone=data['phone'],
                 active=True,
             )
@@ -208,7 +210,8 @@ def create_session(request):
 def dialogs(request, pk, *args, **kwargs):
     session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
     if request.method == 'GET':
-        logger.debug("Get_dialogs request from {} | {}".format(session, request.user))
+        logger.debug("Get_dialogs request from {} | {}".format(
+            session, request.user))
         task = tasks.get_dialogs_task.delay(session.session)
         task_id = task.task_id
         return JsonResponse({'uuidkey': task_id})
@@ -218,7 +221,8 @@ def dialogs(request, pk, *args, **kwargs):
         if task_id:
             task = AsyncResult(id=task_id)
             if task.state == 'SUCCESS':
-                logger.debug("Sending active dialogs {} to {}".format(session, request.user))
+                logger.debug("Sending active dialogs {} to {}".format(
+                    session, request.user))
                 dialogs = task.get()
                 if dialogs[0].get('not_logged'):
                     session.delete()
@@ -232,44 +236,81 @@ def dialogs(request, pk, *args, **kwargs):
 def send_message(request, pk, *args, **kwargs):
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
-        session = get_object_or_404(Session, id=pk, user=request.user.telegramuser)
+        session = get_object_or_404(
+            Session, id=pk, user=request.user.telegramuser)
         if not session:
             return HttpResponseForbidden()
         if not data.get('contacts'):
             return JsonResponse({'state': 'error', 'errors': ['No contacts selected']})
-        logger.debug("Sending message from {} to {}".format(session, data.get('contacts')))
+        logger.debug("Sending message from {} to {}".format(
+            session, data.get('contacts')))
         contacts = list(set(data.get('contacts')))
         if data.get('datetime'):
             try:
-                exec_time = datetime.datetime.strptime(data.get('datetime'), "%Y-%m-%dT%H:%M:%S.%f%z")
+                exec_time = datetime.datetime.strptime(
+                    data.get('datetime'), "%Y-%m-%dT%H:%M:%S.%f%z")
             except ValueError:
                 return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
-            response = tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
+            response = tasks.send_message.apply_async((session.session, contacts, data.get(
+                'message'), data.get('markdown')), eta=exec_time)
             # logger.debug(f"response = {response}. {response.id}")
-            SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
+            SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(
+                contacts), message=data.get('message'), markdown=data.get('markdown'))
         else:
-            response = tasks.send_message.delay(session.session, contacts, data.get('message'), data.get('markdown'))
+            response = tasks.send_message.delay(
+                session.session, contacts, data.get('message'), data.get('markdown'))
             # logger.debug(f"response = {response}. {response.id}")
-            SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=None, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
+            SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=None, contacts=str(
+                contacts), message=data.get('message'), markdown=data.get('markdown'))
         # return utils.send_message(session, contacts, data.get('message'), data.get('markdown'))
 
         return JsonResponse({'state': 'ok'})
     return HttpResponseForbidden()
 
+
 def get_contacts_list(request, pk):
     session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
     lists = [{
+        'id': l.id,
         'name': l.name,
         'list': l.get_list(),
         'strlist': l.contacts_list,
     } for l in session.contacts_lists.all()]
-    logger.debug("Sending contacts lists from {} to {}".format(session, request.user))
+    logger.debug("Sending contacts lists from {} to {}".format(
+        session, request.user))
     return JsonResponse({'lists': lists})
+
+
+def dump_contacts_lists(request, pk):
+    session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
+    data = serializers.serialize('json', session.contacts_lists.all())
+    response = FileResponse(data)
+    response['Content-Disposition'] = f"attachment; \
+    filename=\"{session.name}-contacts-lists.json\""
+    return response
+
+
+def load_contacts_lists(request, pk):
+    if request.method == 'POST':
+        session = get_object_or_404(
+            Session, pk=pk, user=request.user.telegramuser)
+        lists_file = request.FILES.get('file')
+        contents = lists_file.read()
+        for obj in serializers.deserialize('json', contents, ignorenonexistent=True):
+            ContactsList.objects.create(
+                session=session,
+                name=obj.object.name,
+                contacts_list=obj.object.contacts_list,
+            )
+            logger.debug(f"Loaded and created contacts list {obj.object.name} \
+            with {len(eval(obj.object.contacts_list))} contacts")
+        return HttpResponseRedirect(reverse('session-detail', args=[pk]))
 
 
 def add_contacts_list(request, pk):
     if request.method == 'POST':
-        session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
+        session = get_object_or_404(
+            Session, pk=pk, user=request.user.telegramuser)
         data = json.loads(request.body.decode('utf-8'))
 
         name = data.get('name')
@@ -281,9 +322,11 @@ def add_contacts_list(request, pk):
             } for contact in raw_contacts_list]
             str_list = str(contacts_list)
 
-            db_contacts_list = session.contacts_lists.filter(contacts_list=str_list)
+            db_contacts_list = session.contacts_lists.filter(
+                contacts_list=str_list)
             if len(db_contacts_list) == 0:
-                cl = ContactsList(name=name, contacts_list=str_list, session=session)
+                cl = ContactsList(
+                    name=name, contacts_list=str_list, session=session)
                 cl.save()
             return JsonResponse({'state': 'ok'})
     return HttpResponseForbidden()
@@ -291,7 +334,8 @@ def add_contacts_list(request, pk):
 
 def edit_contacts_list(request, pk):
     if request.method == 'POST':
-        session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
+        session = get_object_or_404(
+            Session, pk=pk, user=request.user.telegramuser)
         data = json.loads(request.body.decode('utf-8'))
 
         name = data.get('name')
@@ -311,9 +355,11 @@ def edit_contacts_list(request, pk):
             } for contact in added]
             # we need to do this to remove duplicates that might occur
             # and this list has all dialogs, old and new ones
-            all_list = [dict(t) for t in {tuple(inner_list_dict.items()) for inner_list_dict in contacts_list + added_contacts_list}]
+            all_list = [dict(t) for t in {tuple(inner_list_dict.items(
+            )) for inner_list_dict in contacts_list + added_contacts_list}]
             all_str_list = str(all_list)
-            db_contacts_list = session.contacts_lists.filter(contacts_list=str_list)
+            db_contacts_list = session.contacts_lists.filter(
+                contacts_list=str_list)
             # if len(db_contacts_list) == 1:
             try:
                 cl = db_contacts_list[0]
@@ -327,13 +373,23 @@ def edit_contacts_list(request, pk):
 
 
 def delete_contacts_list(request, pk):
+    logger.debug(request)
     if request.method == 'POST':
-        session = get_object_or_404(Session, pk=pk, user=request.user.telegramuser)
+        session = get_object_or_404(
+            Session, pk=pk, user=request.user.telegramuser)
         data = json.loads(request.body.decode('utf-8'))
+        logger.debug(data)
+
+        id = data.get('id')
+        if id:
+            list = get_object_or_404(ContactsList, id=id)
+            list.delete()
+            return JsonResponse({'state': 'ok'})
 
         strlist = data.get('strlist')
         if strlist:
-            cl = ContactsList.objects.filter(contacts_list=strlist, session=session)
+            cl = ContactsList.objects.filter(
+                contacts_list=strlist, session=session)
             if len(cl) == 1:
                 cl[0].delete()
                 return JsonResponse({'state': 'ok'})
@@ -362,8 +418,10 @@ def get_tasks(request, pk, *args, **kwargs):
             'uuid': data.get('uuid'),
             'done': data.get('done'),
         }
-        task_query = dict(filter(lambda x: x[1] is not None, task_query.items()))
-        tasks_list = SendMessageTask.objects.filter(master=request.user, **task_query).order_by('-eta')
+        task_query = dict(
+            filter(lambda x: x[1] is not None, task_query.items()))
+        tasks_list = SendMessageTask.objects.filter(
+            master=request.user, **task_query).order_by('-eta')
         paginator = Paginator(tasks_list, 5)
         page_number = int(data.get('page'))
         page = paginator.page(page_number)
@@ -399,7 +457,8 @@ def get_tasks(request, pk, *args, **kwargs):
             all_tasks.delete()
             return JsonResponse({'state': 'ok'})
         if data.get('clear-unactive'):
-            all_tasks = SendMessageTask.objects.filter(session__id=pk, done=True)
+            all_tasks = SendMessageTask.objects.filter(
+                session__id=pk, done=True)
             # for task in all_tasks:
             #     celery_app.control.revoke(task.uuid)
             all_tasks.delete()
@@ -413,11 +472,14 @@ def get_tasks(request, pk, *args, **kwargs):
         session = Session.objects.get(id=data.get('session').get('id'))
         contacts = list(set(data.get('contacts')))
         try:
-            exec_time = datetime.datetime.strptime(data.get('eta'), "%Y-%m-%dT%H:%M:%S.%f%z")
+            exec_time = datetime.datetime.strptime(
+                data.get('eta'), "%Y-%m-%dT%H:%M:%S.%f%z")
         except ValueError:
             return JsonResponse({'state': 'error', 'errors': ['Invalid date and time format']})
-        response = tasks.send_message.apply_async((session.session, contacts, data.get('message'), data.get('markdown')), eta=exec_time)
-        task = SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(contacts), message=data.get('message'), markdown=data.get('markdown'))
+        response = tasks.send_message.apply_async((session.session, contacts, data.get(
+            'message'), data.get('markdown')), eta=exec_time)
+        task = SendMessageTask.objects.create(uuid=response.id, master=request.user, session=session, eta=exec_time, contacts=str(
+            contacts), message=data.get('message'), markdown=data.get('markdown'))
         SendMessageTask.objects.filter(uuid=uuid).delete()
         return JsonResponse({'task': utils.pre_serialize_tasks([task])})
     return HttpResponseForbidden()
